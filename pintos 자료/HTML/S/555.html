@@ -1,0 +1,179 @@
+<html>
+<head>
+<title>src/tests/threads/mlfqs-load-60.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/mlfqs-load-60.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L115'>[^]</a><a href='#L144'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L115' title='Defined at 115.'>test_mlfqs_load_60</a>
+<li><a href='#L144' title='Defined at 144.'>load_thread</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Starts 60 threads that each sleep for 10 seconds, then spin in</font></i>
+<a name='L2'>   2 <i><font color='green'>   a tight loop for 60 seconds, and sleep for another 60 seconds.</font></i>
+<a name='L3'>   3 <i><font color='green'>   Every 2 seconds after the initial sleep, the main thread</font></i>
+<a name='L4'>   4 <i><font color='green'>   prints the load average.</font></i>
+<a name='L5'>   5 <i><font color='green'></font></i>
+<a name='L6'>   6 <i><font color='green'>   The expected output is this (some margin of error is allowed):</font></i>
+<a name='L7'>   7 <i><font color='green'></font></i>
+<a name='L8'>   8 <i><font color='green'>   After 0 seconds, load average=1.00.</font></i>
+<a name='L9'>   9 <i><font color='green'>   After 2 seconds, load average=2.95.</font></i>
+<a name='L10'>  10 <i><font color='green'>   After 4 seconds, load average=4.84.</font></i>
+<a name='L11'>  11 <i><font color='green'>   After 6 seconds, load average=6.66.</font></i>
+<a name='L12'>  12 <i><font color='green'>   After 8 seconds, load average=8.42.</font></i>
+<a name='L13'>  13 <i><font color='green'>   After 10 seconds, load average=10.13.</font></i>
+<a name='L14'>  14 <i><font color='green'>   After 12 seconds, load average=11.78.</font></i>
+<a name='L15'>  15 <i><font color='green'>   After 14 seconds, load average=13.37.</font></i>
+<a name='L16'>  16 <i><font color='green'>   After 16 seconds, load average=14.91.</font></i>
+<a name='L17'>  17 <i><font color='green'>   After 18 seconds, load average=16.40.</font></i>
+<a name='L18'>  18 <i><font color='green'>   After 20 seconds, load average=17.84.</font></i>
+<a name='L19'>  19 <i><font color='green'>   After 22 seconds, load average=19.24.</font></i>
+<a name='L20'>  20 <i><font color='green'>   After 24 seconds, load average=20.58.</font></i>
+<a name='L21'>  21 <i><font color='green'>   After 26 seconds, load average=21.89.</font></i>
+<a name='L22'>  22 <i><font color='green'>   After 28 seconds, load average=23.15.</font></i>
+<a name='L23'>  23 <i><font color='green'>   After 30 seconds, load average=24.37.</font></i>
+<a name='L24'>  24 <i><font color='green'>   After 32 seconds, load average=25.54.</font></i>
+<a name='L25'>  25 <i><font color='green'>   After 34 seconds, load average=26.68.</font></i>
+<a name='L26'>  26 <i><font color='green'>   After 36 seconds, load average=27.78.</font></i>
+<a name='L27'>  27 <i><font color='green'>   After 38 seconds, load average=28.85.</font></i>
+<a name='L28'>  28 <i><font color='green'>   After 40 seconds, load average=29.88.</font></i>
+<a name='L29'>  29 <i><font color='green'>   After 42 seconds, load average=30.87.</font></i>
+<a name='L30'>  30 <i><font color='green'>   After 44 seconds, load average=31.84.</font></i>
+<a name='L31'>  31 <i><font color='green'>   After 46 seconds, load average=32.77.</font></i>
+<a name='L32'>  32 <i><font color='green'>   After 48 seconds, load average=33.67.</font></i>
+<a name='L33'>  33 <i><font color='green'>   After 50 seconds, load average=34.54.</font></i>
+<a name='L34'>  34 <i><font color='green'>   After 52 seconds, load average=35.38.</font></i>
+<a name='L35'>  35 <i><font color='green'>   After 54 seconds, load average=36.19.</font></i>
+<a name='L36'>  36 <i><font color='green'>   After 56 seconds, load average=36.98.</font></i>
+<a name='L37'>  37 <i><font color='green'>   After 58 seconds, load average=37.74.</font></i>
+<a name='L38'>  38 <i><font color='green'>   After 60 seconds, load average=37.48.</font></i>
+<a name='L39'>  39 <i><font color='green'>   After 62 seconds, load average=36.24.</font></i>
+<a name='L40'>  40 <i><font color='green'>   After 64 seconds, load average=35.04.</font></i>
+<a name='L41'>  41 <i><font color='green'>   After 66 seconds, load average=33.88.</font></i>
+<a name='L42'>  42 <i><font color='green'>   After 68 seconds, load average=32.76.</font></i>
+<a name='L43'>  43 <i><font color='green'>   After 70 seconds, load average=31.68.</font></i>
+<a name='L44'>  44 <i><font color='green'>   After 72 seconds, load average=30.63.</font></i>
+<a name='L45'>  45 <i><font color='green'>   After 74 seconds, load average=29.62.</font></i>
+<a name='L46'>  46 <i><font color='green'>   After 76 seconds, load average=28.64.</font></i>
+<a name='L47'>  47 <i><font color='green'>   After 78 seconds, load average=27.69.</font></i>
+<a name='L48'>  48 <i><font color='green'>   After 80 seconds, load average=26.78.</font></i>
+<a name='L49'>  49 <i><font color='green'>   After 82 seconds, load average=25.89.</font></i>
+<a name='L50'>  50 <i><font color='green'>   After 84 seconds, load average=25.04.</font></i>
+<a name='L51'>  51 <i><font color='green'>   After 86 seconds, load average=24.21.</font></i>
+<a name='L52'>  52 <i><font color='green'>   After 88 seconds, load average=23.41.</font></i>
+<a name='L53'>  53 <i><font color='green'>   After 90 seconds, load average=22.64.</font></i>
+<a name='L54'>  54 <i><font color='green'>   After 92 seconds, load average=21.89.</font></i>
+<a name='L55'>  55 <i><font color='green'>   After 94 seconds, load average=21.16.</font></i>
+<a name='L56'>  56 <i><font color='green'>   After 96 seconds, load average=20.46.</font></i>
+<a name='L57'>  57 <i><font color='green'>   After 98 seconds, load average=19.79.</font></i>
+<a name='L58'>  58 <i><font color='green'>   After 100 seconds, load average=19.13.</font></i>
+<a name='L59'>  59 <i><font color='green'>   After 102 seconds, load average=18.50.</font></i>
+<a name='L60'>  60 <i><font color='green'>   After 104 seconds, load average=17.89.</font></i>
+<a name='L61'>  61 <i><font color='green'>   After 106 seconds, load average=17.30.</font></i>
+<a name='L62'>  62 <i><font color='green'>   After 108 seconds, load average=16.73.</font></i>
+<a name='L63'>  63 <i><font color='green'>   After 110 seconds, load average=16.17.</font></i>
+<a name='L64'>  64 <i><font color='green'>   After 112 seconds, load average=15.64.</font></i>
+<a name='L65'>  65 <i><font color='green'>   After 114 seconds, load average=15.12.</font></i>
+<a name='L66'>  66 <i><font color='green'>   After 116 seconds, load average=14.62.</font></i>
+<a name='L67'>  67 <i><font color='green'>   After 118 seconds, load average=14.14.</font></i>
+<a name='L68'>  68 <i><font color='green'>   After 120 seconds, load average=13.67.</font></i>
+<a name='L69'>  69 <i><font color='green'>   After 122 seconds, load average=13.22.</font></i>
+<a name='L70'>  70 <i><font color='green'>   After 124 seconds, load average=12.78.</font></i>
+<a name='L71'>  71 <i><font color='green'>   After 126 seconds, load average=12.36.</font></i>
+<a name='L72'>  72 <i><font color='green'>   After 128 seconds, load average=11.95.</font></i>
+<a name='L73'>  73 <i><font color='green'>   After 130 seconds, load average=11.56.</font></i>
+<a name='L74'>  74 <i><font color='green'>   After 132 seconds, load average=11.17.</font></i>
+<a name='L75'>  75 <i><font color='green'>   After 134 seconds, load average=10.80.</font></i>
+<a name='L76'>  76 <i><font color='green'>   After 136 seconds, load average=10.45.</font></i>
+<a name='L77'>  77 <i><font color='green'>   After 138 seconds, load average=10.10.</font></i>
+<a name='L78'>  78 <i><font color='green'>   After 140 seconds, load average=9.77.</font></i>
+<a name='L79'>  79 <i><font color='green'>   After 142 seconds, load average=9.45.</font></i>
+<a name='L80'>  80 <i><font color='green'>   After 144 seconds, load average=9.13.</font></i>
+<a name='L81'>  81 <i><font color='green'>   After 146 seconds, load average=8.83.</font></i>
+<a name='L82'>  82 <i><font color='green'>   After 148 seconds, load average=8.54.</font></i>
+<a name='L83'>  83 <i><font color='green'>   After 150 seconds, load average=8.26.</font></i>
+<a name='L84'>  84 <i><font color='green'>   After 152 seconds, load average=7.98.</font></i>
+<a name='L85'>  85 <i><font color='green'>   After 154 seconds, load average=7.72.</font></i>
+<a name='L86'>  86 <i><font color='green'>   After 156 seconds, load average=7.47.</font></i>
+<a name='L87'>  87 <i><font color='green'>   After 158 seconds, load average=7.22.</font></i>
+<a name='L88'>  88 <i><font color='green'>   After 160 seconds, load average=6.98.</font></i>
+<a name='L89'>  89 <i><font color='green'>   After 162 seconds, load average=6.75.</font></i>
+<a name='L90'>  90 <i><font color='green'>   After 164 seconds, load average=6.53.</font></i>
+<a name='L91'>  91 <i><font color='green'>   After 166 seconds, load average=6.31.</font></i>
+<a name='L92'>  92 <i><font color='green'>   After 168 seconds, load average=6.10.</font></i>
+<a name='L93'>  93 <i><font color='green'>   After 170 seconds, load average=5.90.</font></i>
+<a name='L94'>  94 <i><font color='green'>   After 172 seconds, load average=5.70.</font></i>
+<a name='L95'>  95 <i><font color='green'>   After 174 seconds, load average=5.52.</font></i>
+<a name='L96'>  96 <i><font color='green'>   After 176 seconds, load average=5.33.</font></i>
+<a name='L97'>  97 <i><font color='green'>   After 178 seconds, load average=5.16.</font></i>
+<a name='L98'>  98 <i><font color='green'>*/</font></i>
+<a name='L99'>  99 
+<a name='L100'> 100 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L101'> 101 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L102'> 102 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L103'> 103 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L104'> 104 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L105'> 105 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L106'> 106 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L107'> 107 
+<a name='L108'> 108 <b>static</b> <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> start_time;
+<a name='L109'> 109 
+<a name='L110'> 110 <b>static</b> <b>void</b> <a href='../D/726.html' title='Multiple defined in 3 places.'>load_thread</a> (<b>void</b> *aux);
+<a name='L111'> 111 
+<a name='L112'> 112 <font color='darkred'>#define</font> <a href='../R/230.html' title='Multiple refered from 13 places.'>THREAD_CNT</a> 60
+<a name='L113'> 113 
+<a name='L114'> 114 <b>void</b>
+<a name='L115'> 115 <a href='../R/869.html' title='Multiple refered from 2 places.'>test_mlfqs_load_60</a> (<b>void</b>) 
+<a name='L116'> 116 <font color='red'>{</font>
+<a name='L117'> 117   <b>int</b> i;
+<a name='L118'> 118   
+<a name='L119'> 119   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (thread_mlfqs);
+<a name='L120'> 120 
+<a name='L121'> 121   start_time = <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ();
+<a name='L122'> 122   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Starting %d niced load threads...", <a href='../D/306.html' title='Multiple defined in 3 places.'>THREAD_CNT</a>);
+<a name='L123'> 123   <b>for</b> (i = 0; i &lt; <a href='../D/306.html' title='Multiple defined in 3 places.'>THREAD_CNT</a>; i++) 
+<a name='L124'> 124     <font color='red'>{</font>
+<a name='L125'> 125       <b>char</b> name[16];
+<a name='L126'> 126       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a>(name, <b>sizeof</b> name, "load %d", i);
+<a name='L127'> 127       <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> (name, <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a>, <a href='../D/726.html' title='Multiple defined in 3 places.'>load_thread</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L128'> 128     <font color='red'>}</font>
+<a name='L129'> 129   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Starting threads took %d seconds.",
+<a name='L130'> 130        <a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (start_time) / <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>);
+<a name='L131'> 131   
+<a name='L132'> 132   <b>for</b> (i = 0; i &lt; 90; i++) 
+<a name='L133'> 133     <font color='red'>{</font>
+<a name='L134'> 134       <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> sleep_until = start_time + <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a> * (2 * i + 10);
+<a name='L135'> 135       <b>int</b> load_avg;
+<a name='L136'> 136       <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (sleep_until - <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ());
+<a name='L137'> 137       load_avg = <a href='../S/163.html#L373' title='Defined at 373 in src/threads/thread.c.'>thread_get_load_avg</a> ();
+<a name='L138'> 138       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("After %d seconds, load average=%d.%02d.",
+<a name='L139'> 139            i * 2, load_avg / 100, load_avg % 100);
+<a name='L140'> 140     <font color='red'>}</font>
+<a name='L141'> 141 <font color='red'>}</font>
+<a name='L142'> 142 
+<a name='L143'> 143 <b>static</b> <b>void</b>
+<a name='L144'> 144 <a href='../R/624.html' title='Multiple refered from 6 places.'>load_thread</a> (<b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L145'> 145 <font color='red'>{</font>
+<a name='L146'> 146   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> sleep_time = 10 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>;
+<a name='L147'> 147   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> spin_time = sleep_time + 60 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>;
+<a name='L148'> 148   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> exit_time = spin_time + 60 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>;
+<a name='L149'> 149 
+<a name='L150'> 150   <a href='../S/163.html#L358' title='Defined at 358 in src/threads/thread.c.'>thread_set_nice</a> (20);
+<a name='L151'> 151   <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (sleep_time - <a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (start_time));
+<a name='L152'> 152   <b>while</b> (<a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (start_time) &lt; spin_time)
+<a name='L153'> 153     <b>continue</b>;
+<a name='L154'> 154   <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (exit_time - <a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (start_time));
+<a name='L155'> 155 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L115'>[^]</a><a href='#L144'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<html>
+<head>
+<title>src/examples/shell.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/shell.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L92'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>main</a>
+<li><a href='#L52' title='Defined at 52.'>read_line</a>
+<li><a href='#L92' title='Defined at 92.'>backspace</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <b>static</b> <b>void</b> <a href='../S/56.html#L52' title='Defined at 52 in src/examples/shell.c.'>read_line</a> (<b>char</b> line[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L7'>   7 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/56.html#L92' title='Defined at 92 in src/examples/shell.c.'>backspace</a> (<b>char</b> **pos, <b>char</b> line[]);
+<a name='L8'>   8 
+<a name='L9'>   9 <b>int</b>
+<a name='L10'>  10 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>void</b>)
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Shell starting...\n");
+<a name='L13'>  13   <b>for</b> (;;) 
+<a name='L14'>  14     <font color='red'>{</font>
+<a name='L15'>  15       <b>char</b> command[80];
+<a name='L16'>  16 
+<a name='L17'>  17       <i><font color='green'>/* Read command. */</font></i>
+<a name='L18'>  18       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("--");
+<a name='L19'>  19       <a href='../S/56.html#L52' title='Defined at 52 in src/examples/shell.c.'>read_line</a> (command, <b>sizeof</b> command);
+<a name='L20'>  20       
+<a name='L21'>  21       <i><font color='green'>/* Execute command. */</font></i>
+<a name='L22'>  22       <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (command, "exit"))
+<a name='L23'>  23         <b>break</b>;
+<a name='L24'>  24       <b>else</b> <b>if</b> (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (command, "cd ", 3)) 
+<a name='L25'>  25         <font color='red'>{</font>
+<a name='L26'>  26           <b>if</b> (!<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> (command + 3))
+<a name='L27'>  27             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\"%s\": chdir failed\n", command + 3);
+<a name='L28'>  28         <font color='red'>}</font>
+<a name='L29'>  29       <b>else</b> <b>if</b> (command[0] == '\0') 
+<a name='L30'>  30         <font color='red'>{</font>
+<a name='L31'>  31           <i><font color='green'>/* Empty command. */</font></i>
+<a name='L32'>  32         <font color='red'>}</font>
+<a name='L33'>  33       <b>else</b>
+<a name='L34'>  34         <font color='red'>{</font>
+<a name='L35'>  35           <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> pid = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> (command);
+<a name='L36'>  36           <b>if</b> (pid != <a href='../S/100.html#L9' title='Defined at 9 in src/lib/user/syscall.h.'>PID_ERROR</a>)
+<a name='L37'>  37             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\"%s\": exit code %d\n", command, <a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (pid));
+<a name='L38'>  38           <b>else</b>
+<a name='L39'>  39             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("exec failed\n");
+<a name='L40'>  40         <font color='red'>}</font>
+<a name='L41'>  41     <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Shell exiting.");
+<a name='L44'>  44   <b>return</b> <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a>;
+<a name='L45'>  45 <font color='red'>}</font>
+<a name='L46'>  46 
+<a name='L47'>  47 <i><font color='green'>/* Reads a line of input from the user into LINE, which has room</font></i>
+<a name='L48'>  48 <i><font color='green'>   for SIZE bytes.  Handles backspace and Ctrl+U in the ways</font></i>
+<a name='L49'>  49 <i><font color='green'>   expected by Unix users.  On return, LINE will always be</font></i>
+<a name='L50'>  50 <i><font color='green'>   null-terminated and will not end in a new-line character. */</font></i>
+<a name='L51'>  51 <b>static</b> <b>void</b>
+<a name='L52'>  52 <a href='../R/752.html' title='Multiple refered from 2 places.'>read_line</a> (<b>char</b> line[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L53'>  53 <font color='red'>{</font>
+<a name='L54'>  54   <b>char</b> *pos = line;
+<a name='L55'>  55   <b>for</b> (;;)
+<a name='L56'>  56     <font color='red'>{</font>
+<a name='L57'>  57       <b>char</b> c;
+<a name='L58'>  58       <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (<a href='../S/84.html#L15' title='Defined at 15 in src/lib/stdio.h.'>STDIN_FILENO</a>, &amp;c, 1);
+<a name='L59'>  59 
+<a name='L60'>  60       <b>switch</b> (c) 
+<a name='L61'>  61         <font color='red'>{</font>
+<a name='L62'>  62         <b>case</b> '\r':
+<a name='L63'>  63           *pos = '\0';
+<a name='L64'>  64           <a href='../D/850.html' title='Multiple defined in 2 places.'>putchar</a> ('\n');
+<a name='L65'>  65           <b>return</b>;
+<a name='L66'>  66 
+<a name='L67'>  67         <b>case</b> '\b':
+<a name='L68'>  68           <a href='../S/56.html#L92' title='Defined at 92 in src/examples/shell.c.'>backspace</a> (&amp;pos, line);
+<a name='L69'>  69           <b>break</b>;
+<a name='L70'>  70 
+<a name='L71'>  71         <b>case</b> ('U' - 'A') + 1:       <i><font color='green'>/* Ctrl+U. */</font></i>
+<a name='L72'>  72           <b>while</b> (<a href='../S/56.html#L92' title='Defined at 92 in src/examples/shell.c.'>backspace</a> (&amp;pos, line))
+<a name='L73'>  73             <b>continue</b>;
+<a name='L74'>  74           <b>break</b>;
+<a name='L75'>  75 
+<a name='L76'>  76         <b>default</b>:
+<a name='L77'>  77           <i><font color='green'>/* Add character to line. */</font></i>
+<a name='L78'>  78           <b>if</b> (pos &lt; line + size - 1) 
+<a name='L79'>  79             <font color='red'>{</font>
+<a name='L80'>  80               <a href='../D/850.html' title='Multiple defined in 2 places.'>putchar</a> (c);
+<a name='L81'>  81               *pos++ = c;
+<a name='L82'>  82             <font color='red'>}</font>
+<a name='L83'>  83           <b>break</b>;
+<a name='L84'>  84         <font color='red'>}</font>
+<a name='L85'>  85     <font color='red'>}</font>
+<a name='L86'>  86 <font color='red'>}</font>
+<a name='L87'>  87 
+<a name='L88'>  88 <i><font color='green'>/* If *POS is past the beginning of LINE, backs up one character</font></i>
+<a name='L89'>  89 <i><font color='green'>   position.  Returns true if successful, false if nothing was</font></i>
+<a name='L90'>  90 <i><font color='green'>   done. */</font></i>
+<a name='L91'>  91 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L92'>  92 <a href='../R/302.html' title='Multiple refered from 3 places.'>backspace</a> (<b>char</b> **pos, <b>char</b> line[]) 
+<a name='L93'>  93 <font color='red'>{</font>
+<a name='L94'>  94   <b>if</b> (*pos &gt; line)
+<a name='L95'>  95     <font color='red'>{</font>
+<a name='L96'>  96       <i><font color='green'>/* Back up cursor, overwrite character, back up</font></i>
+<a name='L97'>  97 <i><font color='green'>         again. */</font></i>
+<a name='L98'>  98       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\b \b");
+<a name='L99'>  99       (*pos)--;
+<a name='L100'> 100       <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L101'> 101     <font color='red'>}</font>
+<a name='L102'> 102   <b>else</b>
+<a name='L103'> 103     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L104'> 104 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L92'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

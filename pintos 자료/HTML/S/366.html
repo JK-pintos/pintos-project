@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>src/tests/vm/child-mm-wrt.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/child-mm-wrt.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Child process of mmap-exit.</font></i>
+<a name='L2'>   2 <i><font color='green'>   Mmaps a file and writes to it via the mmap'ing, then exits</font></i>
+<a name='L3'>   3 <i><font color='green'>   without calling munmap.  The data in the mapped region must be</font></i>
+<a name='L4'>   4 <i><font color='green'>   written out at program termination. */</font></i>
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/1.html' title='Multiple refered from 8 places.'>ACTUAL</a> ((<b>void</b> *) 0x10000000)
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b>
+<a name='L15'>  15 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <b>int</b> handle;
+<a name='L18'>  18 
+<a name='L19'>  19   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("sample.txt", <b>sizeof</b> sample), "create \"sample.txt\"");
+<a name='L20'>  20   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a name='L21'>  21   CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle, <a href='../D/1.html' title='Multiple defined in 4 places.'>ACTUAL</a>) != <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>, "mmap \"sample.txt\"");
+<a name='L22'>  22   <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (<a href='../D/1.html' title='Multiple defined in 4 places.'>ACTUAL</a>, sample, <b>sizeof</b> sample);
+<a name='L23'>  23 <font color='red'>}</font>
+<a name='L24'>  24 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L15'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

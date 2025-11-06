@@ -1,0 +1,71 @@
+<html>
+<head>
+<title>int64_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/122.html#L25'>int64_t</a>            25 src/devices/kbd.c static int64_t key_cnt;
+<a href='../S/125.html#L21'>int64_t</a>            21 src/devices/timer.c static int64_t ticks;
+<a href='../S/125.html#L29'>int64_t</a>            29 src/devices/timer.c static void busy_wait (int64_t loops);
+<a href='../S/125.html#L30'>int64_t</a>            30 src/devices/timer.c static void real_time_sleep (int64_t num, int32_t denom);
+<a href='../S/125.html#L31'>int64_t</a>            31 src/devices/timer.c static void real_time_delay (int64_t num, int32_t denom);
+<a href='../S/125.html#L70'>int64_t</a>            70 src/devices/timer.c int64_t
+<a href='../S/125.html#L74'>int64_t</a>            74 src/devices/timer.c   int64_t t = ticks;
+<a href='../S/125.html#L81'>int64_t</a>            81 src/devices/timer.c int64_t
+<a href='../S/125.html#L82'>int64_t</a>            82 src/devices/timer.c timer_elapsed (int64_t then) 
+<a href='../S/125.html#L90'>int64_t</a>            90 src/devices/timer.c timer_sleep (int64_t ticks) 
+<a href='../S/125.html#L92'>int64_t</a>            92 src/devices/timer.c   int64_t start = timer_ticks ();
+<a href='../S/125.html#L102'>int64_t</a>           102 src/devices/timer.c timer_msleep (int64_t ms) 
+<a href='../S/125.html#L110'>int64_t</a>           110 src/devices/timer.c timer_usleep (int64_t us) 
+<a href='../S/125.html#L118'>int64_t</a>           118 src/devices/timer.c timer_nsleep (int64_t ns) 
+<a href='../S/125.html#L131'>int64_t</a>           131 src/devices/timer.c timer_mdelay (int64_t ms) 
+<a href='../S/125.html#L144'>int64_t</a>           144 src/devices/timer.c timer_udelay (int64_t us) 
+<a href='../S/125.html#L157'>int64_t</a>           157 src/devices/timer.c timer_ndelay (int64_t ns) 
+<a href='../S/125.html#L183'>int64_t</a>           183 src/devices/timer.c   int64_t start = ticks;
+<a href='../S/125.html#L204'>int64_t</a>           204 src/devices/timer.c busy_wait (int64_t loops) 
+<a href='../S/125.html#L212'>int64_t</a>           212 src/devices/timer.c real_time_sleep (int64_t num, int32_t denom) 
+<a href='../S/125.html#L220'>int64_t</a>           220 src/devices/timer.c   int64_t ticks = num * TIMER_FREQ / denom;
+<a href='../S/125.html#L240'>int64_t</a>           240 src/devices/timer.c real_time_delay (int64_t num, int32_t denom)
+<a href='../S/124.html#L13'>int64_t</a>            13 src/devices/timer.h int64_t timer_ticks (void);
+<a href='../S/124.html#L14'>int64_t</a>            14 src/devices/timer.h int64_t timer_elapsed (int64_t);
+<a href='../S/124.html#L17'>int64_t</a>            17 src/devices/timer.h void timer_sleep (int64_t ticks);
+<a href='../S/124.html#L18'>int64_t</a>            18 src/devices/timer.h void timer_msleep (int64_t milliseconds);
+<a href='../S/124.html#L19'>int64_t</a>            19 src/devices/timer.h void timer_usleep (int64_t microseconds);
+<a href='../S/124.html#L20'>int64_t</a>            20 src/devices/timer.h void timer_nsleep (int64_t nanoseconds);
+<a href='../S/124.html#L23'>int64_t</a>            23 src/devices/timer.h void timer_mdelay (int64_t milliseconds);
+<a href='../S/124.html#L24'>int64_t</a>            24 src/devices/timer.h void timer_udelay (int64_t microseconds);
+<a href='../S/124.html#L25'>int64_t</a>            25 src/devices/timer.h void timer_ndelay (int64_t nanoseconds);
+<a href='../S/86.html#L139'>int64_t</a>           139 src/lib/arithmetic.c static int64_t
+<a href='../S/86.html#L140'>int64_t</a>           140 src/lib/arithmetic.c sdiv64 (int64_t n, int64_t d)
+<a href='../S/86.html#L145'>int64_t</a>           145 src/lib/arithmetic.c   return (n &lt; 0) == (d &lt; 0) ? (int64_t) q_abs : -(int64_t) q_abs;
+<a href='../S/86.html#L151'>int64_t</a>           151 src/lib/arithmetic.c smod64 (int64_t n, int64_t d)
+<a href='../S/105.html#L60'>int64_t</a>            60 src/lib/kernel/console.c static int64_t write_cnt;
+<a href='../S/87.html#L39'>int64_t</a>            39 src/lib/stdint.h typedef int64_t intmax_t;
+<a href='../S/582.html#L13'>int64_t</a>            13 src/tests/threads/alarm-priority.c static int64_t wake_time;
+<a href='../S/582.html#L45'>int64_t</a>            45 src/tests/threads/alarm-priority.c   int64_t start_time = timer_ticks ();
+<a href='../S/569.html#L24'>int64_t</a>            24 src/tests/threads/alarm-simultaneous.c     int64_t start;              /* Current time at start of test. */
+<a href='../S/569.html#L89'>int64_t</a>            89 src/tests/threads/alarm-simultaneous.c       int64_t sleep_until = test-&gt;start + i * 10;
+<a href='../S/586.html#L30'>int64_t</a>            30 src/tests/threads/alarm-wait.c     int64_t start;              /* Current time at start of test. */
+<a href='../S/586.html#L146'>int64_t</a>           146 src/tests/threads/alarm-wait.c       int64_t sleep_until = test-&gt;start + i * t-&gt;duration;
+<a href='../S/575.html#L25'>int64_t</a>            25 src/tests/threads/mlfqs-block.c   int64_t start_time;
+<a href='../S/575.html#L53'>int64_t</a>            53 src/tests/threads/mlfqs-block.c   int64_t start_time;
+<a href='../S/547.html#L58'>int64_t</a>            58 src/tests/threads/mlfqs-fair.c     int64_t start_time;
+<a href='../S/547.html#L69'>int64_t</a>            69 src/tests/threads/mlfqs-fair.c   int64_t start_time;
+<a href='../S/547.html#L111'>int64_t</a>           111 src/tests/threads/mlfqs-fair.c   int64_t sleep_time = 5 * TIMER_FREQ;
+<a href='../S/547.html#L112'>int64_t</a>           112 src/tests/threads/mlfqs-fair.c   int64_t spin_time = sleep_time + 30 * TIMER_FREQ;
+<a href='../S/547.html#L113'>int64_t</a>           113 src/tests/threads/mlfqs-fair.c   int64_t last_time = 0;
+<a href='../S/547.html#L119'>int64_t</a>           119 src/tests/threads/mlfqs-fair.c       int64_t cur_time = timer_ticks ();
+<a href='../S/531.html#L20'>int64_t</a>            20 src/tests/threads/mlfqs-load-1.c   int64_t start_time;
+<a href='../S/555.html#L108'>int64_t</a>           108 src/tests/threads/mlfqs-load-60.c static int64_t start_time;
+<a href='../S/555.html#L134'>int64_t</a>           134 src/tests/threads/mlfqs-load-60.c       int64_t sleep_until = start_time + TIMER_FREQ * (2 * i + 10);
+<a href='../S/555.html#L146'>int64_t</a>           146 src/tests/threads/mlfqs-load-60.c   int64_t sleep_time = 10 * TIMER_FREQ;
+<a href='../S/555.html#L147'>int64_t</a>           147 src/tests/threads/mlfqs-load-60.c   int64_t spin_time = sleep_time + 60 * TIMER_FREQ;
+<a href='../S/555.html#L148'>int64_t</a>           148 src/tests/threads/mlfqs-load-60.c   int64_t exit_time = spin_time + 60 * TIMER_FREQ;
+<a href='../S/558.html#L119'>int64_t</a>           119 src/tests/threads/mlfqs-load-avg.c static int64_t start_time;
+<a href='../S/558.html#L146'>int64_t</a>           146 src/tests/threads/mlfqs-load-avg.c       int64_t sleep_until = start_time + TIMER_FREQ * (2 * i + 10);
+<a href='../S/570.html#L112'>int64_t</a>           112 src/tests/threads/mlfqs-recent-1.c   int64_t start_time;
+</pre>
+</body>
+</html>

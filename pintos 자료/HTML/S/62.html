@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>src/examples/rm.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/rm.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L9' title='Defined at 9.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* rm.c</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Removes files specified on command line. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 
+<a name='L8'>   8 <b>int</b>
+<a name='L9'>   9 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L12'>  12   <b>int</b> i;
+<a name='L13'>  13   
+<a name='L14'>  14   <b>for</b> (i = 1; i &lt; argc; i++)
+<a name='L15'>  15     <b>if</b> (!<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (argv[i])) 
+<a name='L16'>  16       <font color='red'>{</font>
+<a name='L17'>  17         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: remove failed\n", argv[i]);
+<a name='L18'>  18         success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>; 
+<a name='L19'>  19       <font color='red'>}</font>
+<a name='L20'>  20   <b>return</b> success ? <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a> : <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L21'>  21 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L9'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

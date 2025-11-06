@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-zero.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-zero.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tries to map a zero-length file, which may or may not work but</font></i>
+<a name='L2'>   2 <i><font color='green'>   should not terminate the process or crash.</font></i>
+<a name='L3'>   3 <i><font color='green'>   Then dereferences the address that we tried to map,</font></i>
+<a name='L4'>   4 <i><font color='green'>   and the process must be terminated with -1 exit code. */</font></i>
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b>
+<a name='L11'>  11 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <b>char</b> *data = (<b>char</b> *) 0x7f000000;
+<a name='L14'>  14   <b>int</b> handle;
+<a name='L15'>  15 
+<a name='L16'>  16   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("empty", 0), "create empty file \"empty\"");
+<a name='L17'>  17   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("empty")) &gt; 1, "open \"empty\"");
+<a name='L18'>  18 
+<a name='L19'>  19   <i><font color='green'>/* Calling mmap() might succeed or fail.  We don't care. */</font></i>
+<a name='L20'>  20   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("mmap \"empty\"");
+<a name='L21'>  21   <a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle, data);
+<a name='L22'>  22 
+<a name='L23'>  23   <i><font color='green'>/* Regardless of whether the call worked, *data should cause</font></i>
+<a name='L24'>  24 <i><font color='green'>     the process to be terminated. */</font></i>
+<a name='L25'>  25   <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("unmapped memory is readable (%d)", *data);
+<a name='L26'>  26 <font color='red'>}</font>
+<a name='L27'>  27 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

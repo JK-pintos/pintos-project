@@ -1,0 +1,60 @@
+<html>
+<head>
+<title>src/tests/threads/tests.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/tests.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/179.html' title='Multiple included from 25 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/572.html#L2' title='Defined at 2 in src/tests/threads/tests.h.'>TESTS_THREADS_TESTS_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/572.html#L1' title='Refered from 1 in src/tests/threads/tests.h.'>TESTS_THREADS_TESTS_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <b>void</b> <a href='../S/568.html#L47' title='Defined at 47 in src/tests/threads/tests.c.'>run_test</a> (<b>const</b> <b>char</b> *);
+<a name='L5'>   5 
+<a name='L6'>   6 <b>typedef</b> <b>void</b> <a href='../R/862.html' title='Multiple refered from 28 places.'>test_func</a> (<b>void</b>);
+<a name='L7'>   7 
+<a name='L8'>   8 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/586.html#L16' title='Defined at 16 in src/tests/threads/alarm-wait.c.'>test_alarm_single</a>;
+<a name='L9'>   9 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/586.html#L22' title='Defined at 22 in src/tests/threads/alarm-wait.c.'>test_alarm_multiple</a>;
+<a name='L10'>  10 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/569.html#L16' title='Defined at 16 in src/tests/threads/alarm-simultaneous.c.'>test_alarm_simultaneous</a>;
+<a name='L11'>  11 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/582.html#L17' title='Defined at 17 in src/tests/threads/alarm-priority.c.'>test_alarm_priority</a>;
+<a name='L12'>  12 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/580.html#L11' title='Defined at 11 in src/tests/threads/alarm-zero.c.'>test_alarm_zero</a>;
+<a name='L13'>  13 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/542.html#L11' title='Defined at 11 in src/tests/threads/alarm-negative.c.'>test_alarm_negative</a>;
+<a name='L14'>  14 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/585.html#L13' title='Defined at 13 in src/tests/threads/priority-change.c.'>test_priority_change</a>;
+<a name='L15'>  15 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/554.html#L22' title='Defined at 22 in src/tests/threads/priority-donate-one.c.'>test_priority_donate_one</a>;
+<a name='L16'>  16 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/579.html#L22' title='Defined at 22 in src/tests/threads/priority-donate-multiple.c.'>test_priority_donate_multiple</a>;
+<a name='L17'>  17 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/576.html#L28' title='Defined at 28 in src/tests/threads/priority-donate-multiple2.c.'>test_priority_donate_multiple2</a>;
+<a name='L18'>  18 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/544.html#L30' title='Defined at 30 in src/tests/threads/priority-donate-sema.c.'>test_priority_donate_sema</a>;
+<a name='L19'>  19 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/533.html#L28' title='Defined at 28 in src/tests/threads/priority-donate-nest.c.'>test_priority_donate_nest</a>;
+<a name='L20'>  20 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/587.html#L16' title='Defined at 16 in src/tests/threads/priority-donate-lower.c.'>test_priority_donate_lower</a>;
+<a name='L21'>  21 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/548.html#L45' title='Defined at 45 in src/tests/threads/priority-donate-chain.c.'>test_priority_donate_chain</a>;
+<a name='L22'>  22 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/559.html#L32' title='Defined at 32 in src/tests/threads/priority-fifo.c.'>test_priority_fifo</a>;
+<a name='L23'>  23 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/573.html#L18' title='Defined at 18 in src/tests/threads/priority-preempt.c.'>test_priority_preempt</a>;
+<a name='L24'>  24 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/535.html#L16' title='Defined at 16 in src/tests/threads/priority-sema.c.'>test_priority_sema</a>;
+<a name='L25'>  25 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/581.html#L17' title='Defined at 17 in src/tests/threads/priority-condvar.c.'>test_priority_condvar</a>;
+<a name='L26'>  26 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/531.html#L18' title='Defined at 18 in src/tests/threads/mlfqs-load-1.c.'>test_mlfqs_load_1</a>;
+<a name='L27'>  27 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/555.html#L115' title='Defined at 115 in src/tests/threads/mlfqs-load-60.c.'>test_mlfqs_load_60</a>;
+<a name='L28'>  28 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/558.html#L126' title='Defined at 126 in src/tests/threads/mlfqs-load-avg.c.'>test_mlfqs_load_avg</a>;
+<a name='L29'>  29 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/570.html#L110' title='Defined at 110 in src/tests/threads/mlfqs-recent-1.c.'>test_mlfqs_recent_1</a>;
+<a name='L30'>  30 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/547.html#L31' title='Defined at 31 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_fair_2</a>;
+<a name='L31'>  31 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/547.html#L37' title='Defined at 37 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_fair_20</a>;
+<a name='L32'>  32 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/547.html#L43' title='Defined at 43 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_nice_2</a>;
+<a name='L33'>  33 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/547.html#L49' title='Defined at 49 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_nice_10</a>;
+<a name='L34'>  34 <b>extern</b> <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> <a href='../S/575.html#L23' title='Defined at 23 in src/tests/threads/mlfqs-block.c.'>test_mlfqs_block</a>;
+<a name='L35'>  35 
+<a name='L36'>  36 <b>void</b> <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> (<b>const</b> <b>char</b> *, ...);
+<a name='L37'>  37 <b>void</b> <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> (<b>const</b> <b>char</b> *, ...);
+<a name='L38'>  38 <b>void</b> <a href='../S/568.html#L98' title='Defined at 98 in src/tests/threads/tests.c.'>pass</a> (<b>void</b>);
+<a name='L39'>  39 
+<a name='L40'>  40 <font color='darkred'>#endif</font> <i><font color='green'>/* tests/threads/tests.h */</font></i>
+<a name='L41'>  41 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

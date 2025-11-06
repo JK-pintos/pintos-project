@@ -1,0 +1,122 @@
+<html>
+<head>
+<title>src/lib/kernel/hash.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/600.html'>kernel</a>/hash.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='113.html#L8' title='Included from 8 in src/lib/kernel/hash.c.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/108.html#L2' title='Defined at 2 in src/lib/kernel/hash.h.'>__LIB_KERNEL_HASH_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/108.html#L1' title='Refered from 1 in src/lib/kernel/hash.h.'>__LIB_KERNEL_HASH_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Hash table.</font></i>
+<a name='L5'>   5 <i><font color='green'></font></i>
+<a name='L6'>   6 <i><font color='green'>   This data structure is thoroughly documented in the Tour of</font></i>
+<a name='L7'>   7 <i><font color='green'>   Pintos for Project 3.</font></i>
+<a name='L8'>   8 <i><font color='green'></font></i>
+<a name='L9'>   9 <i><font color='green'>   This is a standard hash table with chaining.  To locate an</font></i>
+<a name='L10'>  10 <i><font color='green'>   element in the table, we compute a hash function over the</font></i>
+<a name='L11'>  11 <i><font color='green'>   element's data and use that as an index into an array of</font></i>
+<a name='L12'>  12 <i><font color='green'>   doubly linked lists, then linearly search the list.</font></i>
+<a name='L13'>  13 <i><font color='green'></font></i>
+<a name='L14'>  14 <i><font color='green'>   The chain lists do not use dynamic allocation.  Instead, each</font></i>
+<a name='L15'>  15 <i><font color='green'>   structure that can potentially be in a hash must embed a</font></i>
+<a name='L16'>  16 <i><font color='green'>   struct hash_elem member.  All of the hash functions operate on</font></i>
+<a name='L17'>  17 <i><font color='green'>   these `struct hash_elem's.  The hash_entry macro allows</font></i>
+<a name='L18'>  18 <i><font color='green'>   conversion from a struct hash_elem back to a structure object</font></i>
+<a name='L19'>  19 <i><font color='green'>   that contains it.  This is the same technique used in the</font></i>
+<a name='L20'>  20 <i><font color='green'>   linked list implementation.  Refer to lib/kernel/list.h for a</font></i>
+<a name='L21'>  21 <i><font color='green'>   detailed explanation. */</font></i>
+<a name='L22'>  22 
+<a name='L23'>  23 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L24'>  24 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L25'>  25 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L26'>  26 <font color='darkred'>#include</font> "<a href='107.html'>list.h</a>"
+<a name='L27'>  27 
+<a name='L28'>  28 <i><font color='green'>/* Hash element. */</font></i>
+<a name='L29'>  29 <b>struct</b> <a href='../R/481.html' title='Multiple refered from 22 places.'>hash_elem</a> 
+<a name='L30'>  30   <font color='red'>{</font>
+<a name='L31'>  31     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>;
+<a name='L32'>  32   <font color='red'>}</font>;
+<a name='L33'>  33 
+<a name='L34'>  34 <i><font color='green'>/* Converts pointer to hash element HASH_ELEM into a pointer to</font></i>
+<a name='L35'>  35 <i><font color='green'>   the structure that HASH_ELEM is embedded inside.  Supply the</font></i>
+<a name='L36'>  36 <i><font color='green'>   name of the outer structure STRUCT and the member name MEMBER</font></i>
+<a name='L37'>  37 <i><font color='green'>   of the hash element.  See the big comment at the top of the</font></i>
+<a name='L38'>  38 <i><font color='green'>   file for an example. */</font></i>
+<a name='L39'>  39 <font color='darkred'>#define</font> hash_entry(HASH_ELEM, STRUCT, MEMBER)                   \
+<a name='L40'>  40         ((STRUCT *) ((<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *) &amp;(HASH_ELEM)-&gt;<a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>        \
+<a name='L41'>  41                      - <a href='../S/92.html#L5' title='Defined at 5 in src/lib/stddef.h.'>offsetof</a> (STRUCT, MEMBER.<a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>)))
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Computes and returns the hash value for hash element E, given</font></i>
+<a name='L44'>  44 <i><font color='green'>   auxiliary data AUX. */</font></i>
+<a name='L45'>  45 <b>typedef</b> <b>unsigned</b> <a href='../S/108.html#L64' title='Refered from 64 in src/lib/kernel/hash.h.'>hash_hash_func</a> (<b>const</b> <b>struct</b> hash_elem *e, <b>void</b> *aux);
+<a name='L46'>  46 
+<a name='L47'>  47 <i><font color='green'>/* Compares the value of two hash elements A and B, given</font></i>
+<a name='L48'>  48 <i><font color='green'>   auxiliary data AUX.  Returns true if A is less than B, or</font></i>
+<a name='L49'>  49 <i><font color='green'>   false if A is greater than or equal to B. */</font></i>
+<a name='L50'>  50 <b>typedef</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/108.html#L65' title='Refered from 65 in src/lib/kernel/hash.h.'>hash_less_func</a> (<b>const</b> <b>struct</b> hash_elem *a,
+<a name='L51'>  51                              <b>const</b> <b>struct</b> hash_elem *b,
+<a name='L52'>  52                              <b>void</b> *aux);
+<a name='L53'>  53 
+<a name='L54'>  54 <i><font color='green'>/* Performs some operation on hash element E, given auxiliary</font></i>
+<a name='L55'>  55 <i><font color='green'>   data AUX. */</font></i>
+<a name='L56'>  56 <b>typedef</b> <b>void</b> hash_action_func (<b>struct</b> hash_elem *e, <b>void</b> *aux);
+<a name='L57'>  57 
+<a name='L58'>  58 <i><font color='green'>/* Hash table. */</font></i>
+<a name='L59'>  59 <b>struct</b> <a href='../R/474.html' title='Multiple refered from 15 places.'>hash</a> 
+<a name='L60'>  60   <font color='red'>{</font>
+<a name='L61'>  61     <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/114.html#L51' title='Defined at 51 in src/lib/kernel/bitmap.c.'>elem_cnt</a>;            <i><font color='green'>/* Number of elements in table. */</font></i>
+<a name='L62'>  62     <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bucket_cnt;          <i><font color='green'>/* Number of buckets, a power of 2. */</font></i>
+<a name='L63'>  63     <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> *buckets;       <i><font color='green'>/* Array of `bucket_cnt' lists. */</font></i>
+<a name='L64'>  64     <a href='../S/108.html#L45' title='Defined at 45 in src/lib/kernel/hash.h.'>hash_hash_func</a> *<a href='../S/108.html#L59' title='Defined at 59 in src/lib/kernel/hash.h.'>hash</a>;       <i><font color='green'>/* Hash function. */</font></i>
+<a name='L65'>  65     <a href='../S/108.html#L50' title='Defined at 50 in src/lib/kernel/hash.h.'>hash_less_func</a> *less;       <i><font color='green'>/* Comparison function. */</font></i>
+<a name='L66'>  66     <b>void</b> *aux;                  <i><font color='green'>/* Auxiliary data for `hash' and `less'. */</font></i>
+<a name='L67'>  67   <font color='red'>}</font>;
+<a name='L68'>  68 
+<a name='L69'>  69 <i><font color='green'>/* A hash table iterator. */</font></i>
+<a name='L70'>  70 <b>struct</b> hash_iterator 
+<a name='L71'>  71   <font color='red'>{</font>
+<a name='L72'>  72     <b>struct</b> <a href='../S/108.html#L59' title='Defined at 59 in src/lib/kernel/hash.h.'>hash</a> *<a href='../S/108.html#L59' title='Defined at 59 in src/lib/kernel/hash.h.'>hash</a>;          <i><font color='green'>/* The hash table. */</font></i>
+<a name='L73'>  73     <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> *bucket;        <i><font color='green'>/* Current bucket. */</font></i>
+<a name='L74'>  74     <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *elem;     <i><font color='green'>/* Current hash element in current bucket. */</font></i>
+<a name='L75'>  75   <font color='red'>}</font>;
+<a name='L76'>  76 
+<a name='L77'>  77 <i><font color='green'>/* Basic life cycle. */</font></i>
+<a name='L78'>  78 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/113.html#L25' title='Defined at 25 in src/lib/kernel/hash.c.'>hash_init</a> (<b>struct</b> hash *, hash_hash_func *, hash_less_func *, <b>void</b> *aux);
+<a name='L79'>  79 <b>void</b> <a href='../S/113.html#L54' title='Defined at 54 in src/lib/kernel/hash.c.'>hash_clear</a> (<b>struct</b> hash *, hash_action_func *);
+<a name='L80'>  80 <b>void</b> <a href='../S/113.html#L87' title='Defined at 87 in src/lib/kernel/hash.c.'>hash_destroy</a> (<b>struct</b> hash *, hash_action_func *);
+<a name='L81'>  81 
+<a name='L82'>  82 <i><font color='green'>/* Search, insertion, deletion. */</font></i>
+<a name='L83'>  83 <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *<a href='../S/113.html#L99' title='Defined at 99 in src/lib/kernel/hash.c.'>hash_insert</a> (<b>struct</b> hash *, <b>struct</b> hash_elem *);
+<a name='L84'>  84 <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *<a href='../S/113.html#L115' title='Defined at 115 in src/lib/kernel/hash.c.'>hash_replace</a> (<b>struct</b> hash *, <b>struct</b> hash_elem *);
+<a name='L85'>  85 <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *<a href='../S/113.html#L132' title='Defined at 132 in src/lib/kernel/hash.c.'>hash_find</a> (<b>struct</b> hash *, <b>struct</b> hash_elem *);
+<a name='L86'>  86 <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *<a href='../S/113.html#L145' title='Defined at 145 in src/lib/kernel/hash.c.'>hash_delete</a> (<b>struct</b> hash *, <b>struct</b> hash_elem *);
+<a name='L87'>  87 
+<a name='L88'>  88 <i><font color='green'>/* Iteration. */</font></i>
+<a name='L89'>  89 <b>void</b> <a href='../S/113.html#L163' title='Defined at 163 in src/lib/kernel/hash.c.'>hash_apply</a> (<b>struct</b> hash *, hash_action_func *);
+<a name='L90'>  90 <b>void</b> <a href='../S/113.html#L200' title='Defined at 200 in src/lib/kernel/hash.c.'>hash_first</a> (<b>struct</b> hash_iterator *, <b>struct</b> hash *);
+<a name='L91'>  91 <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *<a href='../S/113.html#L219' title='Defined at 219 in src/lib/kernel/hash.c.'>hash_next</a> (<b>struct</b> hash_iterator *);
+<a name='L92'>  92 <b>struct</b> <a href='../S/108.html#L29' title='Defined at 29 in src/lib/kernel/hash.h.'>hash_elem</a> *<a href='../S/113.html#L241' title='Defined at 241 in src/lib/kernel/hash.c.'>hash_cur</a> (<b>struct</b> hash_iterator *);
+<a name='L93'>  93 
+<a name='L94'>  94 <i><font color='green'>/* Information. */</font></i>
+<a name='L95'>  95 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/113.html#L248' title='Defined at 248 in src/lib/kernel/hash.c.'>hash_size</a> (<b>struct</b> hash *);
+<a name='L96'>  96 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/113.html#L255' title='Defined at 255 in src/lib/kernel/hash.c.'>hash_empty</a> (<b>struct</b> hash *);
+<a name='L97'>  97 
+<a name='L98'>  98 <i><font color='green'>/* Sample hash functions. */</font></i>
+<a name='L99'>  99 <b>unsigned</b> <a href='../S/113.html#L266' title='Defined at 266 in src/lib/kernel/hash.c.'>hash_bytes</a> (<b>const</b> <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L100'> 100 <b>unsigned</b> <a href='../S/113.html#L283' title='Defined at 283 in src/lib/kernel/hash.c.'>hash_string</a> (<b>const</b> <b>char</b> *);
+<a name='L101'> 101 <b>unsigned</b> <a href='../S/113.html#L299' title='Defined at 299 in src/lib/kernel/hash.c.'>hash_int</a> (<b>int</b>);
+<a name='L102'> 102 
+<a name='L103'> 103 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/kernel/hash.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

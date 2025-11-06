@@ -1,0 +1,64 @@
+<html>
+<head>
+<title>src/lib/debug.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/debug.h</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/61.html' title='Multiple included from 47 places.'>INCLUDED FROM</a></h2>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>debug_panic</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/104.html#L2' title='Defined at 2 in src/lib/debug.h.'>__LIB_DEBUG_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/104.html#L1' title='Refered from 1 in src/lib/debug.h.'>__LIB_DEBUG_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* GCC lets us add "attributes" to functions, function</font></i>
+<a name='L5'>   5 <i><font color='green'>   parameters, etc. to indicate their properties.</font></i>
+<a name='L6'>   6 <i><font color='green'>   See the GCC manual for details. */</font></i>
+<a name='L7'>   7 <font color='darkred'>#define</font> <a href='../R/242.html' title='Multiple refered from 33 places.'>UNUSED</a> <b>__attribute__</b> ((unused))
+<a name='L8'>   8 <font color='darkred'>#define</font> <a href='../R/116.html' title='Multiple refered from 9 places.'>NO_RETURN</a> <b>__attribute__</b> ((noreturn))
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../R/115.html' title='Multiple refered from 2 places.'>NO_INLINE</a> <b>__attribute__</b> ((noinline))
+<a name='L10'>  10 <font color='darkred'>#define</font> <a href='../R/140.html' title='Multiple refered from 13 places.'>PRINTF_FORMAT</a>(FMT, FIRST) <b>__attribute__</b> ((format (<a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a>, FMT, FIRST)))
+<a name='L11'>  11 
+<a name='L12'>  12 <i><font color='green'>/* Halts the OS, printing the source file name, line number, and</font></i>
+<a name='L13'>  13 <i><font color='green'>   function name, plus a user-specific message. */</font></i>
+<a name='L14'>  14 <font color='darkred'>#define</font> <a href='../R/119.html' title='Multiple refered from 43 places.'>PANIC</a>(...) <a href='../D/477.html' title='Multiple defined in 3 places.'>debug_panic</a> (__FILE__, __LINE__, __func__, __VA_ARGS__)
+<a name='L15'>  15 
+<a name='L16'>  16 <b>void</b> <a href='../S/104.html#L14' title='Refered from 14 in src/lib/debug.h.'>debug_panic</a> (<b>const</b> <b>char</b> *file, <b>int</b> line, <b>const</b> <b>char</b> *function,
+<a name='L17'>  17                   <b>const</b> <b>char</b> *message, ...) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (4, 5) <a href='../S/104.html#L8' title='Defined at 8 in src/lib/debug.h.'>NO_RETURN</a>;
+<a name='L18'>  18 <b>void</b> debug_backtrace (<b>void</b>);
+<a name='L19'>  19 <b>void</b> debug_backtrace_all (<b>void</b>);
+<a name='L20'>  20 
+<a name='L21'>  21 <font color='darkred'>#endif</font>
+<a name='L22'>  22 
+<a name='L23'>  23 
+<a name='L24'>  24 
+<a name='L25'>  25 <i><font color='green'>/* This is outside the header guard so that debug.h may be</font></i>
+<a name='L26'>  26 <i><font color='green'>   included multiple times with different settings of NDEBUG. */</font></i>
+<a name='L27'>  27 <font color='darkred'>#undef</font> <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a>
+<a name='L28'>  28 <font color='darkred'>#undef</font> <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a>
+<a name='L29'>  29 
+<a name='L30'>  30 <font color='darkred'>#ifndef</font> <a href='../D/133.html' title='Multiple defined in 3 places.'>NDEBUG</a>
+<a name='L31'>  31 <font color='darkred'>#define</font> <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a>(CONDITION)                                       \
+<a name='L32'>  32         <b>if</b> (CONDITION) <font color='red'>{</font> <font color='red'>}</font> <b>else</b> <font color='red'>{</font>                               \
+<a name='L33'>  33                 <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("assertion `%s' failed.", #CONDITION);   \
+<a name='L34'>  34         <font color='red'>}</font>
+<a name='L35'>  35 <font color='darkred'>#define</font> <a href='../R/114.html' title='Multiple refered from 13 places.'>NOT_REACHED</a>() <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("executed an unreachable statement");
+<a name='L36'>  36 <font color='darkred'>#else</font>
+<a name='L37'>  37 <font color='darkred'>#define</font> <a href='../R/3.html' title='Multiple refered from 299 places.'>ASSERT</a>(CONDITION) ((<b>void</b>) 0)
+<a name='L38'>  38 <font color='darkred'>#define</font> <a href='../R/114.html' title='Multiple refered from 13 places.'>NOT_REACHED</a>() <b>for</b> (;;)
+<a name='L39'>  39 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/debug.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L16'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

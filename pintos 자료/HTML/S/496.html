@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>src/tests/userprog/boundary.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/boundary.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a><a href='#L26'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>get_boundary_area</a>
+<li><a href='#L26' title='Defined at 26.'>copy_string_across_boundary</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Utility function for tests that try to break system calls by</font></i>
+<a name='L2'>   2 <i><font color='green'>   passing them data that crosses from one virtual page to</font></i>
+<a name='L3'>   3 <i><font color='green'>   another. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='509.html'>tests/userprog/boundary.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>static</b> <b>char</b> dst[8192];
+<a name='L11'>  11 
+<a name='L12'>  12 <i><font color='green'>/* Returns the beginning of a page.  There are at least 2048</font></i>
+<a name='L13'>  13 <i><font color='green'>   modifiable bytes on either side of the pointer returned. */</font></i>
+<a name='L14'>  14 <b>void</b> *
+<a name='L15'>  15 <a href='../R/468.html' title='Multiple refered from 5 places.'>get_boundary_area</a> (<b>void</b>) 
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <b>char</b> *p = (<b>char</b> *) <a href='../S/79.html#L6' title='Defined at 6 in src/lib/round.h.'>ROUND_UP</a> ((<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) dst, 4096);
+<a name='L18'>  18   <b>if</b> (p - dst &lt; 2048)
+<a name='L19'>  19     p += 4096;
+<a name='L20'>  20   <b>return</b> p;
+<a name='L21'>  21 <font color='red'>}</font>
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* Returns a copy of SRC split across the boundary between two</font></i>
+<a name='L24'>  24 <i><font color='green'>   pages. */</font></i>
+<a name='L25'>  25 <b>char</b> *
+<a name='L26'>  26 <a href='../R/388.html' title='Multiple refered from 4 places.'>copy_string_across_boundary</a> (<b>const</b> <b>char</b> *src) 
+<a name='L27'>  27 <font color='red'>{</font>
+<a name='L28'>  28   <b>char</b> *p = <a href='../S/496.html#L15' title='Defined at 15 in src/tests/userprog/boundary.c.'>get_boundary_area</a> ();
+<a name='L29'>  29   p -= <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (src) &lt; 4096 ? <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (src) / 2 : 4096;
+<a name='L30'>  30   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (p, src, 4096);
+<a name='L31'>  31   <b>return</b> p;
+<a name='L32'>  32 <font color='red'>}</font>
+<a name='L33'>  33 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a><a href='#L26'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

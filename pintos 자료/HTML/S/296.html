@@ -1,0 +1,60 @@
+<html>
+<head>
+<title>src/tests/filesys/seq-test.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/seq-test.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L7'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L7' title='Defined at 7.'>seq_test</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='295.html'>tests/filesys/seq-test.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L5'>   5 
+<a name='L6'>   6 <b>void</b> 
+<a name='L7'>   7 <a href='../R/796.html' title='Multiple refered from 3 places.'>seq_test</a> (<b>const</b> <b>char</b> *file_name, <b>void</b> *buf, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> initial_size,
+<a name='L8'>   8           <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> (*block_size_func) (<b>void</b>),
+<a name='L9'>   9           <b>void</b> (*check_func) (<b>int</b> fd, <b>long</b> ofs)) 
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs;
+<a name='L12'>  12   <b>int</b> fd;
+<a name='L13'>  13   
+<a name='L14'>  14   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (buf, size);
+<a name='L15'>  15   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (file_name, initial_size), "create \"%s\"", file_name);
+<a name='L16'>  16   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a name='L17'>  17 
+<a name='L18'>  18   ofs = 0;
+<a name='L19'>  19   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("writing \"%s\"", file_name);
+<a name='L20'>  20   <b>while</b> (ofs &lt; size) 
+<a name='L21'>  21     <font color='red'>{</font>
+<a name='L22'>  22       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = block_size_func ();
+<a name='L23'>  23       <b>if</b> (<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> &gt; size - ofs)
+<a name='L24'>  24         <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = size - ofs;
+<a name='L25'>  25 
+<a name='L26'>  26       <b>if</b> (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, buf + ofs, <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>) != (<b>int</b>) <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>)
+<a name='L27'>  27         <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("write %zu bytes at offset %zu in \"%s\" failed",
+<a name='L28'>  28               <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>, ofs, file_name);
+<a name='L29'>  29 
+<a name='L30'>  30       ofs += <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;
+<a name='L31'>  31       <b>if</b> (check_func != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L32'>  32         check_func (fd, ofs);
+<a name='L33'>  33     <font color='red'>}</font>
+<a name='L34'>  34   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"%s\"", file_name);
+<a name='L35'>  35   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L36'>  36   <a href='../S/591.html#L151' title='Defined at 151 in src/tests/lib.c.'>check_file</a> (file_name, buf, size);
+<a name='L37'>  37 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L7'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

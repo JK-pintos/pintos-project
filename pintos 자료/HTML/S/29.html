@@ -1,0 +1,203 @@
+<html>
+<head>
+<title>src/filesys/file.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/file.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L18'>[^]</a><a href='#L164'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L18' title='Defined at 18.'>file_open</a>
+<li><a href='#L39' title='Defined at 39.'>file_reopen</a>
+<li><a href='#L46' title='Defined at 46.'>file_close</a>
+<li><a href='#L58' title='Defined at 58.'>file_get_inode</a>
+<li><a href='#L69' title='Defined at 69.'>file_read</a>
+<li><a href='#L82' title='Defined at 82.'>file_read_at</a>
+<li><a href='#L95' title='Defined at 95.'>file_write</a>
+<li><a href='#L110' title='Defined at 110.'>file_write_at</a>
+<li><a href='#L119' title='Defined at 119.'>file_deny_write</a>
+<li><a href='#L133' title='Defined at 133.'>file_allow_write</a>
+<li><a href='#L145' title='Defined at 145.'>file_length</a>
+<li><a href='#L154' title='Defined at 154.'>file_seek</a>
+<li><a href='#L164' title='Defined at 164.'>file_tell</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='36.html'>filesys/file.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> "<a href='34.html'>filesys/inode.h</a>"
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* An open file. */</font></i>
+<a name='L7'>   7 <b>struct</b> <a href='../R/427.html' title='Multiple refered from 74 places.'>file</a> 
+<a name='L8'>   8   <font color='red'>{</font>
+<a name='L9'>   9     <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;        <i><font color='green'>/* File's inode. */</font></i>
+<a name='L10'>  10     <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> pos;                  <i><font color='green'>/* Current position. */</font></i>
+<a name='L11'>  11     <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> deny_write;            <i><font color='green'>/* Has file_deny_write() been called? */</font></i>
+<a name='L12'>  12   <font color='red'>}</font>;
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Opens a file for the given INODE, of which it takes ownership,</font></i>
+<a name='L15'>  15 <i><font color='green'>   and returns the new file.  Returns a null pointer if an</font></i>
+<a name='L16'>  16 <i><font color='green'>   allocation fails or if INODE is null. */</font></i>
+<a name='L17'>  17 <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *
+<a name='L18'>  18 <a href='../R/433.html' title='Multiple refered from 5 places.'>file_open</a> (<b>struct</b> inode *inode) 
+<a name='L19'>  19 <font color='red'>{</font>
+<a name='L20'>  20   <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> = <a href='../S/161.html#L159' title='Defined at 159 in src/threads/malloc.c.'>calloc</a> (1, <b>sizeof</b> *<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>);
+<a name='L21'>  21   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L22'>  22     <font color='red'>{</font>
+<a name='L23'>  23       <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L24'>  24       <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos = 0;
+<a name='L25'>  25       <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;deny_write = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L26'>  26       <b>return</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>;
+<a name='L27'>  27     <font color='red'>}</font>
+<a name='L28'>  28   <b>else</b>
+<a name='L29'>  29     <font color='red'>{</font>
+<a name='L30'>  30       <a href='../S/35.html#L164' title='Defined at 164 in src/filesys/inode.c.'>inode_close</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L31'>  31       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>);
+<a name='L32'>  32       <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>; 
+<a name='L33'>  33     <font color='red'>}</font>
+<a name='L34'>  34 <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Opens and returns a new file for the same inode as FILE.</font></i>
+<a name='L37'>  37 <i><font color='green'>   Returns a null pointer if unsuccessful. */</font></i>
+<a name='L38'>  38 <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *
+<a name='L39'>  39 <a href='../S/36.html#L10' title='Refered from 10 in src/filesys/file.h.'>file_reopen</a> (<b>struct</b> file *file) 
+<a name='L40'>  40 <font color='red'>{</font>
+<a name='L41'>  41   <b>return</b> <a href='../S/29.html#L18' title='Defined at 18 in src/filesys/file.c.'>file_open</a> (<a href='../S/35.html#L146' title='Defined at 146 in src/filesys/inode.c.'>inode_reopen</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>));
+<a name='L42'>  42 <font color='red'>}</font>
+<a name='L43'>  43 
+<a name='L44'>  44 <i><font color='green'>/* Closes FILE. */</font></i>
+<a name='L45'>  45 <b>void</b>
+<a name='L46'>  46 <a href='../R/429.html' title='Multiple refered from 6 places.'>file_close</a> (<b>struct</b> file *file) 
+<a name='L47'>  47 <font color='red'>{</font>
+<a name='L48'>  48   <b>if</b> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L49'>  49     <font color='red'>{</font>
+<a name='L50'>  50       <a href='../S/29.html#L133' title='Defined at 133 in src/filesys/file.c.'>file_allow_write</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>);
+<a name='L51'>  51       <a href='../S/35.html#L164' title='Defined at 164 in src/filesys/inode.c.'>inode_close</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L52'>  52       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>); 
+<a name='L53'>  53     <font color='red'>}</font>
+<a name='L54'>  54 <font color='red'>}</font>
+<a name='L55'>  55 
+<a name='L56'>  56 <i><font color='green'>/* Returns the inode encapsulated by FILE. */</font></i>
+<a name='L57'>  57 <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *
+<a name='L58'>  58 <a href='../S/36.html#L12' title='Refered from 12 in src/filesys/file.h.'>file_get_inode</a> (<b>struct</b> file *file) 
+<a name='L59'>  59 <font color='red'>{</font>
+<a name='L60'>  60   <b>return</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L61'>  61 <font color='red'>}</font>
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Reads SIZE bytes from FILE into BUFFER,</font></i>
+<a name='L64'>  64 <i><font color='green'>   starting at the file's current position.</font></i>
+<a name='L65'>  65 <i><font color='green'>   Returns the number of bytes actually read,</font></i>
+<a name='L66'>  66 <i><font color='green'>   which may be less than SIZE if end of file is reached.</font></i>
+<a name='L67'>  67 <i><font color='green'>   Advances FILE's position by the number of bytes read. */</font></i>
+<a name='L68'>  68 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L69'>  69 <a href='../R/434.html' title='Multiple refered from 6 places.'>file_read</a> (<b>struct</b> file *file, <b>void</b> *buffer, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size) 
+<a name='L70'>  70 <font color='red'>{</font>
+<a name='L71'>  71   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> bytes_read = <a href='../S/35.html#L201' title='Defined at 201 in src/filesys/inode.c.'>inode_read_at</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, buffer, size, <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos);
+<a name='L72'>  72   <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos += bytes_read;
+<a name='L73'>  73   <b>return</b> bytes_read;
+<a name='L74'>  74 <font color='red'>}</font>
+<a name='L75'>  75 
+<a name='L76'>  76 <i><font color='green'>/* Reads SIZE bytes from FILE into BUFFER,</font></i>
+<a name='L77'>  77 <i><font color='green'>   starting at offset FILE_OFS in the file.</font></i>
+<a name='L78'>  78 <i><font color='green'>   Returns the number of bytes actually read,</font></i>
+<a name='L79'>  79 <i><font color='green'>   which may be less than SIZE if end of file is reached.</font></i>
+<a name='L80'>  80 <i><font color='green'>   The file's current position is unaffected. */</font></i>
+<a name='L81'>  81 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L82'>  82 <a href='../R/435.html' title='Multiple refered from 2 places.'>file_read_at</a> (<b>struct</b> file *file, <b>void</b> *buffer, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> file_ofs) 
+<a name='L83'>  83 <font color='red'>{</font>
+<a name='L84'>  84   <b>return</b> <a href='../S/35.html#L201' title='Defined at 201 in src/filesys/inode.c.'>inode_read_at</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, buffer, size, file_ofs);
+<a name='L85'>  85 <font color='red'>}</font>
+<a name='L86'>  86 
+<a name='L87'>  87 <i><font color='green'>/* Writes SIZE bytes from BUFFER into FILE,</font></i>
+<a name='L88'>  88 <i><font color='green'>   starting at the file's current position.</font></i>
+<a name='L89'>  89 <i><font color='green'>   Returns the number of bytes actually written,</font></i>
+<a name='L90'>  90 <i><font color='green'>   which may be less than SIZE if end of file is reached.</font></i>
+<a name='L91'>  91 <i><font color='green'>   (Normally we'd grow the file in that case, but file growth is</font></i>
+<a name='L92'>  92 <i><font color='green'>   not yet implemented.)</font></i>
+<a name='L93'>  93 <i><font color='green'>   Advances FILE's position by the number of bytes read. */</font></i>
+<a name='L94'>  94 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L95'>  95 <a href='../R/439.html' title='Multiple refered from 2 places.'>file_write</a> (<b>struct</b> file *file, <b>const</b> <b>void</b> *buffer, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size) 
+<a name='L96'>  96 <font color='red'>{</font>
+<a name='L97'>  97   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> bytes_written = <a href='../S/35.html#L258' title='Defined at 258 in src/filesys/inode.c.'>inode_write_at</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, buffer, size, <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos);
+<a name='L98'>  98   <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos += bytes_written;
+<a name='L99'>  99   <b>return</b> bytes_written;
+<a name='L100'> 100 <font color='red'>}</font>
+<a name='L101'> 101 
+<a name='L102'> 102 <i><font color='green'>/* Writes SIZE bytes from BUFFER into FILE,</font></i>
+<a name='L103'> 103 <i><font color='green'>   starting at offset FILE_OFS in the file.</font></i>
+<a name='L104'> 104 <i><font color='green'>   Returns the number of bytes actually written,</font></i>
+<a name='L105'> 105 <i><font color='green'>   which may be less than SIZE if end of file is reached.</font></i>
+<a name='L106'> 106 <i><font color='green'>   (Normally we'd grow the file in that case, but file growth is</font></i>
+<a name='L107'> 107 <i><font color='green'>   not yet implemented.)</font></i>
+<a name='L108'> 108 <i><font color='green'>   The file's current position is unaffected. */</font></i>
+<a name='L109'> 109 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L110'> 110 <a href='../R/440.html' title='Multiple refered from 2 places.'>file_write_at</a> (<b>struct</b> file *file, <b>const</b> <b>void</b> *buffer, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size,
+<a name='L111'> 111                <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> file_ofs) 
+<a name='L112'> 112 <font color='red'>{</font>
+<a name='L113'> 113   <b>return</b> <a href='../S/35.html#L258' title='Defined at 258 in src/filesys/inode.c.'>inode_write_at</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, buffer, size, file_ofs);
+<a name='L114'> 114 <font color='red'>}</font>
+<a name='L115'> 115 
+<a name='L116'> 116 <i><font color='green'>/* Prevents write operations on FILE's underlying inode</font></i>
+<a name='L117'> 117 <i><font color='green'>   until file_allow_write() is called or FILE is closed. */</font></i>
+<a name='L118'> 118 <b>void</b>
+<a name='L119'> 119 <a href='../S/36.html#L21' title='Refered from 21 in src/filesys/file.h.'>file_deny_write</a> (<b>struct</b> file *file) 
+<a name='L120'> 120 <font color='red'>{</font>
+<a name='L121'> 121   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L122'> 122   <b>if</b> (!<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;deny_write) 
+<a name='L123'> 123     <font color='red'>{</font>
+<a name='L124'> 124       <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;deny_write = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L125'> 125       <a href='../S/35.html#L323' title='Defined at 323 in src/filesys/inode.c.'>inode_deny_write</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L126'> 126     <font color='red'>}</font>
+<a name='L127'> 127 <font color='red'>}</font>
+<a name='L128'> 128 
+<a name='L129'> 129 <i><font color='green'>/* Re-enables write operations on FILE's underlying inode.</font></i>
+<a name='L130'> 130 <i><font color='green'>   (Writes might still be denied by some other file that has the</font></i>
+<a name='L131'> 131 <i><font color='green'>   same inode open.) */</font></i>
+<a name='L132'> 132 <b>void</b>
+<a name='L133'> 133 <a href='../R/428.html' title='Multiple refered from 2 places.'>file_allow_write</a> (<b>struct</b> file *file) 
+<a name='L134'> 134 <font color='red'>{</font>
+<a name='L135'> 135   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L136'> 136   <b>if</b> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;deny_write) 
+<a name='L137'> 137     <font color='red'>{</font>
+<a name='L138'> 138       <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;deny_write = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L139'> 139       <a href='../S/35.html#L333' title='Defined at 333 in src/filesys/inode.c.'>inode_allow_write</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L140'> 140     <font color='red'>}</font>
+<a name='L141'> 141 <font color='red'>}</font>
+<a name='L142'> 142 
+<a name='L143'> 143 <i><font color='green'>/* Returns the size of FILE in bytes. */</font></i>
+<a name='L144'> 144 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L145'> 145 <a href='../R/432.html' title='Multiple refered from 4 places.'>file_length</a> (<b>struct</b> file *file) 
+<a name='L146'> 146 <font color='red'>{</font>
+<a name='L147'> 147   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L148'> 148   <b>return</b> <a href='../S/35.html#L342' title='Defined at 342 in src/filesys/inode.c.'>inode_length</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L149'> 149 <font color='red'>}</font>
+<a name='L150'> 150 
+<a name='L151'> 151 <i><font color='green'>/* Sets the current position in FILE to NEW_POS bytes from the</font></i>
+<a name='L152'> 152 <i><font color='green'>   start of the file. */</font></i>
+<a name='L153'> 153 <b>void</b>
+<a name='L154'> 154 <a href='../R/437.html' title='Multiple refered from 3 places.'>file_seek</a> (<b>struct</b> file *file, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> new_pos)
+<a name='L155'> 155 <font color='red'>{</font>
+<a name='L156'> 156   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L157'> 157   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (new_pos &gt;= 0);
+<a name='L158'> 158   <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos = new_pos;
+<a name='L159'> 159 <font color='red'>}</font>
+<a name='L160'> 160 
+<a name='L161'> 161 <i><font color='green'>/* Returns the current position in FILE as a byte offset from the</font></i>
+<a name='L162'> 162 <i><font color='green'>   start of the file. */</font></i>
+<a name='L163'> 163 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L164'> 164 <a href='../R/438.html' title='Multiple refered from 2 places.'>file_tell</a> (<b>struct</b> file *file) 
+<a name='L165'> 165 <font color='red'>{</font>
+<a name='L166'> 166   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L167'> 167   <b>return</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>-&gt;pos;
+<a name='L168'> 168 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L18'>[^]</a><a href='#L164'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

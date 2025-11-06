@@ -1,0 +1,225 @@
+<html>
+<head>
+<title>src/lib/kernel/console.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/600.html'>kernel</a>/console.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L64'>[^]</a><a href='#L185'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L64' title='Defined at 64.'>console_init</a>
+<li><a href='#L74' title='Defined at 74.'>console_panic</a>
+<li><a href='#L81' title='Defined at 81.'>console_print_stats</a>
+<li><a href='#L88' title='Defined at 88.'>acquire_console</a>
+<li><a href='#L101' title='Defined at 101.'>release_console</a>
+<li><a href='#L115' title='Defined at 115.'>console_locked_by_current_thread</a>
+<li><a href='#L126' title='Defined at 126.'>vprintf</a>
+<li><a href='#L140' title='Defined at 140.'>puts</a>
+<li><a href='#L153' title='Defined at 153.'>putbuf</a>
+<li><a href='#L163' title='Defined at 163.'>putchar</a>
+<li><a href='#L174' title='Defined at 174.'>vprintf_helper</a>
+<li><a href='#L185' title='Defined at 185.'>putchar_have_lock</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='110.html'>console.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='137.html'>devices/serial.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='127.html'>devices/vga.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>static</b> <b>void</b> <a href='../S/105.html#L174' title='Defined at 174 in src/lib/kernel/console.c.'>vprintf_helper</a> (<b>char</b>, <b>void</b> *);
+<a name='L11'>  11 <b>static</b> <b>void</b> <a href='../S/105.html#L185' title='Defined at 185 in src/lib/kernel/console.c.'>putchar_have_lock</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> c);
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* The console lock.</font></i>
+<a name='L14'>  14 <i><font color='green'>   Both the vga and serial layers do their own locking, so it's</font></i>
+<a name='L15'>  15 <i><font color='green'>   safe to call them at any time.</font></i>
+<a name='L16'>  16 <i><font color='green'>   But this lock is useful to prevent simultaneous printf() calls</font></i>
+<a name='L17'>  17 <i><font color='green'>   from mixing their output, which looks confusing. */</font></i>
+<a name='L18'>  18 <b>static</b> <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> console_lock;
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* True in ordinary circumstances: we want to use the console</font></i>
+<a name='L21'>  21 <i><font color='green'>   lock to avoid mixing output between threads, as explained</font></i>
+<a name='L22'>  22 <i><font color='green'>   above.</font></i>
+<a name='L23'>  23 <i><font color='green'></font></i>
+<a name='L24'>  24 <i><font color='green'>   False in early boot before the point that locks are functional</font></i>
+<a name='L25'>  25 <i><font color='green'>   or the console lock has been initialized, or after a kernel</font></i>
+<a name='L26'>  26 <i><font color='green'>   panics.  In the former case, taking the lock would cause an</font></i>
+<a name='L27'>  27 <i><font color='green'>   assertion failure, which in turn would cause a panic, turning</font></i>
+<a name='L28'>  28 <i><font color='green'>   it into the latter case.  In the latter case, if it is a buggy</font></i>
+<a name='L29'>  29 <i><font color='green'>   lock_acquire() implementation that caused the panic, we'll</font></i>
+<a name='L30'>  30 <i><font color='green'>   likely just recurse. */</font></i>
+<a name='L31'>  31 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> use_console_lock;
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* It's possible, if you add enough debug output to Pintos, to</font></i>
+<a name='L34'>  34 <i><font color='green'>   try to recursively grab console_lock from a single thread.  As</font></i>
+<a name='L35'>  35 <i><font color='green'>   a real example, I added a printf() call to palloc_free().</font></i>
+<a name='L36'>  36 <i><font color='green'>   Here's a real backtrace that resulted:</font></i>
+<a name='L37'>  37 <i><font color='green'></font></i>
+<a name='L38'>  38 <i><font color='green'>   lock_console()</font></i>
+<a name='L39'>  39 <i><font color='green'>   vprintf()</font></i>
+<a name='L40'>  40 <i><font color='green'>   printf()               - palloc() tries to grab the lock again</font></i>
+<a name='L41'>  41 <i><font color='green'>   palloc_free()        </font></i>
+<a name='L42'>  42 <i><font color='green'>   thread_schedule_tail() - another thread dying as we switch threads</font></i>
+<a name='L43'>  43 <i><font color='green'>   schedule()</font></i>
+<a name='L44'>  44 <i><font color='green'>   thread_yield()</font></i>
+<a name='L45'>  45 <i><font color='green'>   intr_handler()         - timer interrupt</font></i>
+<a name='L46'>  46 <i><font color='green'>   intr_set_level()</font></i>
+<a name='L47'>  47 <i><font color='green'>   serial_putc()</font></i>
+<a name='L48'>  48 <i><font color='green'>   putchar_have_lock()</font></i>
+<a name='L49'>  49 <i><font color='green'>   putbuf()</font></i>
+<a name='L50'>  50 <i><font color='green'>   sys_write()            - one process writing to the console</font></i>
+<a name='L51'>  51 <i><font color='green'>   syscall_handler()</font></i>
+<a name='L52'>  52 <i><font color='green'>   intr_handler()</font></i>
+<a name='L53'>  53 <i><font color='green'></font></i>
+<a name='L54'>  54 <i><font color='green'>   This kind of thing is very difficult to debug, so we avoid the</font></i>
+<a name='L55'>  55 <i><font color='green'>   problem by simulating a recursive lock with a depth</font></i>
+<a name='L56'>  56 <i><font color='green'>   counter. */</font></i>
+<a name='L57'>  57 <b>static</b> <b>int</b> console_lock_depth;
+<a name='L58'>  58 
+<a name='L59'>  59 <i><font color='green'>/* Number of characters written to console. */</font></i>
+<a name='L60'>  60 <b>static</b> <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> write_cnt;
+<a name='L61'>  61 
+<a name='L62'>  62 <i><font color='green'>/* Enable console locking. */</font></i>
+<a name='L63'>  63 <b>void</b>
+<a name='L64'>  64 <a href='../R/382.html' title='Multiple refered from 2 places.'>console_init</a> (<b>void</b>) 
+<a name='L65'>  65 <font color='red'>{</font>
+<a name='L66'>  66   <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;console_lock);
+<a name='L67'>  67   use_console_lock = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L68'>  68 <font color='red'>}</font>
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Notifies the console that a kernel panic is underway,</font></i>
+<a name='L71'>  71 <i><font color='green'>   which warns it to avoid trying to take the console lock from</font></i>
+<a name='L72'>  72 <i><font color='green'>   now on. */</font></i>
+<a name='L73'>  73 <b>void</b>
+<a name='L74'>  74 <a href='../R/384.html' title='Multiple refered from 2 places.'>console_panic</a> (<b>void</b>) 
+<a name='L75'>  75 <font color='red'>{</font>
+<a name='L76'>  76   use_console_lock = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L77'>  77 <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79 <i><font color='green'>/* Prints console statistics. */</font></i>
+<a name='L80'>  80 <b>void</b>
+<a name='L81'>  81 <a href='../R/385.html' title='Multiple refered from 2 places.'>console_print_stats</a> (<b>void</b>) 
+<a name='L82'>  82 <font color='red'>{</font>
+<a name='L83'>  83   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Console: %lld characters output\n", write_cnt);
+<a name='L84'>  84 <font color='red'>}</font>
+<a name='L85'>  85 
+<a name='L86'>  86 <i><font color='green'>/* Acquires the console lock. */</font></i>
+<a name='L87'>  87 <b>static</b> <b>void</b>
+<a name='L88'>  88 <a href='../R/283.html' title='Multiple refered from 4 places.'>acquire_console</a> (<b>void</b>) 
+<a name='L89'>  89 <font color='red'>{</font>
+<a name='L90'>  90   <b>if</b> (!<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> () &amp;&amp; use_console_lock) 
+<a name='L91'>  91     <font color='red'>{</font>
+<a name='L92'>  92       <b>if</b> (<a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (&amp;console_lock)) 
+<a name='L93'>  93         console_lock_depth++; 
+<a name='L94'>  94       <b>else</b>
+<a name='L95'>  95         <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;console_lock); 
+<a name='L96'>  96     <font color='red'>}</font>
+<a name='L97'>  97 <font color='red'>}</font>
+<a name='L98'>  98 
+<a name='L99'>  99 <i><font color='green'>/* Releases the console lock. */</font></i>
+<a name='L100'> 100 <b>static</b> <b>void</b>
+<a name='L101'> 101 <a href='../R/772.html' title='Multiple refered from 4 places.'>release_console</a> (<b>void</b>) 
+<a name='L102'> 102 <font color='red'>{</font>
+<a name='L103'> 103   <b>if</b> (!<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> () &amp;&amp; use_console_lock) 
+<a name='L104'> 104     <font color='red'>{</font>
+<a name='L105'> 105       <b>if</b> (console_lock_depth &gt; 0)
+<a name='L106'> 106         console_lock_depth--;
+<a name='L107'> 107       <b>else</b>
+<a name='L108'> 108         <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;console_lock); 
+<a name='L109'> 109     <font color='red'>}</font>
+<a name='L110'> 110 <font color='red'>}</font>
+<a name='L111'> 111 
+<a name='L112'> 112 <i><font color='green'>/* Returns true if the current thread has the console lock,</font></i>
+<a name='L113'> 113 <i><font color='green'>   false otherwise. */</font></i>
+<a name='L114'> 114 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L115'> 115 <a href='../S/105.html#L187' title='Refered from 187 in src/lib/kernel/console.c.'>console_locked_by_current_thread</a> (<b>void</b>) 
+<a name='L116'> 116 <font color='red'>{</font>
+<a name='L117'> 117   <b>return</b> (<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> ()
+<a name='L118'> 118           || !use_console_lock
+<a name='L119'> 119           || <a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (&amp;console_lock));
+<a name='L120'> 120 <font color='red'>}</font>
+<a name='L121'> 121 
+<a name='L122'> 122 <i><font color='green'>/* The standard vprintf() function,</font></i>
+<a name='L123'> 123 <i><font color='green'>   which is like printf() but uses a va_list.</font></i>
+<a name='L124'> 124 <i><font color='green'>   Writes its output to both vga display and serial port. */</font></i>
+<a name='L125'> 125 <b>int</b>
+<a name='L126'> 126 <a href='../R/964.html' title='Multiple refered from 6 places.'>vprintf</a> (<b>const</b> <b>char</b> *format, va_list args) 
+<a name='L127'> 127 <font color='red'>{</font>
+<a name='L128'> 128   <b>int</b> char_cnt = 0;
+<a name='L129'> 129 
+<a name='L130'> 130   <a href='../S/105.html#L88' title='Defined at 88 in src/lib/kernel/console.c.'>acquire_console</a> ();
+<a name='L131'> 131   <a href='../S/115.html#L157' title='Defined at 157 in src/lib/stdio.c.'>__vprintf</a> (format, args, <a href='../S/105.html#L174' title='Defined at 174 in src/lib/kernel/console.c.'>vprintf_helper</a>, &amp;char_cnt);
+<a name='L132'> 132   <a href='../S/105.html#L101' title='Defined at 101 in src/lib/kernel/console.c.'>release_console</a> ();
+<a name='L133'> 133 
+<a name='L134'> 134   <b>return</b> char_cnt;
+<a name='L135'> 135 <font color='red'>}</font>
+<a name='L136'> 136 
+<a name='L137'> 137 <i><font color='green'>/* Writes string S to the console, followed by a new-line</font></i>
+<a name='L138'> 138 <i><font color='green'>   character. */</font></i>
+<a name='L139'> 139 <b>int</b>
+<a name='L140'> 140 puts (<b>const</b> <b>char</b> *s) 
+<a name='L141'> 141 <font color='red'>{</font>
+<a name='L142'> 142   <a href='../S/105.html#L88' title='Defined at 88 in src/lib/kernel/console.c.'>acquire_console</a> ();
+<a name='L143'> 143   <b>while</b> (*s != '\0')
+<a name='L144'> 144     <a href='../S/105.html#L185' title='Defined at 185 in src/lib/kernel/console.c.'>putchar_have_lock</a> (*s++);
+<a name='L145'> 145   <a href='../S/105.html#L185' title='Defined at 185 in src/lib/kernel/console.c.'>putchar_have_lock</a> ('\n');
+<a name='L146'> 146   <a href='../S/105.html#L101' title='Defined at 101 in src/lib/kernel/console.c.'>release_console</a> ();
+<a name='L147'> 147 
+<a name='L148'> 148   <b>return</b> 0;
+<a name='L149'> 149 <font color='red'>}</font>
+<a name='L150'> 150 
+<a name='L151'> 151 <i><font color='green'>/* Writes the N characters in BUFFER to the console. */</font></i>
+<a name='L152'> 152 <b>void</b>
+<a name='L153'> 153 <a href='../S/106.html#L4' title='Refered from 4 in src/lib/kernel/stdio.h.'>putbuf</a> (<b>const</b> <b>char</b> *buffer, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> n) 
+<a name='L154'> 154 <font color='red'>{</font>
+<a name='L155'> 155   <a href='../S/105.html#L88' title='Defined at 88 in src/lib/kernel/console.c.'>acquire_console</a> ();
+<a name='L156'> 156   <b>while</b> (n-- &gt; 0)
+<a name='L157'> 157     <a href='../S/105.html#L185' title='Defined at 185 in src/lib/kernel/console.c.'>putchar_have_lock</a> (*buffer++);
+<a name='L158'> 158   <a href='../S/105.html#L101' title='Defined at 101 in src/lib/kernel/console.c.'>release_console</a> ();
+<a name='L159'> 159 <font color='red'>}</font>
+<a name='L160'> 160 
+<a name='L161'> 161 <i><font color='green'>/* Writes C to the vga display and serial port. */</font></i>
+<a name='L162'> 162 <b>int</b>
+<a name='L163'> 163 <a href='../R/743.html' title='Multiple refered from 5 places.'>putchar</a> (<b>int</b> c) 
+<a name='L164'> 164 <font color='red'>{</font>
+<a name='L165'> 165   <a href='../S/105.html#L88' title='Defined at 88 in src/lib/kernel/console.c.'>acquire_console</a> ();
+<a name='L166'> 166   <a href='../S/105.html#L185' title='Defined at 185 in src/lib/kernel/console.c.'>putchar_have_lock</a> (c);
+<a name='L167'> 167   <a href='../S/105.html#L101' title='Defined at 101 in src/lib/kernel/console.c.'>release_console</a> ();
+<a name='L168'> 168   
+<a name='L169'> 169   <b>return</b> c;
+<a name='L170'> 170 <font color='red'>}</font>
+<a name='L171'> 171 
+<a name='L172'> 172 <i><font color='green'>/* Helper function for vprintf(). */</font></i>
+<a name='L173'> 173 <b>static</b> <b>void</b>
+<a name='L174'> 174 <a href='../R/965.html' title='Multiple refered from 2 places.'>vprintf_helper</a> (<b>char</b> c, <b>void</b> *char_cnt_) 
+<a name='L175'> 175 <font color='red'>{</font>
+<a name='L176'> 176   <b>int</b> *char_cnt = char_cnt_;
+<a name='L177'> 177   (*char_cnt)++;
+<a name='L178'> 178   <a href='../S/105.html#L185' title='Defined at 185 in src/lib/kernel/console.c.'>putchar_have_lock</a> (c);
+<a name='L179'> 179 <font color='red'>}</font>
+<a name='L180'> 180 
+<a name='L181'> 181 <i><font color='green'>/* Writes C to the vga display and serial port.</font></i>
+<a name='L182'> 182 <i><font color='green'>   The caller has already acquired the console lock if</font></i>
+<a name='L183'> 183 <i><font color='green'>   appropriate. */</font></i>
+<a name='L184'> 184 <b>static</b> <b>void</b>
+<a name='L185'> 185 <a href='../R/744.html' title='Multiple refered from 6 places.'>putchar_have_lock</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> c) 
+<a name='L186'> 186 <font color='red'>{</font>
+<a name='L187'> 187   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/105.html#L115' title='Defined at 115 in src/lib/kernel/console.c.'>console_locked_by_current_thread</a> ());
+<a name='L188'> 188   write_cnt++;
+<a name='L189'> 189   <a href='../S/142.html#L99' title='Defined at 99 in src/devices/serial.c.'>serial_putc</a> (c);
+<a name='L190'> 190   <a href='../S/131.html#L52' title='Defined at 52 in src/devices/vga.c.'>vga_putc</a> (c);
+<a name='L191'> 191 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L64'>[^]</a><a href='#L185'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

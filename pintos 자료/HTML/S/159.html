@@ -1,0 +1,221 @@
+<html>
+<head>
+<title>src/threads/start.S</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/start.S</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>        #include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#</font>### Kernel startup code.
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#</font>### The loader (in loader.S) loads the kernel at physical address
+<a name='L6'>   6 <font color='darkred'>#</font>### 0x20000 (128 kB) and jumps to "start", defined here.  This code
+<a name='L7'>   7 <font color='darkred'>#</font>### switches from real mode to 32-bit protected mode and calls
+<a name='L8'>   8 <font color='darkred'>#</font>### main().
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Flags in control register 0. */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> CR0_PE 0x00000001      <i><font color='green'>/* Protection Enable. */</font></i>
+<a name='L12'>  12 <font color='darkred'>#define</font> CR0_EM 0x00000004      <i><font color='green'>/* (Floating-point) Emulation. */</font></i>
+<a name='L13'>  13 <font color='darkred'>#define</font> CR0_PG 0x80000000      <i><font color='green'>/* Paging. */</font></i>
+<a name='L14'>  14 <font color='darkred'>#define</font> CR0_WP 0x00010000      <i><font color='green'>/* Write-Protect enable in kernel mode. */</font></i>
+<a name='L15'>  15 
+<a name='L16'>  16         .section .start
+<a name='L17'>  17 
+<a name='L18'>  18 <i><font color='green'># The following code runs in real mode, which is a 16-bit code segment.</font></i>
+<a name='L19'>  19         .code16
+<a name='L20'>  20 
+<a name='L21'>  21 .func start
+<a name='L22'>  22 .globl start
+<a name='L23'>  23 start:
+<a name='L24'>  24 
+<a name='L25'>  25 <i><font color='green'># The loader called into us with CS = 0x2000, SS = 0x0000, ESP = 0xf000,</font></i>
+<a name='L26'>  26 <i><font color='green'># but we should initialize the other segment registers.</font></i>
+<a name='L27'>  27 
+<a name='L28'>  28         mov $0x2000, %ax
+<a name='L29'>  29         mov %ax, %ds
+<a name='L30'>  30         mov %ax, %es
+<a name='L31'>  31 
+<a name='L32'>  32 <i><font color='green'># Set string instructions to go upward.</font></i>
+<a name='L33'>  33         cld
+<a name='L34'>  34 
+<a name='L35'>  35 <font color='darkred'>#</font>### Get memory size, via interrupt 15h function 88h (see [IntrList]),
+<a name='L36'>  36 <font color='darkred'>#</font>### which returns AX = (kB of physical memory) - 1024.  This only
+<a name='L37'>  37 <font color='darkred'>#</font>### works for memory sizes &lt;= 65 MB, which should be fine for our
+<a name='L38'>  38 <font color='darkred'>#</font>### purposes.  We cap memory at 64 MB because that's all we prepare
+<a name='L39'>  39 <font color='darkred'>#</font>### page tables for, below.
+<a name='L40'>  40 
+<a name='L41'>  41         movb $0x88, %ah
+<a name='L42'>  42         int $0x15
+<a name='L43'>  43         addl $1024, %eax        # Total kB memory
+<a name='L44'>  44         cmp $0x10000, %eax      # Cap at 64 MB
+<a name='L45'>  45         jbe 1f
+<a name='L46'>  46         mov $0x10000, %eax
+<a name='L47'>  47 1:      shrl $2, %eax           # Total 4 kB pages
+<a name='L48'>  48         addr32 movl %eax, init_ram_pages - LOADER_PHYS_BASE - 0x20000
+<a name='L49'>  49 
+<a name='L50'>  50 <font color='darkred'>#</font>### Enable A20.  Address line 20 is tied low when the machine boots,
+<a name='L51'>  51 <font color='darkred'>#</font>### which prevents addressing memory about 1 MB.  This code fixes it.
+<a name='L52'>  52 
+<a name='L53'>  53 <i><font color='green'># Poll status register while busy.</font></i>
+<a name='L54'>  54 
+<a name='L55'>  55 1:      inb $0x64, %al
+<a name='L56'>  56         testb $0x2, %al
+<a name='L57'>  57         jnz 1b
+<a name='L58'>  58 
+<a name='L59'>  59 <i><font color='green'># Send command for writing output port.</font></i>
+<a name='L60'>  60 
+<a name='L61'>  61         movb $0xd1, %al
+<a name='L62'>  62         outb %al, $0x64
+<a name='L63'>  63 
+<a name='L64'>  64 <i><font color='green'># Poll status register while busy.</font></i>
+<a name='L65'>  65 
+<a name='L66'>  66 1:      inb $0x64, %al
+<a name='L67'>  67         testb $0x2, %al
+<a name='L68'>  68         jnz 1b
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'># Enable A20 line.</font></i>
+<a name='L71'>  71 
+<a name='L72'>  72         movb $0xdf, %al
+<a name='L73'>  73         outb %al, $0x60
+<a name='L74'>  74 
+<a name='L75'>  75 <i><font color='green'># Poll status register while busy.</font></i>
+<a name='L76'>  76 
+<a name='L77'>  77 1:      inb $0x64, %al
+<a name='L78'>  78         testb $0x2, %al
+<a name='L79'>  79         jnz 1b
+<a name='L80'>  80 
+<a name='L81'>  81 <font color='darkred'>#</font>### Create temporary page directory and page table and set page
+<a name='L82'>  82 <font color='darkred'>#</font>### directory base register.
+<a name='L83'>  83 
+<a name='L84'>  84 <i><font color='green'># Create page directory at 0xf000 (60 kB) and fill with zeroes.</font></i>
+<a name='L85'>  85         mov $0xf00, %ax
+<a name='L86'>  86         mov %ax, %es
+<a name='L87'>  87         subl %eax, %eax
+<a name='L88'>  88         subl %edi, %edi
+<a name='L89'>  89         movl $0x400, %ecx
+<a name='L90'>  90         rep stosl
+<a name='L91'>  91 
+<a name='L92'>  92 <i><font color='green'># Add PDEs to point to page tables for the first 64 MB of RAM.</font></i>
+<a name='L93'>  93 <i><font color='green'># Also add identical PDEs starting at LOADER_PHYS_BASE.</font></i>
+<a name='L94'>  94 <i><font color='green'># See [IA32-v3a] section 3.7.6 "Page-Directory and Page-Table Entries"</font></i>
+<a name='L95'>  95 <i><font color='green'># for a description of the bits in %eax.</font></i>
+<a name='L96'>  96 
+<a name='L97'>  97         movl $0x10007, %eax
+<a name='L98'>  98         movl $0x11, %ecx
+<a name='L99'>  99         subl %edi, %edi
+<a name='L100'> 100 1:      movl %eax, %es:(%di)
+<a name='L101'> 101         movl %eax, %es:LOADER_PHYS_BASE &gt;&gt; 20(%di)
+<a name='L102'> 102         addw $4, %di
+<a name='L103'> 103         addl $0x1000, %eax
+<a name='L104'> 104         loop 1b
+<a name='L105'> 105 
+<a name='L106'> 106 <i><font color='green'># Set up page tables for one-to-map linear to physical map for the</font></i>
+<a name='L107'> 107 <i><font color='green'># first 64 MB of RAM.</font></i>
+<a name='L108'> 108 <i><font color='green'># See [IA32-v3a] section 3.7.6 "Page-Directory and Page-Table Entries"</font></i>
+<a name='L109'> 109 <i><font color='green'># for a description of the bits in %eax.</font></i>
+<a name='L110'> 110 
+<a name='L111'> 111         movw $0x1000, %ax
+<a name='L112'> 112         movw %ax, %es
+<a name='L113'> 113         movl $0x7, %eax
+<a name='L114'> 114         movl $0x4000, %ecx
+<a name='L115'> 115         subl %edi, %edi
+<a name='L116'> 116 1:      movl %eax, %es:(%di)
+<a name='L117'> 117         addw $4, %di
+<a name='L118'> 118         addl $0x1000, %eax
+<a name='L119'> 119         loop 1b
+<a name='L120'> 120 
+<a name='L121'> 121 <i><font color='green'># Set page directory base register.</font></i>
+<a name='L122'> 122 
+<a name='L123'> 123         movl $0xf000, %eax
+<a name='L124'> 124         movl %eax, %cr3
+<a name='L125'> 125 
+<a name='L126'> 126 <font color='darkred'>#</font>### Switch to protected mode.
+<a name='L127'> 127 
+<a name='L128'> 128 <i><font color='green'># First, disable interrupts.  We won't set up the IDT until we get</font></i>
+<a name='L129'> 129 <i><font color='green'># into C code, so any interrupt would blow us away.</font></i>
+<a name='L130'> 130 
+<a name='L131'> 131         cli
+<a name='L132'> 132 
+<a name='L133'> 133 <i><font color='green'># Protected mode requires a GDT, so point the GDTR to our GDT.</font></i>
+<a name='L134'> 134 <i><font color='green'># We need a data32 prefix to ensure that all 32 bits of the GDT</font></i>
+<a name='L135'> 135 <i><font color='green'># descriptor are loaded (default is to load only 24 bits).</font></i>
+<a name='L136'> 136 <i><font color='green'># The CPU doesn't need an addr32 prefix but ELF doesn't do 16-bit</font></i>
+<a name='L137'> 137 <i><font color='green'># relocations.</font></i>
+<a name='L138'> 138 
+<a name='L139'> 139         data32 addr32 lgdt gdtdesc - LOADER_PHYS_BASE - 0x20000
+<a name='L140'> 140 
+<a name='L141'> 141 <i><font color='green'># Then we turn on the following bits in CR0:</font></i>
+<a name='L142'> 142 <i><font color='green'>#    PE (Protect Enable): this turns on protected mode.</font></i>
+<a name='L143'> 143 <i><font color='green'>#    PG (Paging): turns on paging.</font></i>
+<a name='L144'> 144 <i><font color='green'>#    WP (Write Protect): if unset, ring 0 code ignores</font></i>
+<a name='L145'> 145 <i><font color='green'>#       write-protect bits in page tables (!).</font></i>
+<a name='L146'> 146 <i><font color='green'>#    EM (Emulation): forces floating-point instructions to trap.</font></i>
+<a name='L147'> 147 <i><font color='green'>#       We don't support floating point.</font></i>
+<a name='L148'> 148 
+<a name='L149'> 149         movl %cr0, %eax
+<a name='L150'> 150         orl $CR0_PE | CR0_PG | CR0_WP | CR0_EM, %eax
+<a name='L151'> 151         movl %eax, %cr0
+<a name='L152'> 152 
+<a name='L153'> 153 <i><font color='green'># We're now in protected mode in a 16-bit segment.  The CPU still has</font></i>
+<a name='L154'> 154 <i><font color='green'># the real-mode code segment cached in %cs's segment descriptor.  We</font></i>
+<a name='L155'> 155 <i><font color='green'># need to reload %cs, and the easiest way is to use a far jump.</font></i>
+<a name='L156'> 156 <i><font color='green'># Because we're not running in a 32-bit segment the data32 prefix is</font></i>
+<a name='L157'> 157 <i><font color='green'># needed to jump to a 32-bit offset in the target segment.</font></i>
+<a name='L158'> 158 
+<a name='L159'> 159         data32 ljmp $SEL_KCSEG, $1f
+<a name='L160'> 160 
+<a name='L161'> 161 <i><font color='green'># We're now in protected mode in a 32-bit segment.</font></i>
+<a name='L162'> 162 <i><font color='green'># Let the assembler know.</font></i>
+<a name='L163'> 163 
+<a name='L164'> 164         .code32
+<a name='L165'> 165 
+<a name='L166'> 166 <i><font color='green'># Reload all the other segment registers and the stack pointer to</font></i>
+<a name='L167'> 167 <i><font color='green'># point into our new GDT.</font></i>
+<a name='L168'> 168 
+<a name='L169'> 169 1:      mov $SEL_KDSEG, %ax
+<a name='L170'> 170         mov %ax, %ds
+<a name='L171'> 171         mov %ax, %es
+<a name='L172'> 172         mov %ax, %fs
+<a name='L173'> 173         mov %ax, %gs
+<a name='L174'> 174         mov %ax, %ss
+<a name='L175'> 175         addl $LOADER_PHYS_BASE, %esp
+<a name='L176'> 176         movl $0, %ebp                   # Null-terminate main()'s backtrace
+<a name='L177'> 177 
+<a name='L178'> 178 <font color='darkred'>#</font>### Call main().
+<a name='L179'> 179 
+<a name='L180'> 180         call main
+<a name='L181'> 181 
+<a name='L182'> 182 <i><font color='green'># main() shouldn't ever return.  If it does, spin.</font></i>
+<a name='L183'> 183 
+<a name='L184'> 184 1:      jmp 1b
+<a name='L185'> 185 .endfunc
+<a name='L186'> 186 
+<a name='L187'> 187 <font color='darkred'>#</font>### GDT
+<a name='L188'> 188 
+<a name='L189'> 189         .align 8
+<a name='L190'> 190 gdt:
+<a name='L191'> 191         .quad 0x0000000000000000        # Null segment.  Not used by CPU.
+<a name='L192'> 192         .quad 0x00cf9a000000ffff        # System code, base 0, limit 4 GB.
+<a name='L193'> 193         .quad 0x00cf92000000ffff        # System data, base 0, limit 4 GB.
+<a name='L194'> 194 
+<a name='L195'> 195 gdtdesc:
+<a name='L196'> 196         .word   gdtdesc - gdt - 1       # Size of the GDT, minus 1 byte.
+<a name='L197'> 197         .long   gdt                     # Address of the GDT.
+<a name='L198'> 198 
+<a name='L199'> 199 <font color='darkred'>#</font>### Physical memory size in 4 kB pages.  This is exported to the rest
+<a name='L200'> 200 <font color='darkred'>#</font>### of the kernel.
+<a name='L201'> 201 .globl init_ram_pages
+<a name='L202'> 202 init_ram_pages:
+<a name='L203'> 203         .long 0
+<a name='L204'> 204 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

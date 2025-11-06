@@ -1,0 +1,138 @@
+<html>
+<head>
+<title>src/threads/pte.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/pte.h</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L32'>[^]</a><a href='#L102'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/304.html' title='Multiple included from 2 places.'>INCLUDED FROM</a></h2>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L32' title='Defined at 32.'>pt_no</a>
+<li><a href='#L37' title='Defined at 37.'>pd_no</a>
+<li><a href='#L71' title='Defined at 71.'>pde_create</a>
+<li><a href='#L78' title='Defined at 78.'>pde_get_pt</a>
+<li><a href='#L87' title='Defined at 87.'>pte_create_kernel</a>
+<li><a href='#L96' title='Defined at 96.'>pte_create_user</a>
+<li><a href='#L102' title='Defined at 102.'>pte_get_page</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/162.html#L2' title='Defined at 2 in src/threads/pte.h.'>THREADS_PTE_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/162.html#L1' title='Refered from 1 in src/threads/pte.h.'>THREADS_PTE_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* Functions and macros for working with x86 hardware page</font></i>
+<a name='L7'>   7 <i><font color='green'>   tables.</font></i>
+<a name='L8'>   8 <i><font color='green'></font></i>
+<a name='L9'>   9 <i><font color='green'>   See vaddr.h for more generic functions and macros for virtual</font></i>
+<a name='L10'>  10 <i><font color='green'>   addresses.</font></i>
+<a name='L11'>  11 <i><font color='green'>   </font></i>
+<a name='L12'>  12 <i><font color='green'>   Virtual addresses are structured as follows:</font></i>
+<a name='L13'>  13 <i><font color='green'></font></i>
+<a name='L14'>  14 <i><font color='green'>    31                  22 21                  12 11                   0</font></i>
+<a name='L15'>  15 <i><font color='green'>   +----------------------+----------------------+----------------------+</font></i>
+<a name='L16'>  16 <i><font color='green'>   | Page Directory Index |   Page Table Index   |    Page Offset       |</font></i>
+<a name='L17'>  17 <i><font color='green'>   +----------------------+----------------------+----------------------+</font></i>
+<a name='L18'>  18 <i><font color='green'>*/</font></i>
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Page table index (bits 12:21). */</font></i>
+<a name='L21'>  21 <font color='darkred'>#define</font> <a href='../R/160.html' title='Multiple refered from 4 places.'>PTSHIFT</a> <a href='../S/153.html#L19' title='Defined at 19 in src/threads/vaddr.h.'>PGBITS</a>                     <i><font color='green'>/* First page table bit. */</font></i>
+<a name='L22'>  22 <font color='darkred'>#define</font> <a href='../R/151.html' title='Multiple refered from 3 places.'>PTBITS</a>  10                         <i><font color='green'>/* Number of page table bits. */</font></i>
+<a name='L23'>  23 <font color='darkred'>#define</font> PTSPAN  (1 &lt;&lt; <a href='../S/162.html#L22' title='Defined at 22 in src/threads/pte.h.'>PTBITS</a> &lt;&lt; <a href='../S/153.html#L19' title='Defined at 19 in src/threads/vaddr.h.'>PGBITS</a>)    <i><font color='green'>/* Bytes covered by a page table. */</font></i>
+<a name='L24'>  24 <font color='darkred'>#define</font> <a href='../S/162.html#L33' title='Refered from 33 in src/threads/pte.h.'>PTMASK</a>  <a href='../S/153.html#L15' title='Defined at 15 in src/threads/vaddr.h.'>BITMASK</a>(<a href='../S/162.html#L21' title='Defined at 21 in src/threads/pte.h.'>PTSHIFT</a>, <a href='../S/162.html#L22' title='Defined at 22 in src/threads/pte.h.'>PTBITS</a>)   <i><font color='green'>/* Page table bits (12:21). */</font></i>
+<a name='L25'>  25 
+<a name='L26'>  26 <i><font color='green'>/* Page directory index (bits 22:31). */</font></i>
+<a name='L27'>  27 <font color='darkred'>#define</font> <a href='../R/121.html' title='Multiple refered from 2 places.'>PDSHIFT</a> (<a href='../S/162.html#L21' title='Defined at 21 in src/threads/pte.h.'>PTSHIFT</a> + <a href='../S/162.html#L22' title='Defined at 22 in src/threads/pte.h.'>PTBITS</a>)         <i><font color='green'>/* First page directory bit. */</font></i>
+<a name='L28'>  28 <font color='darkred'>#define</font> <a href='../S/162.html#L29' title='Refered from 29 in src/threads/pte.h.'>PDBITS</a>  10                         <i><font color='green'>/* Number of page dir bits. */</font></i>
+<a name='L29'>  29 <font color='darkred'>#define</font> PDMASK  <a href='../S/153.html#L15' title='Defined at 15 in src/threads/vaddr.h.'>BITMASK</a>(<a href='../S/162.html#L27' title='Defined at 27 in src/threads/pte.h.'>PDSHIFT</a>, <a href='../S/162.html#L28' title='Defined at 28 in src/threads/pte.h.'>PDBITS</a>)   <i><font color='green'>/* Page directory bits (22:31). */</font></i>
+<a name='L30'>  30 
+<a name='L31'>  31 <i><font color='green'>/* Obtains page table index from a virtual address. */</font></i>
+<a name='L32'>  32 <b>static</b> <b>inline</b> <b>unsigned</b> <a href='../R/735.html' title='Multiple refered from 2 places.'>pt_no</a> (<b>const</b> <b>void</b> *va) <font color='red'>{</font>
+<a name='L33'>  33   <b>return</b> ((<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) va &amp; <a href='../S/162.html#L24' title='Defined at 24 in src/threads/pte.h.'>PTMASK</a>) &gt;&gt; <a href='../S/162.html#L21' title='Defined at 21 in src/threads/pte.h.'>PTSHIFT</a>;
+<a name='L34'>  34 <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Obtains page directory index from a virtual address. */</font></i>
+<a name='L37'>  37 <b>static</b> <b>inline</b> <a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> <a href='../R/710.html' title='Multiple refered from 3 places.'>pd_no</a> (<b>const</b> <b>void</b> *va) <font color='red'>{</font>
+<a name='L38'>  38   <b>return</b> (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) va &gt;&gt; <a href='../S/162.html#L27' title='Defined at 27 in src/threads/pte.h.'>PDSHIFT</a>;
+<a name='L39'>  39 <font color='red'>}</font>
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Page directory and page table entries.</font></i>
+<a name='L42'>  42 <i><font color='green'></font></i>
+<a name='L43'>  43 <i><font color='green'>   For more information see the section on page tables in the</font></i>
+<a name='L44'>  44 <i><font color='green'>   Pintos reference guide chapter, or [IA32-v3a] 3.7.6</font></i>
+<a name='L45'>  45 <i><font color='green'>   "Page-Directory and Page-Table Entries".</font></i>
+<a name='L46'>  46 <i><font color='green'></font></i>
+<a name='L47'>  47 <i><font color='green'>   PDEs and PTEs share a common format:</font></i>
+<a name='L48'>  48 <i><font color='green'></font></i>
+<a name='L49'>  49 <i><font color='green'>   31                                 12 11                     0</font></i>
+<a name='L50'>  50 <i><font color='green'>   +------------------------------------+------------------------+</font></i>
+<a name='L51'>  51 <i><font color='green'>   |         Physical Address           |         Flags          |</font></i>
+<a name='L52'>  52 <i><font color='green'>   +------------------------------------+------------------------+</font></i>
+<a name='L53'>  53 <i><font color='green'></font></i>
+<a name='L54'>  54 <i><font color='green'>   In a PDE, the physical address points to a page table.</font></i>
+<a name='L55'>  55 <i><font color='green'>   In a PTE, the physical address points to a data or code page.</font></i>
+<a name='L56'>  56 <i><font color='green'>   The important flags are listed below.</font></i>
+<a name='L57'>  57 <i><font color='green'>   When a PDE or PTE is not "present", the other flags are</font></i>
+<a name='L58'>  58 <i><font color='green'>   ignored.</font></i>
+<a name='L59'>  59 <i><font color='green'>   A PDE or PTE that is initialized to 0 will be interpreted as</font></i>
+<a name='L60'>  60 <i><font color='green'>   "not present", which is just fine. */</font></i>
+<a name='L61'>  61 <font color='darkred'>#define</font> PTE_FLAGS 0x00000fff    <i><font color='green'>/* Flag bits. */</font></i>
+<a name='L62'>  62 <font color='darkred'>#define</font> <a href='../R/153.html' title='Multiple refered from 2 places.'>PTE_ADDR</a>  0xfffff000    <i><font color='green'>/* Address bits. */</font></i>
+<a name='L63'>  63 <font color='darkred'>#define</font> PTE_AVL   0x00000e00    <i><font color='green'>/* Bits available for OS use. */</font></i>
+<a name='L64'>  64 <font color='darkred'>#define</font> <a href='../R/155.html' title='Multiple refered from 9 places.'>PTE_P</a> 0x1               <i><font color='green'>/* 1=present, 0=not present. */</font></i>
+<a name='L65'>  65 <font color='darkred'>#define</font> <a href='../R/157.html' title='Multiple refered from 2 places.'>PTE_W</a> 0x2               <i><font color='green'>/* 1=read/write, 0=read-only. */</font></i>
+<a name='L66'>  66 <font color='darkred'>#define</font> <a href='../R/156.html' title='Multiple refered from 2 places.'>PTE_U</a> 0x4               <i><font color='green'>/* 1=user/kernel, 0=kernel only. */</font></i>
+<a name='L67'>  67 <font color='darkred'>#define</font> <a href='../R/152.html' title='Multiple refered from 3 places.'>PTE_A</a> 0x20              <i><font color='green'>/* 1=accessed, 0=not acccessed. */</font></i>
+<a name='L68'>  68 <font color='darkred'>#define</font> <a href='../R/154.html' title='Multiple refered from 3 places.'>PTE_D</a> 0x40              <i><font color='green'>/* 1=dirty, 0=not dirty (PTEs only). */</font></i>
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Returns a PDE that points to page table PT. */</font></i>
+<a name='L71'>  71 <b>static</b> <b>inline</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> <a href='../R/711.html' title='Multiple refered from 2 places.'>pde_create</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pt) <font color='red'>{</font>
+<a name='L72'>  72   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/153.html#L24' title='Defined at 24 in src/threads/vaddr.h.'>pg_ofs</a> (pt) == 0);
+<a name='L73'>  73   <b>return</b> <a href='../S/153.html#L82' title='Defined at 82 in src/threads/vaddr.h.'>vtop</a> (pt) | <a href='../S/162.html#L66' title='Defined at 66 in src/threads/pte.h.'>PTE_U</a> | <a href='../S/162.html#L64' title='Defined at 64 in src/threads/pte.h.'>PTE_P</a> | <a href='../S/162.html#L65' title='Defined at 65 in src/threads/pte.h.'>PTE_W</a>;
+<a name='L74'>  74 <font color='red'>}</font>
+<a name='L75'>  75 
+<a name='L76'>  76 <i><font color='green'>/* Returns a pointer to the page table that page directory entry</font></i>
+<a name='L77'>  77 <i><font color='green'>   PDE, which must "present", points to. */</font></i>
+<a name='L78'>  78 <b>static</b> <b>inline</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *<a href='../R/712.html' title='Multiple refered from 2 places.'>pde_get_pt</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> pde) <font color='red'>{</font>
+<a name='L79'>  79   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (pde &amp; <a href='../S/162.html#L64' title='Defined at 64 in src/threads/pte.h.'>PTE_P</a>);
+<a name='L80'>  80   <b>return</b> <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (pde &amp; <a href='../S/162.html#L62' title='Defined at 62 in src/threads/pte.h.'>PTE_ADDR</a>);
+<a name='L81'>  81 <font color='red'>}</font>
+<a name='L82'>  82 
+<a name='L83'>  83 <i><font color='green'>/* Returns a PTE that points to PAGE.</font></i>
+<a name='L84'>  84 <i><font color='green'>   The PTE's page is readable.</font></i>
+<a name='L85'>  85 <i><font color='green'>   If WRITABLE is true then it will be writable as well.</font></i>
+<a name='L86'>  86 <i><font color='green'>   The page will be usable only by ring 0 code (the kernel). */</font></i>
+<a name='L87'>  87 <b>static</b> <b>inline</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> <a href='../R/736.html' title='Multiple refered from 2 places.'>pte_create_kernel</a> (<b>void</b> *page, bool writable) <font color='red'>{</font>
+<a name='L88'>  88   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/153.html#L24' title='Defined at 24 in src/threads/vaddr.h.'>pg_ofs</a> (page) == 0);
+<a name='L89'>  89   <b>return</b> <a href='../S/153.html#L82' title='Defined at 82 in src/threads/vaddr.h.'>vtop</a> (page) | <a href='../S/162.html#L64' title='Defined at 64 in src/threads/pte.h.'>PTE_P</a> | (writable ? <a href='../S/162.html#L65' title='Defined at 65 in src/threads/pte.h.'>PTE_W</a> : 0);
+<a name='L90'>  90 <font color='red'>}</font>
+<a name='L91'>  91 
+<a name='L92'>  92 <i><font color='green'>/* Returns a PTE that points to PAGE.</font></i>
+<a name='L93'>  93 <i><font color='green'>   The PTE's page is readable.</font></i>
+<a name='L94'>  94 <i><font color='green'>   If WRITABLE is true then it will be writable as well.</font></i>
+<a name='L95'>  95 <i><font color='green'>   The page will be usable by both user and kernel code. */</font></i>
+<a name='L96'>  96 <b>static</b> <b>inline</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> <a href='../S/75.html#L114' title='Refered from 114 in src/userprog/pagedir.c.'>pte_create_user</a> (<b>void</b> *page, bool writable) <font color='red'>{</font>
+<a name='L97'>  97   <b>return</b> <a href='../S/162.html#L87' title='Defined at 87 in src/threads/pte.h.'>pte_create_kernel</a> (page, writable) | <a href='../S/162.html#L66' title='Defined at 66 in src/threads/pte.h.'>PTE_U</a>;
+<a name='L98'>  98 <font color='red'>}</font>
+<a name='L99'>  99 
+<a name='L100'> 100 <i><font color='green'>/* Returns a pointer to the page that page table entry PTE points</font></i>
+<a name='L101'> 101 <i><font color='green'>   to. */</font></i>
+<a name='L102'> 102 <b>static</b> <b>inline</b> <b>void</b> *<a href='../R/738.html' title='Multiple refered from 2 places.'>pte_get_page</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> pte) <font color='red'>{</font>
+<a name='L103'> 103   <b>return</b> <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (pte &amp; <a href='../S/162.html#L62' title='Defined at 62 in src/threads/pte.h.'>PTE_ADDR</a>);
+<a name='L104'> 104 <font color='red'>}</font>
+<a name='L105'> 105 
+<a name='L106'> 106 <font color='darkred'>#endif</font> <i><font color='green'>/* threads/pte.h */</font></i>
+<a name='L107'> 107 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L32'>[^]</a><a href='#L102'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

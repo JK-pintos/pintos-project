@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-over-stk.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-over-stk.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Verifies that mapping over the stack segment is disallowed. */</font></i>
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <b>int</b> handle;
+<a name='L13'>  13   <a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> handle_page = <a href='../S/79.html#L14' title='Defined at 14 in src/lib/round.h.'>ROUND_DOWN</a> ((<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) &amp;handle, 4096);
+<a name='L14'>  14   
+<a name='L15'>  15   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a name='L16'>  16   CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle, (<b>void</b> *) handle_page) == <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>,
+<a name='L17'>  17          "try to mmap over stack segment");
+<a name='L18'>  18 <font color='red'>}</font>
+<a name='L19'>  19 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

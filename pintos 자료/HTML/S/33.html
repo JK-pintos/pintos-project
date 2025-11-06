@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>src/filesys/filesys.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/filesys.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/50.html' title='Multiple included from 8 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/33.html#L2' title='Defined at 2 in src/filesys/filesys.h.'>FILESYS_FILESYS_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/33.html#L1' title='Refered from 1 in src/filesys/filesys.h.'>FILESYS_FILESYS_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='30.html'>filesys/off_t.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Sectors of system file inodes. */</font></i>
+<a name='L8'>   8 <font color='darkred'>#define</font> <a href='../R/64.html' title='Multiple refered from 4 places.'>FREE_MAP_SECTOR</a> 0       <i><font color='green'>/* Free map file inode sector. */</font></i>
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../R/173.html' title='Multiple refered from 3 places.'>ROOT_DIR_SECTOR</a> 1       <i><font color='green'>/* Root directory file inode sector. */</font></i>
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Block device that contains the file system. */</font></i>
+<a name='L12'>  12 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *fs_device;
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b> <a href='../S/38.html#L18' title='Defined at 18 in src/filesys/filesys.c.'>filesys_init</a> (bool format);
+<a name='L15'>  15 <b>void</b> <a href='../S/38.html#L36' title='Defined at 36 in src/filesys/filesys.c.'>filesys_done</a> (<b>void</b>);
+<a name='L16'>  16 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/38.html#L46' title='Defined at 46 in src/filesys/filesys.c.'>filesys_create</a> (<b>const</b> <b>char</b> *name, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> initial_size);
+<a name='L17'>  17 <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *<a href='../S/38.html#L67' title='Defined at 67 in src/filesys/filesys.c.'>filesys_open</a> (<b>const</b> <b>char</b> *name);
+<a name='L18'>  18 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/38.html#L84' title='Defined at 84 in src/filesys/filesys.c.'>filesys_remove</a> (<b>const</b> <b>char</b> *name);
+<a name='L19'>  19 
+<a name='L20'>  20 <font color='darkred'>#endif</font> <i><font color='green'>/* filesys/filesys.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>block_sector_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L15'>block_sector_t</a>     15 src/devices/block.c     block_sector_t size;                 /* Size in sectors. */
+<a href='../S/132.html#L105'>block_sector_t</a>    105 src/devices/block.c check_sector (struct block *block, block_sector_t sector)
+<a href='../S/132.html#L121'>block_sector_t</a>    121 src/devices/block.c block_read (struct block *block, block_sector_t sector, void *buffer)
+<a href='../S/132.html#L134'>block_sector_t</a>    134 src/devices/block.c block_write (struct block *block, block_sector_t sector, const void *buffer)
+<a href='../S/132.html#L143'>block_sector_t</a>    143 src/devices/block.c block_sector_t
+<a href='../S/132.html#L188'>block_sector_t</a>    188 src/devices/block.c                 const char *extra_info, block_sector_t size,
+<a href='../S/128.html#L53'>block_sector_t</a>     53 src/devices/block.h block_sector_t block_size (struct block *);
+<a href='../S/128.html#L54'>block_sector_t</a>     54 src/devices/block.h void block_read (struct block *, block_sector_t, void *);
+<a href='../S/128.html#L55'>block_sector_t</a>     55 src/devices/block.h void block_write (struct block *, block_sector_t, const void *);
+<a href='../S/128.html#L66'>block_sector_t</a>     66 src/devices/block.h     void (*read) (void *aux, block_sector_t, void *buffer);
+<a href='../S/128.html#L67'>block_sector_t</a>     67 src/devices/block.h     void (*write) (void *aux, block_sector_t, const void *buffer);
+<a href='../S/128.html#L71'>block_sector_t</a>     71 src/devices/block.h                               const char *extra_info, block_sector_t size,
+<a href='../S/123.html#L88'>block_sector_t</a>     88 src/devices/ide.c static void select_sector (struct ata_disk *, block_sector_t);
+<a href='../S/123.html#L264'>block_sector_t</a>    264 src/devices/ide.c   block_sector_t capacity;
+<a href='../S/123.html#L345'>block_sector_t</a>    345 src/devices/ide.c ide_read (void *d_, block_sector_t sec_no, void *buffer)
+<a href='../S/123.html#L365'>block_sector_t</a>    365 src/devices/ide.c ide_write (void *d_, block_sector_t sec_no, const void *buffer)
+<a href='../S/123.html#L389'>block_sector_t</a>    389 src/devices/ide.c select_sector (struct ata_disk *d, block_sector_t sec_no)
+<a href='../S/134.html#L13'>block_sector_t</a>     13 src/devices/partition.c     block_sector_t start;               /* First sector within device. */
+<a href='../S/134.html#L18'>block_sector_t</a>     18 src/devices/partition.c static void read_partition_table (struct block *, block_sector_t sector,
+<a href='../S/134.html#L19'>block_sector_t</a>     19 src/devices/partition.c                                   block_sector_t primary_extended_sector,
+<a href='../S/134.html#L22'>block_sector_t</a>     22 src/devices/partition.c                              block_sector_t start, block_sector_t size,
+<a href='../S/134.html#L50'>block_sector_t</a>     50 src/devices/partition.c read_partition_table (struct block *block, block_sector_t sector,
+<a href='../S/134.html#L51'>block_sector_t</a>     51 src/devices/partition.c                       block_sector_t primary_extended_sector,
+<a href='../S/134.html#L155'>block_sector_t</a>    155 src/devices/partition.c                  block_sector_t start, block_sector_t size,
+<a href='../S/134.html#L304'>block_sector_t</a>    304 src/devices/partition.c partition_read (void *p_, block_sector_t sector, void *buffer)
+<a href='../S/134.html#L314'>block_sector_t</a>    314 src/devices/partition.c partition_write (void *p_, block_sector_t sector, const void *buffer)
+<a href='../S/32.html#L19'>block_sector_t</a>     19 src/filesys/directory.c     block_sector_t inode_sector;        /* Sector number of header. */
+<a href='../S/32.html#L27'>block_sector_t</a>     27 src/filesys/directory.c dir_create (block_sector_t sector, size_t entry_cnt)
+<a href='../S/32.html#L142'>block_sector_t</a>    142 src/filesys/directory.c dir_add (struct dir *dir, const char *name, block_sector_t inode_sector)
+<a href='../S/28.html#L17'>block_sector_t</a>     17 src/filesys/directory.h bool dir_create (block_sector_t sector, size_t entry_cnt);
+<a href='../S/28.html#L26'>block_sector_t</a>     26 src/filesys/directory.h bool dir_add (struct dir *, const char *name, block_sector_t);
+<a href='../S/38.html#L48'>block_sector_t</a>     48 src/filesys/filesys.c   block_sector_t inode_sector = 0;
+<a href='../S/25.html#L28'>block_sector_t</a>     28 src/filesys/free-map.c free_map_allocate (size_t cnt, block_sector_t *sectorp)
+<a href='../S/25.html#L30'>block_sector_t</a>     30 src/filesys/free-map.c   block_sector_t sector = bitmap_scan_and_flip (free_map, 0, cnt, false);
+<a href='../S/25.html#L45'>block_sector_t</a>     45 src/filesys/free-map.c free_map_release (block_sector_t sector, size_t cnt)
+<a href='../S/27.html#L14'>block_sector_t</a>     14 src/filesys/free-map.h bool free_map_allocate (size_t, block_sector_t *);
+<a href='../S/27.html#L15'>block_sector_t</a>     15 src/filesys/free-map.h void free_map_release (block_sector_t, size_t);
+<a href='../S/26.html#L75'>block_sector_t</a>     75 src/filesys/fsutil.c   static block_sector_t sector = 0;
+<a href='../S/26.html#L169'>block_sector_t</a>    169 src/filesys/fsutil.c   static block_sector_t sector = 0;
+<a href='../S/35.html#L17'>block_sector_t</a>     17 src/filesys/inode.c     block_sector_t start;               /* First data sector. */
+<a href='../S/35.html#L35'>block_sector_t</a>     35 src/filesys/inode.c     block_sector_t sector;              /* Sector number of disk location. */
+<a href='../S/35.html#L46'>block_sector_t</a>     46 src/filesys/inode.c static block_sector_t
+<a href='../S/35.html#L73'>block_sector_t</a>     73 src/filesys/inode.c inode_create (block_sector_t sector, off_t length)
+<a href='../S/35.html#L112'>block_sector_t</a>    112 src/filesys/inode.c inode_open (block_sector_t sector)
+<a href='../S/35.html#L154'>block_sector_t</a>    154 src/filesys/inode.c block_sector_t
+<a href='../S/35.html#L210'>block_sector_t</a>    210 src/filesys/inode.c       block_sector_t sector_idx = byte_to_sector (inode, offset);
+<a href='../S/35.html#L271'>block_sector_t</a>    271 src/filesys/inode.c       block_sector_t sector_idx = byte_to_sector (inode, offset);
+<a href='../S/34.html#L11'>block_sector_t</a>     11 src/filesys/inode.h bool inode_create (block_sector_t, off_t);
+<a href='../S/34.html#L12'>block_sector_t</a>     12 src/filesys/inode.h struct inode *inode_open (block_sector_t);
+<a href='../S/34.html#L14'>block_sector_t</a>     14 src/filesys/inode.h block_sector_t inode_get_inumber (const struct inode *);
+</pre>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<html>
+<head>
+<title>src/threads/synch.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/synch.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/309.html' title='Multiple included from 31 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/155.html#L2' title='Defined at 2 in src/threads/synch.h.'>THREADS_SYNCH_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/155.html#L1' title='Refered from 1 in src/threads/synch.h.'>THREADS_SYNCH_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='107.html'>list.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* A counting semaphore. */</font></i>
+<a name='L8'>   8 <b>struct</b> <a href='../R/794.html' title='Multiple refered from 17 places.'>semaphore</a> 
+<a name='L9'>   9   <font color='red'>{</font>
+<a name='L10'>  10     <b>unsigned</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;             <i><font color='green'>/* Current value. */</font></i>
+<a name='L11'>  11     <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> waiters;        <i><font color='green'>/* List of waiting threads. */</font></i>
+<a name='L12'>  12   <font color='red'>}</font>;
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b> <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (<b>struct</b> semaphore *, <b>unsigned</b> value);
+<a name='L15'>  15 <b>void</b> <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (<b>struct</b> semaphore *);
+<a name='L16'>  16 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/167.html#L84' title='Defined at 84 in src/threads/synch.c.'>sema_try_down</a> (<b>struct</b> semaphore *);
+<a name='L17'>  17 <b>void</b> <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (<b>struct</b> semaphore *);
+<a name='L18'>  18 <b>void</b> <a href='../S/167.html#L129' title='Defined at 129 in src/threads/synch.c.'>sema_self_test</a> (<b>void</b>);
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Lock. */</font></i>
+<a name='L21'>  21 <b>struct</b> <a href='../R/627.html' title='Multiple refered from 122 places.'>lock</a> 
+<a name='L22'>  22   <font color='red'>{</font>
+<a name='L23'>  23     <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a> *holder;      <i><font color='green'>/* Thread holding lock (for debugging). */</font></i>
+<a name='L24'>  24     <b>struct</b> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>; <i><font color='green'>/* Binary semaphore controlling access. */</font></i>
+<a name='L25'>  25   <font color='red'>}</font>;
+<a name='L26'>  26 
+<a name='L27'>  27 <b>void</b> <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (<b>struct</b> lock *);
+<a name='L28'>  28 <b>void</b> <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (<b>struct</b> lock *);
+<a name='L29'>  29 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/167.html#L210' title='Defined at 210 in src/threads/synch.c.'>lock_try_acquire</a> (<b>struct</b> lock *);
+<a name='L30'>  30 <b>void</b> <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (<b>struct</b> lock *);
+<a name='L31'>  31 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (<b>const</b> <b>struct</b> lock *);
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Condition variable. */</font></i>
+<a name='L34'>  34 <b>struct</b> <a href='../R/381.html' title='Multiple refered from 6 places.'>condition</a> 
+<a name='L35'>  35   <font color='red'>{</font>
+<a name='L36'>  36     <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> waiters;        <i><font color='green'>/* List of waiting threads. */</font></i>
+<a name='L37'>  37   <font color='red'>}</font>;
+<a name='L38'>  38 
+<a name='L39'>  39 <b>void</b> <a href='../S/167.html#L260' title='Defined at 260 in src/threads/synch.c.'>cond_init</a> (<b>struct</b> condition *);
+<a name='L40'>  40 <b>void</b> <a href='../S/167.html#L288' title='Defined at 288 in src/threads/synch.c.'>cond_wait</a> (<b>struct</b> condition *, <b>struct</b> lock *);
+<a name='L41'>  41 <b>void</b> <a href='../S/167.html#L312' title='Defined at 312 in src/threads/synch.c.'>cond_signal</a> (<b>struct</b> condition *, <b>struct</b> lock *);
+<a name='L42'>  42 <b>void</b> <a href='../S/167.html#L331' title='Defined at 331 in src/threads/synch.c.'>cond_broadcast</a> (<b>struct</b> condition *, <b>struct</b> lock *);
+<a name='L43'>  43 
+<a name='L44'>  44 <i><font color='green'>/* Optimization barrier.</font></i>
+<a name='L45'>  45 <i><font color='green'></font></i>
+<a name='L46'>  46 <i><font color='green'>   The compiler will not reorder operations across an</font></i>
+<a name='L47'>  47 <i><font color='green'>   optimization barrier.  See "Optimization Barriers" in the</font></i>
+<a name='L48'>  48 <i><font color='green'>   reference guide for more information.*/</font></i>
+<a name='L49'>  49 <font color='darkred'>#define</font> <a href='../R/303.html' title='Multiple refered from 3 places.'>barrier</a>() <b>asm</b> <b>volatile</b> ("" : : : "memory")
+<a name='L50'>  50 
+<a name='L51'>  51 <font color='darkred'>#endif</font> <i><font color='green'>/* threads/synch.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

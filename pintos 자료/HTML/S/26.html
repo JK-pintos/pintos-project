@@ -1,0 +1,250 @@
+<html>
+<head>
+<title>src/filesys/fsutil.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/fsutil.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L167'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>fsutil_ls</a>
+<li><a href='#L34' title='Defined at 34.'>fsutil_cat</a>
+<li><a href='#L61' title='Defined at 61.'>fsutil_rm</a>
+<li><a href='#L73' title='Defined at 73.'>fsutil_extract</a>
+<li><a href='#L167' title='Defined at 167.'>fsutil_append</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='37.html'>filesys/fsutil.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='88.html'>ustar.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='28.html'>filesys/directory.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='36.html'>filesys/file.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='165.html'>threads/palloc.h</a>"
+<a name='L12'>  12 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* List files in the root directory. */</font></i>
+<a name='L15'>  15 <b>void</b>
+<a name='L16'>  16 <a href='../R/465.html' title='Multiple refered from 2 places.'>fsutil_ls</a> (<b>char</b> **argv <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>;
+<a name='L19'>  19   <b>char</b> name[<a href='../S/28.html#L12' title='Defined at 12 in src/filesys/directory.h.'>NAME_MAX</a> + 1];
+<a name='L20'>  20   
+<a name='L21'>  21   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Files in the root directory:\n");
+<a name='L22'>  22   <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> = <a href='../S/32.html#L55' title='Defined at 55 in src/filesys/directory.c.'>dir_open_root</a> ();
+<a name='L23'>  23   <b>if</b> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L24'>  24     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("root dir open failed");
+<a name='L25'>  25   <b>while</b> (<a href='../S/32.html#L222' title='Defined at 222 in src/filesys/directory.c.'>dir_readdir</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name))
+<a name='L26'>  26     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s\n", name);
+<a name='L27'>  27   <a href='../S/32.html#L70' title='Defined at 70 in src/filesys/directory.c.'>dir_close</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L28'>  28   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("End of listing.\n");
+<a name='L29'>  29 <font color='red'>}</font>
+<a name='L30'>  30 
+<a name='L31'>  31 <i><font color='green'>/* Prints the contents of file ARGV[1] to the system console as</font></i>
+<a name='L32'>  32 <i><font color='green'>   hex and ASCII. */</font></i>
+<a name='L33'>  33 <b>void</b>
+<a name='L34'>  34 <a href='../R/463.html' title='Multiple refered from 2 places.'>fsutil_cat</a> (<b>char</b> **argv)
+<a name='L35'>  35 <font color='red'>{</font>
+<a name='L36'>  36   <b>const</b> <b>char</b> *file_name = argv[1];
+<a name='L37'>  37   
+<a name='L38'>  38   <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>;
+<a name='L39'>  39   <b>char</b> *buffer;
+<a name='L40'>  40 
+<a name='L41'>  41   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Printing '%s' to the console...\n", file_name);
+<a name='L42'>  42   <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> = <a href='../S/38.html#L67' title='Defined at 67 in src/filesys/filesys.c.'>filesys_open</a> (file_name);
+<a name='L43'>  43   <b>if</b> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L44'>  44     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: open failed", file_name);
+<a name='L45'>  45   buffer = <a href='../S/160.html#L111' title='Defined at 111 in src/threads/palloc.c.'>palloc_get_page</a> (PAL_ASSERT);
+<a name='L46'>  46   <b>for</b> (;;) 
+<a name='L47'>  47     <font color='red'>{</font>
+<a name='L48'>  48       <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> pos = <a href='../S/29.html#L164' title='Defined at 164 in src/filesys/file.c.'>file_tell</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>);
+<a name='L49'>  49       <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> n = <a href='../S/29.html#L69' title='Defined at 69 in src/filesys/file.c.'>file_read</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, buffer, <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>);
+<a name='L50'>  50       <b>if</b> (n == 0)
+<a name='L51'>  51         <b>break</b>;
+<a name='L52'>  52 
+<a name='L53'>  53       <a href='../S/115.html#L593' title='Defined at 593 in src/lib/stdio.c.'>hex_dump</a> (pos, buffer, n, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>); 
+<a name='L54'>  54     <font color='red'>}</font>
+<a name='L55'>  55   <a href='../S/160.html#L146' title='Defined at 146 in src/threads/palloc.c.'>palloc_free_page</a> (buffer);
+<a name='L56'>  56   <a href='../S/29.html#L46' title='Defined at 46 in src/filesys/file.c.'>file_close</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>);
+<a name='L57'>  57 <font color='red'>}</font>
+<a name='L58'>  58 
+<a name='L59'>  59 <i><font color='green'>/* Deletes file ARGV[1]. */</font></i>
+<a name='L60'>  60 <b>void</b>
+<a name='L61'>  61 <a href='../R/466.html' title='Multiple refered from 2 places.'>fsutil_rm</a> (<b>char</b> **argv) 
+<a name='L62'>  62 <font color='red'>{</font>
+<a name='L63'>  63   <b>const</b> <b>char</b> *file_name = argv[1];
+<a name='L64'>  64   
+<a name='L65'>  65   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Deleting '%s'...\n", file_name);
+<a name='L66'>  66   <b>if</b> (!<a href='../S/38.html#L84' title='Defined at 84 in src/filesys/filesys.c.'>filesys_remove</a> (file_name))
+<a name='L67'>  67     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: delete failed\n", file_name);
+<a name='L68'>  68 <font color='red'>}</font>
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Extracts a ustar-format tar archive from the scratch block</font></i>
+<a name='L71'>  71 <i><font color='green'>   device into the Pintos file system. */</font></i>
+<a name='L72'>  72 <b>void</b>
+<a name='L73'>  73 <a href='../R/464.html' title='Multiple refered from 2 places.'>fsutil_extract</a> (<b>char</b> **argv <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L74'>  74 <font color='red'>{</font>
+<a name='L75'>  75   <b>static</b> <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector = 0;
+<a name='L76'>  76 
+<a name='L77'>  77   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *src;
+<a name='L78'>  78   <b>void</b> *header, *data;
+<a name='L79'>  79 
+<a name='L80'>  80   <i><font color='green'>/* Allocate buffers. */</font></i>
+<a name='L81'>  81   header = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L82'>  82   data = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L83'>  83   <b>if</b> (header == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || data == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L84'>  84     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("couldn't allocate buffers");
+<a name='L85'>  85 
+<a name='L86'>  86   <i><font color='green'>/* Open source block device. */</font></i>
+<a name='L87'>  87   src = <a href='../S/132.html#L54' title='Defined at 54 in src/devices/block.c.'>block_get_role</a> (BLOCK_SCRATCH);
+<a name='L88'>  88   <b>if</b> (src == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L89'>  89     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("couldn't open scratch device");
+<a name='L90'>  90 
+<a name='L91'>  91   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Extracting ustar archive from scratch device "
+<a name='L92'>  92           "into file system...\n");
+<a name='L93'>  93 
+<a name='L94'>  94   <b>for</b> (;;)
+<a name='L95'>  95     <font color='red'>{</font>
+<a name='L96'>  96       <b>const</b> <b>char</b> *file_name;
+<a name='L97'>  97       <b>const</b> <b>char</b> *error;
+<a name='L98'>  98       <b>enum</b> <a href='../S/88.html#L13' title='Defined at 13 in src/lib/ustar.h.'>ustar_type</a> type;
+<a name='L99'>  99       <b>int</b> size;
+<a name='L100'> 100 
+<a name='L101'> 101       <i><font color='green'>/* Read and parse ustar header. */</font></i>
+<a name='L102'> 102       <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (src, sector++, header);
+<a name='L103'> 103       error = <a href='../S/116.html#L182' title='Defined at 182 in src/lib/ustar.c.'>ustar_parse_header</a> (header, &amp;file_name, &amp;type, &amp;size);
+<a name='L104'> 104       <b>if</b> (error != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L105'> 105         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("bad ustar header in sector %"<a href='../S/128.html#L19' title='Defined at 19 in src/devices/block.h.'>PRDSNu</a>" (%s)", sector - 1, error);
+<a name='L106'> 106 
+<a name='L107'> 107       <b>if</b> (type == USTAR_EOF)
+<a name='L108'> 108         <font color='red'>{</font>
+<a name='L109'> 109           <i><font color='green'>/* End of archive. */</font></i>
+<a name='L110'> 110           <b>break</b>;
+<a name='L111'> 111         <font color='red'>}</font>
+<a name='L112'> 112       <b>else</b> <b>if</b> (type == USTAR_DIRECTORY)
+<a name='L113'> 113         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("ignoring directory %s\n", file_name);
+<a name='L114'> 114       <b>else</b> <b>if</b> (type == USTAR_REGULAR)
+<a name='L115'> 115         <font color='red'>{</font>
+<a name='L116'> 116           <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *dst;
+<a name='L117'> 117 
+<a name='L118'> 118           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Putting '%s' into the file system...\n", file_name);
+<a name='L119'> 119 
+<a name='L120'> 120           <i><font color='green'>/* Create destination file. */</font></i>
+<a name='L121'> 121           <b>if</b> (!<a href='../S/38.html#L46' title='Defined at 46 in src/filesys/filesys.c.'>filesys_create</a> (file_name, size))
+<a name='L122'> 122             <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: create failed", file_name);
+<a name='L123'> 123           dst = <a href='../S/38.html#L67' title='Defined at 67 in src/filesys/filesys.c.'>filesys_open</a> (file_name);
+<a name='L124'> 124           <b>if</b> (dst == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L125'> 125             <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: open failed", file_name);
+<a name='L126'> 126 
+<a name='L127'> 127           <i><font color='green'>/* Do copy. */</font></i>
+<a name='L128'> 128           <b>while</b> (size &gt; 0)
+<a name='L129'> 129             <font color='red'>{</font>
+<a name='L130'> 130               <b>int</b> chunk_size = (size &gt; <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>
+<a name='L131'> 131                                 ? <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>
+<a name='L132'> 132                                 : size);
+<a name='L133'> 133               <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (src, sector++, data);
+<a name='L134'> 134               <b>if</b> (<a href='../S/29.html#L95' title='Defined at 95 in src/filesys/file.c.'>file_write</a> (dst, data, chunk_size) != chunk_size)
+<a name='L135'> 135                 <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: write failed with %d bytes unwritten",
+<a name='L136'> 136                        file_name, size);
+<a name='L137'> 137               size -= chunk_size;
+<a name='L138'> 138             <font color='red'>}</font>
+<a name='L139'> 139 
+<a name='L140'> 140           <i><font color='green'>/* Finish up. */</font></i>
+<a name='L141'> 141           <a href='../S/29.html#L46' title='Defined at 46 in src/filesys/file.c.'>file_close</a> (dst);
+<a name='L142'> 142         <font color='red'>}</font>
+<a name='L143'> 143     <font color='red'>}</font>
+<a name='L144'> 144 
+<a name='L145'> 145   <i><font color='green'>/* Erase the ustar header from the start of the block device,</font></i>
+<a name='L146'> 146 <i><font color='green'>     so that the extraction operation is idempotent.  We erase</font></i>
+<a name='L147'> 147 <i><font color='green'>     two blocks because two blocks of zeros are the ustar</font></i>
+<a name='L148'> 148 <i><font color='green'>     end-of-archive marker. */</font></i>
+<a name='L149'> 149   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Erasing ustar archive...\n");
+<a name='L150'> 150   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (header, 0, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L151'> 151   <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (src, 0, header);
+<a name='L152'> 152   <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (src, 1, header);
+<a name='L153'> 153 
+<a name='L154'> 154   <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (data);
+<a name='L155'> 155   <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (header);
+<a name='L156'> 156 <font color='red'>}</font>
+<a name='L157'> 157 
+<a name='L158'> 158 <i><font color='green'>/* Copies file FILE_NAME from the file system to the scratch</font></i>
+<a name='L159'> 159 <i><font color='green'>   device, in ustar format.</font></i>
+<a name='L160'> 160 <i><font color='green'></font></i>
+<a name='L161'> 161 <i><font color='green'>   The first call to this function will write starting at the</font></i>
+<a name='L162'> 162 <i><font color='green'>   beginning of the scratch device.  Later calls advance across</font></i>
+<a name='L163'> 163 <i><font color='green'>   the device.  This position is independent of that used for</font></i>
+<a name='L164'> 164 <i><font color='green'>   fsutil_extract(), so `extract' should precede all</font></i>
+<a name='L165'> 165 <i><font color='green'>   `append's. */</font></i>
+<a name='L166'> 166 <b>void</b>
+<a name='L167'> 167 <a href='../R/462.html' title='Multiple refered from 2 places.'>fsutil_append</a> (<b>char</b> **argv)
+<a name='L168'> 168 <font color='red'>{</font>
+<a name='L169'> 169   <b>static</b> <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector = 0;
+<a name='L170'> 170 
+<a name='L171'> 171   <b>const</b> <b>char</b> *file_name = argv[1];
+<a name='L172'> 172   <b>void</b> *buffer;
+<a name='L173'> 173   <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *src;
+<a name='L174'> 174   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *dst;
+<a name='L175'> 175   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size;
+<a name='L176'> 176 
+<a name='L177'> 177   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Appending '%s' to ustar archive on scratch device...\n", file_name);
+<a name='L178'> 178 
+<a name='L179'> 179   <i><font color='green'>/* Allocate buffer. */</font></i>
+<a name='L180'> 180   buffer = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L181'> 181   <b>if</b> (buffer == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L182'> 182     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("couldn't allocate buffer");
+<a name='L183'> 183 
+<a name='L184'> 184   <i><font color='green'>/* Open source file. */</font></i>
+<a name='L185'> 185   src = <a href='../S/38.html#L67' title='Defined at 67 in src/filesys/filesys.c.'>filesys_open</a> (file_name);
+<a name='L186'> 186   <b>if</b> (src == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L187'> 187     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: open failed", file_name);
+<a name='L188'> 188   size = <a href='../S/29.html#L145' title='Defined at 145 in src/filesys/file.c.'>file_length</a> (src);
+<a name='L189'> 189 
+<a name='L190'> 190   <i><font color='green'>/* Open target block device. */</font></i>
+<a name='L191'> 191   dst = <a href='../S/132.html#L54' title='Defined at 54 in src/devices/block.c.'>block_get_role</a> (BLOCK_SCRATCH);
+<a name='L192'> 192   <b>if</b> (dst == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L193'> 193     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("couldn't open scratch device");
+<a name='L194'> 194   
+<a name='L195'> 195   <i><font color='green'>/* Write ustar header to first sector. */</font></i>
+<a name='L196'> 196   <b>if</b> (!<a href='../S/116.html#L83' title='Defined at 83 in src/lib/ustar.c.'>ustar_make_header</a> (file_name, USTAR_REGULAR, size, buffer))
+<a name='L197'> 197     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: name too long for ustar format", file_name);
+<a name='L198'> 198   <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (dst, sector++, buffer);
+<a name='L199'> 199 
+<a name='L200'> 200   <i><font color='green'>/* Do copy. */</font></i>
+<a name='L201'> 201   <b>while</b> (size &gt; 0) 
+<a name='L202'> 202     <font color='red'>{</font>
+<a name='L203'> 203       <b>int</b> chunk_size = size &gt; <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> ? <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> : size;
+<a name='L204'> 204       <b>if</b> (sector &gt;= <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> (dst))
+<a name='L205'> 205         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: out of space on scratch device", file_name);
+<a name='L206'> 206       <b>if</b> (<a href='../S/29.html#L69' title='Defined at 69 in src/filesys/file.c.'>file_read</a> (src, buffer, chunk_size) != chunk_size)
+<a name='L207'> 207         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: read failed with %"<a href='../S/30.html#L13' title='Defined at 13 in src/filesys/off_t.h.'>PROTd</a>" bytes unread", file_name, size);
+<a name='L208'> 208       <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (buffer + chunk_size, 0, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> - chunk_size);
+<a name='L209'> 209       <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (dst, sector++, buffer);
+<a name='L210'> 210       size -= chunk_size;
+<a name='L211'> 211     <font color='red'>}</font>
+<a name='L212'> 212 
+<a name='L213'> 213   <i><font color='green'>/* Write ustar end-of-archive marker, which is two consecutive</font></i>
+<a name='L214'> 214 <i><font color='green'>     sectors full of zeros.  Don't advance our position past</font></i>
+<a name='L215'> 215 <i><font color='green'>     them, though, in case we have more files to append. */</font></i>
+<a name='L216'> 216   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (buffer, 0, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L217'> 217   <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (dst, sector, buffer);
+<a name='L218'> 218   <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (dst, sector, buffer + 1);
+<a name='L219'> 219 
+<a name='L220'> 220   <i><font color='green'>/* Finish up. */</font></i>
+<a name='L221'> 221   <a href='../S/29.html#L46' title='Defined at 46 in src/filesys/file.c.'>file_close</a> (src);
+<a name='L222'> 222   <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (buffer);
+<a name='L223'> 223 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L167'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-clean.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-clean.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Verifies that mmap'd regions are only written back on munmap</font></i>
+<a name='L2'>   2 <i><font color='green'>   if the data was actually modified in memory. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b>
+<a name='L11'>  11 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <b>static</b> <b>const</b> <b>char</b> overwrite[] = "Now is the time for all good...";
+<a name='L14'>  14   <b>static</b> <b>char</b> buffer[<b>sizeof</b> sample - 1];
+<a name='L15'>  15   <b>char</b> *actual = (<b>char</b> *) 0x54321000;
+<a name='L16'>  16   <b>int</b> handle;
+<a name='L17'>  17   <a href='../S/100.html#L12' title='Defined at 12 in src/lib/user/syscall.h.'>mapid_t</a> map;
+<a name='L18'>  18 
+<a name='L19'>  19   <i><font color='green'>/* Open file, map, verify data. */</font></i>
+<a name='L20'>  20   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a name='L21'>  21   CHECK ((map = <a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle, actual)) != <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>, "mmap \"sample.txt\"");
+<a name='L22'>  22   <b>if</b> (<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (actual, sample, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample)))
+<a name='L23'>  23     <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("read of mmap'd file reported bad data");
+<a name='L24'>  24 
+<a name='L25'>  25   <i><font color='green'>/* Modify file. */</font></i>
+<a name='L26'>  26   CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, overwrite, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (overwrite))
+<a name='L27'>  27          == (<b>int</b>) <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (overwrite),
+<a name='L28'>  28          "write \"sample.txt\"");
+<a name='L29'>  29 
+<a name='L30'>  30   <i><font color='green'>/* Close mapping.  Data should not be written back, because we</font></i>
+<a name='L31'>  31 <i><font color='green'>     didn't modify it via the mapping. */</font></i>
+<a name='L32'>  32   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("munmap \"sample.txt\"");
+<a name='L33'>  33   <a href='../S/97.html#L151' title='Defined at 151 in src/lib/user/syscall.c.'>munmap</a> (map);
+<a name='L34'>  34 
+<a name='L35'>  35   <i><font color='green'>/* Read file back. */</font></i>
+<a name='L36'>  36   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("seek \"sample.txt\"");
+<a name='L37'>  37   <a href='../S/97.html#L127' title='Defined at 127 in src/lib/user/syscall.c.'>seek</a> (handle, 0);
+<a name='L38'>  38   CHECK (<a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (handle, buffer, <b>sizeof</b> buffer) == <b>sizeof</b> buffer,
+<a name='L39'>  39          "read \"sample.txt\"");
+<a name='L40'>  40 
+<a name='L41'>  41   <i><font color='green'>/* Verify that file overwrite worked. */</font></i>
+<a name='L42'>  42   <b>if</b> (<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (buffer, overwrite, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (overwrite))
+<a name='L43'>  43       || <a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (buffer + <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (overwrite), sample + <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (overwrite),
+<a name='L44'>  44                  <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample) - <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (overwrite))) 
+<a name='L45'>  45     <font color='red'>{</font>
+<a name='L46'>  46       <b>if</b> (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (buffer, sample, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample)))
+<a name='L47'>  47         <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("munmap wrote back clean page");
+<a name='L48'>  48       <b>else</b>
+<a name='L49'>  49         <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("read surprising data from file"); 
+<a name='L50'>  50     <font color='red'>}</font>
+<a name='L51'>  51   <b>else</b>
+<a name='L52'>  52     <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("file change was retained after munmap");
+<a name='L53'>  53 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

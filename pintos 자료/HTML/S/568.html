@@ -1,0 +1,128 @@
+<html>
+<head>
+<title>src/tests/threads/tests.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/tests.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L47'>[^]</a><a href='#L98'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L47' title='Defined at 47.'>run_test</a>
+<li><a href='#L67' title='Defined at 67.'>msg</a>
+<li><a href='#L83' title='Defined at 83.'>fail</a>
+<li><a href='#L98' title='Defined at 98.'>pass</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <b>struct</b> <a href='../R/855.html' title='Multiple refered from 28 places.'>test</a> 
+<a name='L7'>   7   <font color='red'>{</font>
+<a name='L8'>   8     <b>const</b> <b>char</b> *name;
+<a name='L9'>   9     <a href='../S/572.html#L6' title='Defined at 6 in src/tests/threads/tests.h.'>test_func</a> *function;
+<a name='L10'>  10   <font color='red'>}</font>;
+<a name='L11'>  11 
+<a name='L12'>  12 <b>static</b> <b>const</b> <b>struct</b> <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a> tests[] = 
+<a name='L13'>  13   <font color='red'>{</font>
+<a name='L14'>  14     <font color='red'>{</font>"alarm-single", <a href='../S/586.html#L16' title='Defined at 16 in src/tests/threads/alarm-wait.c.'>test_alarm_single</a><font color='red'>}</font>,
+<a name='L15'>  15     <font color='red'>{</font>"alarm-multiple", <a href='../S/586.html#L22' title='Defined at 22 in src/tests/threads/alarm-wait.c.'>test_alarm_multiple</a><font color='red'>}</font>,
+<a name='L16'>  16     <font color='red'>{</font>"alarm-simultaneous", <a href='../S/569.html#L16' title='Defined at 16 in src/tests/threads/alarm-simultaneous.c.'>test_alarm_simultaneous</a><font color='red'>}</font>,
+<a name='L17'>  17     <font color='red'>{</font>"alarm-priority", <a href='../S/582.html#L17' title='Defined at 17 in src/tests/threads/alarm-priority.c.'>test_alarm_priority</a><font color='red'>}</font>,
+<a name='L18'>  18     <font color='red'>{</font>"alarm-zero", <a href='../S/580.html#L11' title='Defined at 11 in src/tests/threads/alarm-zero.c.'>test_alarm_zero</a><font color='red'>}</font>,
+<a name='L19'>  19     <font color='red'>{</font>"alarm-negative", <a href='../S/542.html#L11' title='Defined at 11 in src/tests/threads/alarm-negative.c.'>test_alarm_negative</a><font color='red'>}</font>,
+<a name='L20'>  20     <font color='red'>{</font>"priority-change", <a href='../S/585.html#L13' title='Defined at 13 in src/tests/threads/priority-change.c.'>test_priority_change</a><font color='red'>}</font>,
+<a name='L21'>  21     <font color='red'>{</font>"priority-donate-one", <a href='../S/554.html#L22' title='Defined at 22 in src/tests/threads/priority-donate-one.c.'>test_priority_donate_one</a><font color='red'>}</font>,
+<a name='L22'>  22     <font color='red'>{</font>"priority-donate-multiple", <a href='../S/579.html#L22' title='Defined at 22 in src/tests/threads/priority-donate-multiple.c.'>test_priority_donate_multiple</a><font color='red'>}</font>,
+<a name='L23'>  23     <font color='red'>{</font>"priority-donate-multiple2", <a href='../S/576.html#L28' title='Defined at 28 in src/tests/threads/priority-donate-multiple2.c.'>test_priority_donate_multiple2</a><font color='red'>}</font>,
+<a name='L24'>  24     <font color='red'>{</font>"priority-donate-nest", <a href='../S/533.html#L28' title='Defined at 28 in src/tests/threads/priority-donate-nest.c.'>test_priority_donate_nest</a><font color='red'>}</font>,
+<a name='L25'>  25     <font color='red'>{</font>"priority-donate-sema", <a href='../S/544.html#L30' title='Defined at 30 in src/tests/threads/priority-donate-sema.c.'>test_priority_donate_sema</a><font color='red'>}</font>,
+<a name='L26'>  26     <font color='red'>{</font>"priority-donate-lower", <a href='../S/587.html#L16' title='Defined at 16 in src/tests/threads/priority-donate-lower.c.'>test_priority_donate_lower</a><font color='red'>}</font>,
+<a name='L27'>  27     <font color='red'>{</font>"priority-donate-chain", <a href='../S/548.html#L45' title='Defined at 45 in src/tests/threads/priority-donate-chain.c.'>test_priority_donate_chain</a><font color='red'>}</font>,
+<a name='L28'>  28     <font color='red'>{</font>"priority-fifo", <a href='../S/559.html#L32' title='Defined at 32 in src/tests/threads/priority-fifo.c.'>test_priority_fifo</a><font color='red'>}</font>,
+<a name='L29'>  29     <font color='red'>{</font>"priority-preempt", <a href='../S/573.html#L18' title='Defined at 18 in src/tests/threads/priority-preempt.c.'>test_priority_preempt</a><font color='red'>}</font>,
+<a name='L30'>  30     <font color='red'>{</font>"priority-sema", <a href='../S/535.html#L16' title='Defined at 16 in src/tests/threads/priority-sema.c.'>test_priority_sema</a><font color='red'>}</font>,
+<a name='L31'>  31     <font color='red'>{</font>"priority-condvar", <a href='../S/581.html#L17' title='Defined at 17 in src/tests/threads/priority-condvar.c.'>test_priority_condvar</a><font color='red'>}</font>,
+<a name='L32'>  32     <font color='red'>{</font>"mlfqs-load-1", <a href='../S/531.html#L18' title='Defined at 18 in src/tests/threads/mlfqs-load-1.c.'>test_mlfqs_load_1</a><font color='red'>}</font>,
+<a name='L33'>  33     <font color='red'>{</font>"mlfqs-load-60", <a href='../S/555.html#L115' title='Defined at 115 in src/tests/threads/mlfqs-load-60.c.'>test_mlfqs_load_60</a><font color='red'>}</font>,
+<a name='L34'>  34     <font color='red'>{</font>"mlfqs-load-avg", <a href='../S/558.html#L126' title='Defined at 126 in src/tests/threads/mlfqs-load-avg.c.'>test_mlfqs_load_avg</a><font color='red'>}</font>,
+<a name='L35'>  35     <font color='red'>{</font>"mlfqs-recent-1", <a href='../S/570.html#L110' title='Defined at 110 in src/tests/threads/mlfqs-recent-1.c.'>test_mlfqs_recent_1</a><font color='red'>}</font>,
+<a name='L36'>  36     <font color='red'>{</font>"mlfqs-fair-2", <a href='../S/547.html#L31' title='Defined at 31 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_fair_2</a><font color='red'>}</font>,
+<a name='L37'>  37     <font color='red'>{</font>"mlfqs-fair-20", <a href='../S/547.html#L37' title='Defined at 37 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_fair_20</a><font color='red'>}</font>,
+<a name='L38'>  38     <font color='red'>{</font>"mlfqs-nice-2", <a href='../S/547.html#L43' title='Defined at 43 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_nice_2</a><font color='red'>}</font>,
+<a name='L39'>  39     <font color='red'>{</font>"mlfqs-nice-10", <a href='../S/547.html#L49' title='Defined at 49 in src/tests/threads/mlfqs-fair.c.'>test_mlfqs_nice_10</a><font color='red'>}</font>,
+<a name='L40'>  40     <font color='red'>{</font>"mlfqs-block", <a href='../S/575.html#L23' title='Defined at 23 in src/tests/threads/mlfqs-block.c.'>test_mlfqs_block</a><font color='red'>}</font>,
+<a name='L41'>  41   <font color='red'>}</font>;
+<a name='L42'>  42 
+<a name='L43'>  43 <b>static</b> <b>const</b> <b>char</b> *test_name;
+<a name='L44'>  44 
+<a name='L45'>  45 <i><font color='green'>/* Runs the test named NAME. */</font></i>
+<a name='L46'>  46 <b>void</b>
+<a name='L47'>  47 <a href='../R/780.html' title='Multiple refered from 2 places.'>run_test</a> (<b>const</b> <b>char</b> *name) 
+<a name='L48'>  48 <font color='red'>{</font>
+<a name='L49'>  49   <b>const</b> <b>struct</b> <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a> *t;
+<a name='L50'>  50 
+<a name='L51'>  51   <b>for</b> (t = tests; t &lt; tests + <b>sizeof</b> tests / <b>sizeof</b> *tests; t++)
+<a name='L52'>  52     <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, t-&gt;name))
+<a name='L53'>  53       <font color='red'>{</font>
+<a name='L54'>  54         test_name = name;
+<a name='L55'>  55         <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("begin");
+<a name='L56'>  56         t-&gt;function ();
+<a name='L57'>  57         <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("end");
+<a name='L58'>  58         <b>return</b>;
+<a name='L59'>  59       <font color='red'>}</font>
+<a name='L60'>  60   <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("no test named \"%s\"", name);
+<a name='L61'>  61 <font color='red'>}</font>
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Prints FORMAT as if with printf(),</font></i>
+<a name='L64'>  64 <i><font color='green'>   prefixing the output by the name of the test</font></i>
+<a name='L65'>  65 <i><font color='green'>   and following it with a new-line character. */</font></i>
+<a name='L66'>  66 <b>void</b>
+<a name='L67'>  67 <a href='../R/666.html' title='Multiple refered from 208 places.'>msg</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L68'>  68 <font color='red'>{</font>
+<a name='L69'>  69   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L70'>  70   
+<a name='L71'>  71   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("(%s) ", test_name);
+<a name='L72'>  72   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L73'>  73   <a href='../D/1079.html' title='Multiple defined in 2 places.'>vprintf</a> (format, args);
+<a name='L74'>  74   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L75'>  75   <a href='../D/850.html' title='Multiple defined in 2 places.'>putchar</a> ('\n');
+<a name='L76'>  76 <font color='red'>}</font>
+<a name='L77'>  77 
+<a name='L78'>  78 <i><font color='green'>/* Prints failure message FORMAT as if with printf(),</font></i>
+<a name='L79'>  79 <i><font color='green'>   prefixing the output by the name of the test and FAIL:</font></i>
+<a name='L80'>  80 <i><font color='green'>   and following it with a new-line character,</font></i>
+<a name='L81'>  81 <i><font color='green'>   and then panics the kernel. */</font></i>
+<a name='L82'>  82 <b>void</b>
+<a name='L83'>  83 <a href='../R/424.html' title='Multiple refered from 72 places.'>fail</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L84'>  84 <font color='red'>{</font>
+<a name='L85'>  85   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L86'>  86   
+<a name='L87'>  87   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("(%s) FAIL: ", test_name);
+<a name='L88'>  88   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L89'>  89   <a href='../D/1079.html' title='Multiple defined in 2 places.'>vprintf</a> (format, args);
+<a name='L90'>  90   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L91'>  91   <a href='../D/850.html' title='Multiple defined in 2 places.'>putchar</a> ('\n');
+<a name='L92'>  92 
+<a name='L93'>  93   <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("test failed");
+<a name='L94'>  94 <font color='red'>}</font>
+<a name='L95'>  95 
+<a name='L96'>  96 <i><font color='green'>/* Prints a message indicating the current test passed. */</font></i>
+<a name='L97'>  97 <b>void</b>
+<a name='L98'>  98 <a href='../R/709.html' title='Multiple refered from 4 places.'>pass</a> (<b>void</b>) 
+<a name='L99'>  99 <font color='red'>{</font>
+<a name='L100'> 100   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("(%s) PASS\n", test_name);
+<a name='L101'> 101 <font color='red'>}</font>
+<a name='L102'> 102 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L47'>[^]</a><a href='#L98'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

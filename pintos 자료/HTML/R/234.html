@@ -1,0 +1,40 @@
+<html>
+<head>
+<title>TIMER_FREQ</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/125.html#L13'>TIMER_FREQ</a>         13 src/devices/timer.c #if TIMER_FREQ &lt; 19
+<a href='../S/125.html#L16'>TIMER_FREQ</a>         16 src/devices/timer.c #if TIMER_FREQ &gt; 1000
+<a href='../S/125.html#L38'>TIMER_FREQ</a>         38 src/devices/timer.c   pit_configure_channel (0, 2, TIMER_FREQ);
+<a href='../S/125.html#L66'>TIMER_FREQ</a>         66 src/devices/timer.c   printf ("%'"PRIu64" loops/s.\n", (uint64_t) loops_per_tick * TIMER_FREQ);
+<a href='../S/125.html#L220'>TIMER_FREQ</a>        220 src/devices/timer.c   int64_t ticks = num * TIMER_FREQ / denom;
+<a href='../S/125.html#L245'>TIMER_FREQ</a>        245 src/devices/timer.c   busy_wait (loops_per_tick * num / 1000 * TIMER_FREQ / (denom / 1000)); 
+<a href='../S/582.html#L24'>TIMER_FREQ</a>         24 src/tests/threads/alarm-priority.c   wake_time = timer_ticks () + 5 * TIMER_FREQ;
+<a href='../S/575.html#L36'>TIMER_FREQ</a>         36 src/tests/threads/mlfqs-block.c   timer_sleep (25 * TIMER_FREQ);
+<a href='../S/575.html#L40'>TIMER_FREQ</a>         40 src/tests/threads/mlfqs-block.c   while (timer_elapsed (start_time) &lt; 5 * TIMER_FREQ)
+<a href='../S/575.html#L57'>TIMER_FREQ</a>         57 src/tests/threads/mlfqs-block.c   while (timer_elapsed (start_time) &lt; 20 * TIMER_FREQ)
+<a href='../S/547.html#L101'>TIMER_FREQ</a>        101 src/tests/threads/mlfqs-fair.c   timer_sleep (40 * TIMER_FREQ);
+<a href='../S/547.html#L111'>TIMER_FREQ</a>        111 src/tests/threads/mlfqs-fair.c   int64_t sleep_time = 5 * TIMER_FREQ;
+<a href='../S/547.html#L112'>TIMER_FREQ</a>        112 src/tests/threads/mlfqs-fair.c   int64_t spin_time = sleep_time + 30 * TIMER_FREQ;
+<a href='../S/531.html#L33'>TIMER_FREQ</a>         33 src/tests/threads/mlfqs-load-1.c       elapsed = timer_elapsed (start_time) / TIMER_FREQ;
+<a href='../S/531.html#L49'>TIMER_FREQ</a>         49 src/tests/threads/mlfqs-load-1.c   timer_sleep (TIMER_FREQ * 10);
+<a href='../S/555.html#L130'>TIMER_FREQ</a>        130 src/tests/threads/mlfqs-load-60.c        timer_elapsed (start_time) / TIMER_FREQ);
+<a href='../S/555.html#L134'>TIMER_FREQ</a>        134 src/tests/threads/mlfqs-load-60.c       int64_t sleep_until = start_time + TIMER_FREQ * (2 * i + 10);
+<a href='../S/555.html#L146'>TIMER_FREQ</a>        146 src/tests/threads/mlfqs-load-60.c   int64_t sleep_time = 10 * TIMER_FREQ;
+<a href='../S/555.html#L147'>TIMER_FREQ</a>        147 src/tests/threads/mlfqs-load-60.c   int64_t spin_time = sleep_time + 60 * TIMER_FREQ;
+<a href='../S/555.html#L148'>TIMER_FREQ</a>        148 src/tests/threads/mlfqs-load-60.c   int64_t exit_time = spin_time + 60 * TIMER_FREQ;
+<a href='../S/558.html#L141'>TIMER_FREQ</a>        141 src/tests/threads/mlfqs-load-avg.c        timer_elapsed (start_time) / TIMER_FREQ);
+<a href='../S/558.html#L146'>TIMER_FREQ</a>        146 src/tests/threads/mlfqs-load-avg.c       int64_t sleep_until = start_time + TIMER_FREQ * (2 * i + 10);
+<a href='../S/558.html#L159'>TIMER_FREQ</a>        159 src/tests/threads/mlfqs-load-avg.c   int sleep_time = TIMER_FREQ * (10 + seq_no);
+<a href='../S/558.html#L160'>TIMER_FREQ</a>        160 src/tests/threads/mlfqs-load-avg.c   int spin_time = sleep_time + TIMER_FREQ * THREAD_CNT;
+<a href='../S/558.html#L161'>TIMER_FREQ</a>        161 src/tests/threads/mlfqs-load-avg.c   int exit_time = TIMER_FREQ * (THREAD_CNT * 2);
+<a href='../S/570.html#L121'>TIMER_FREQ</a>        121 src/tests/threads/mlfqs-recent-1.c       timer_sleep (DIV_ROUND_UP (start_time, TIMER_FREQ) - start_time
+<a href='../S/570.html#L122'>TIMER_FREQ</a>        122 src/tests/threads/mlfqs-recent-1.c                    + 10 * TIMER_FREQ);
+<a href='../S/570.html#L130'>TIMER_FREQ</a>        130 src/tests/threads/mlfqs-recent-1.c       if (elapsed % (TIMER_FREQ * 2) == 0 &amp;&amp; elapsed &gt; last_elapsed) 
+<a href='../S/570.html#L134'>TIMER_FREQ</a>        134 src/tests/threads/mlfqs-recent-1.c           int elapsed_seconds = elapsed / TIMER_FREQ;
+</pre>
+</body>
+</html>

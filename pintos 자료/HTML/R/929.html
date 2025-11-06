@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>tss</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/72.html#L76'>tss</a>                76 src/userprog/tss.c static struct tss *tss;
+<a href='../S/72.html#L85'>tss</a>                85 src/userprog/tss.c   tss = palloc_get_page (PAL_ASSERT | PAL_ZERO);
+<a href='../S/72.html#L86'>tss</a>                86 src/userprog/tss.c   tss-&gt;ss0 = SEL_KDSEG;
+<a href='../S/72.html#L87'>tss</a>                87 src/userprog/tss.c   tss-&gt;bitmap = 0xdfff;
+<a href='../S/72.html#L92'>tss</a>                92 src/userprog/tss.c struct tss *
+<a href='../S/72.html#L95'>tss</a>                95 src/userprog/tss.c   ASSERT (tss != NULL);
+<a href='../S/72.html#L96'>tss</a>                96 src/userprog/tss.c   return tss;
+<a href='../S/72.html#L104'>tss</a>               104 src/userprog/tss.c   ASSERT (tss != NULL);
+<a href='../S/72.html#L105'>tss</a>               105 src/userprog/tss.c   tss-&gt;esp0 = (uint8_t *) thread_current () + PGSIZE;
+<a href='../S/69.html#L6'>tss</a>                 6 src/userprog/tss.h struct tss;
+<a href='../S/69.html#L8'>tss</a>                 8 src/userprog/tss.h struct tss *tss_get (void);
+</pre>
+</body>
+</html>

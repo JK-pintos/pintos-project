@@ -1,0 +1,211 @@
+<html>
+<head>
+<title>src/threads/palloc.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/palloc.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L46'>[^]</a><a href='#L175'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L46' title='Defined at 46.'>palloc_init</a>
+<li><a href='#L71' title='Defined at 71.'>palloc_get_multiple</a>
+<li><a href='#L111' title='Defined at 111.'>palloc_get_page</a>
+<li><a href='#L118' title='Defined at 118.'>palloc_free_multiple</a>
+<li><a href='#L146' title='Defined at 146.'>palloc_free_page</a>
+<li><a href='#L154' title='Defined at 154.'>init_pool</a>
+<li><a href='#L175' title='Defined at 175.'>page_from_pool</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='165.html'>threads/palloc.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='111.html'>bitmap.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L9'>   9 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L12'>  12 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Page allocator.  Hands out memory in page-size (or</font></i>
+<a name='L15'>  15 <i><font color='green'>   page-multiple) chunks.  See malloc.h for an allocator that</font></i>
+<a name='L16'>  16 <i><font color='green'>   hands out smaller chunks.</font></i>
+<a name='L17'>  17 <i><font color='green'></font></i>
+<a name='L18'>  18 <i><font color='green'>   System memory is divided into two "pools" called the kernel</font></i>
+<a name='L19'>  19 <i><font color='green'>   and user pools.  The user pool is for user (virtual) memory</font></i>
+<a name='L20'>  20 <i><font color='green'>   pages, the kernel pool for everything else.  The idea here is</font></i>
+<a name='L21'>  21 <i><font color='green'>   that the kernel needs to have memory for its own operations</font></i>
+<a name='L22'>  22 <i><font color='green'>   even if user processes are swapping like mad.</font></i>
+<a name='L23'>  23 <i><font color='green'></font></i>
+<a name='L24'>  24 <i><font color='green'>   By default, half of system RAM is given to the kernel pool and</font></i>
+<a name='L25'>  25 <i><font color='green'>   half to the user pool.  That should be huge overkill for the</font></i>
+<a name='L26'>  26 <i><font color='green'>   kernel pool, but that's just fine for demonstration purposes. */</font></i>
+<a name='L27'>  27 
+<a name='L28'>  28 <i><font color='green'>/* A memory pool. */</font></i>
+<a name='L29'>  29 <b>struct</b> <a href='../R/722.html' title='Multiple refered from 14 places.'>pool</a>
+<a name='L30'>  30   <font color='red'>{</font>
+<a name='L31'>  31     <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;                   <i><font color='green'>/* Mutual exclusion. */</font></i>
+<a name='L32'>  32     <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> *used_map;            <i><font color='green'>/* Bitmap of free pages. */</font></i>
+<a name='L33'>  33     <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *base;                      <i><font color='green'>/* Base of pool. */</font></i>
+<a name='L34'>  34   <font color='red'>}</font>;
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Two pools: one for kernel data, one for user pages. */</font></i>
+<a name='L37'>  37 <b>static</b> <b>struct</b> <a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a> kernel_pool, user_pool;
+<a name='L38'>  38 
+<a name='L39'>  39 <b>static</b> <b>void</b> <a href='../S/160.html#L154' title='Defined at 154 in src/threads/palloc.c.'>init_pool</a> (<b>struct</b> pool *, <b>void</b> *base, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt,
+<a name='L40'>  40                        <b>const</b> <b>char</b> *name);
+<a name='L41'>  41 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/160.html#L175' title='Defined at 175 in src/threads/palloc.c.'>page_from_pool</a> (<b>const</b> <b>struct</b> pool *, <b>void</b> *page);
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Initializes the page allocator.  At most USER_PAGE_LIMIT</font></i>
+<a name='L44'>  44 <i><font color='green'>   pages are put into the user pool. */</font></i>
+<a name='L45'>  45 <b>void</b>
+<a name='L46'>  46 <a href='../R/697.html' title='Multiple refered from 2 places.'>palloc_init</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> user_page_limit)
+<a name='L47'>  47 <font color='red'>{</font>
+<a name='L48'>  48   <i><font color='green'>/* Free memory starts at 1 MB and runs to the end of RAM. */</font></i>
+<a name='L49'>  49   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *free_start = <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (1024 * 1024);
+<a name='L50'>  50   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *free_end = <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (init_ram_pages * <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>);
+<a name='L51'>  51   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> free_pages = (free_end - free_start) / <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>;
+<a name='L52'>  52   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> user_pages = free_pages / 2;
+<a name='L53'>  53   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> kernel_pages;
+<a name='L54'>  54   <b>if</b> (user_pages &gt; user_page_limit)
+<a name='L55'>  55     user_pages = user_page_limit;
+<a name='L56'>  56   kernel_pages = free_pages - user_pages;
+<a name='L57'>  57 
+<a name='L58'>  58   <i><font color='green'>/* Give half of memory to kernel, half to user. */</font></i>
+<a name='L59'>  59   <a href='../S/160.html#L154' title='Defined at 154 in src/threads/palloc.c.'>init_pool</a> (&amp;kernel_pool, free_start, kernel_pages, "kernel pool");
+<a name='L60'>  60   <a href='../S/160.html#L154' title='Defined at 154 in src/threads/palloc.c.'>init_pool</a> (&amp;user_pool, free_start + kernel_pages * <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>,
+<a name='L61'>  61              user_pages, "user pool");
+<a name='L62'>  62 <font color='red'>}</font>
+<a name='L63'>  63 
+<a name='L64'>  64 <i><font color='green'>/* Obtains and returns a group of PAGE_CNT contiguous free pages.</font></i>
+<a name='L65'>  65 <i><font color='green'>   If PAL_USER is set, the pages are obtained from the user pool,</font></i>
+<a name='L66'>  66 <i><font color='green'>   otherwise from the kernel pool.  If PAL_ZERO is set in FLAGS,</font></i>
+<a name='L67'>  67 <i><font color='green'>   then the pages are filled with zeros.  If too few pages are</font></i>
+<a name='L68'>  68 <i><font color='green'>   available, returns a null pointer, unless PAL_ASSERT is set in</font></i>
+<a name='L69'>  69 <i><font color='green'>   FLAGS, in which case the kernel panics. */</font></i>
+<a name='L70'>  70 <b>void</b> *
+<a name='L71'>  71 <a href='../R/695.html' title='Multiple refered from 3 places.'>palloc_get_multiple</a> (<b>enum</b> palloc_flags flags, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt)
+<a name='L72'>  72 <font color='red'>{</font>
+<a name='L73'>  73   <b>struct</b> <a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a> *<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a> = flags &amp; PAL_USER ? &amp;user_pool : &amp;kernel_pool;
+<a name='L74'>  74   <b>void</b> *pages;
+<a name='L75'>  75   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_idx;
+<a name='L76'>  76 
+<a name='L77'>  77   <b>if</b> (page_cnt == 0)
+<a name='L78'>  78     <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L79'>  79 
+<a name='L80'>  80   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L81'>  81   page_idx = <a href='../S/114.html#L321' title='Defined at 321 in src/lib/kernel/bitmap.c.'>bitmap_scan_and_flip</a> (<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;used_map, 0, page_cnt, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L82'>  82   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L83'>  83 
+<a name='L84'>  84   <b>if</b> (page_idx != <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>)
+<a name='L85'>  85     pages = <a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;base + <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> * page_idx;
+<a name='L86'>  86   <b>else</b>
+<a name='L87'>  87     pages = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L88'>  88 
+<a name='L89'>  89   <b>if</b> (pages != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L90'>  90     <font color='red'>{</font>
+<a name='L91'>  91       <b>if</b> (flags &amp; PAL_ZERO)
+<a name='L92'>  92         <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (pages, 0, <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> * page_cnt);
+<a name='L93'>  93     <font color='red'>}</font>
+<a name='L94'>  94   <b>else</b> 
+<a name='L95'>  95     <font color='red'>{</font>
+<a name='L96'>  96       <b>if</b> (flags &amp; PAL_ASSERT)
+<a name='L97'>  97         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("palloc_get: out of pages");
+<a name='L98'>  98     <font color='red'>}</font>
+<a name='L99'>  99 
+<a name='L100'> 100   <b>return</b> pages;
+<a name='L101'> 101 <font color='red'>}</font>
+<a name='L102'> 102 
+<a name='L103'> 103 <i><font color='green'>/* Obtains a single free page and returns its kernel virtual</font></i>
+<a name='L104'> 104 <i><font color='green'>   address.</font></i>
+<a name='L105'> 105 <i><font color='green'>   If PAL_USER is set, the page is obtained from the user pool,</font></i>
+<a name='L106'> 106 <i><font color='green'>   otherwise from the kernel pool.  If PAL_ZERO is set in FLAGS,</font></i>
+<a name='L107'> 107 <i><font color='green'>   then the page is filled with zeros.  If no pages are</font></i>
+<a name='L108'> 108 <i><font color='green'>   available, returns a null pointer, unless PAL_ASSERT is set in</font></i>
+<a name='L109'> 109 <i><font color='green'>   FLAGS, in which case the kernel panics. */</font></i>
+<a name='L110'> 110 <b>void</b> *
+<a name='L111'> 111 <a href='../R/696.html' title='Multiple refered from 12 places.'>palloc_get_page</a> (<b>enum</b> palloc_flags flags) 
+<a name='L112'> 112 <font color='red'>{</font>
+<a name='L113'> 113   <b>return</b> <a href='../S/160.html#L71' title='Defined at 71 in src/threads/palloc.c.'>palloc_get_multiple</a> (flags, 1);
+<a name='L114'> 114 <font color='red'>}</font>
+<a name='L115'> 115 
+<a name='L116'> 116 <i><font color='green'>/* Frees the PAGE_CNT pages starting at PAGES. */</font></i>
+<a name='L117'> 117 <b>void</b>
+<a name='L118'> 118 <a href='../R/693.html' title='Multiple refered from 3 places.'>palloc_free_multiple</a> (<b>void</b> *pages, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt) 
+<a name='L119'> 119 <font color='red'>{</font>
+<a name='L120'> 120   <b>struct</b> <a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a> *<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>;
+<a name='L121'> 121   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_idx;
+<a name='L122'> 122 
+<a name='L123'> 123   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/153.html#L24' title='Defined at 24 in src/threads/vaddr.h.'>pg_ofs</a> (pages) == 0);
+<a name='L124'> 124   <b>if</b> (pages == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || page_cnt == 0)
+<a name='L125'> 125     <b>return</b>;
+<a name='L126'> 126 
+<a name='L127'> 127   <b>if</b> (<a href='../S/160.html#L175' title='Defined at 175 in src/threads/palloc.c.'>page_from_pool</a> (&amp;kernel_pool, pages))
+<a name='L128'> 128     <a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a> = &amp;kernel_pool;
+<a name='L129'> 129   <b>else</b> <b>if</b> (<a href='../S/160.html#L175' title='Defined at 175 in src/threads/palloc.c.'>page_from_pool</a> (&amp;user_pool, pages))
+<a name='L130'> 130     <a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a> = &amp;user_pool;
+<a name='L131'> 131   <b>else</b>
+<a name='L132'> 132     <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a> ();
+<a name='L133'> 133 
+<a name='L134'> 134   page_idx = <a href='../S/153.html#L29' title='Defined at 29 in src/threads/vaddr.h.'>pg_no</a> (pages) - <a href='../S/153.html#L29' title='Defined at 29 in src/threads/vaddr.h.'>pg_no</a> (<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;base);
+<a name='L135'> 135 
+<a name='L136'> 136 <font color='darkred'>#ifndef</font> <a href='../D/133.html' title='Multiple defined in 3 places.'>NDEBUG</a>
+<a name='L137'> 137   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (pages, 0xcc, <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> * page_cnt);
+<a name='L138'> 138 <font color='darkred'>#endif</font>
+<a name='L139'> 139 
+<a name='L140'> 140   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/114.html#L285' title='Defined at 285 in src/lib/kernel/bitmap.c.'>bitmap_all</a> (<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;used_map, page_idx, page_cnt));
+<a name='L141'> 141   <a href='../S/114.html#L219' title='Defined at 219 in src/lib/kernel/bitmap.c.'>bitmap_set_multiple</a> (<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;used_map, page_idx, page_cnt, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L142'> 142 <font color='red'>}</font>
+<a name='L143'> 143 
+<a name='L144'> 144 <i><font color='green'>/* Frees the page at PAGE. */</font></i>
+<a name='L145'> 145 <b>void</b>
+<a name='L146'> 146 <a href='../R/694.html' title='Multiple refered from 12 places.'>palloc_free_page</a> (<b>void</b> *page) 
+<a name='L147'> 147 <font color='red'>{</font>
+<a name='L148'> 148   <a href='../S/160.html#L118' title='Defined at 118 in src/threads/palloc.c.'>palloc_free_multiple</a> (page, 1);
+<a name='L149'> 149 <font color='red'>}</font>
+<a name='L150'> 150 
+<a name='L151'> 151 <i><font color='green'>/* Initializes pool P as starting at START and ending at END,</font></i>
+<a name='L152'> 152 <i><font color='green'>   naming it NAME for debugging purposes. */</font></i>
+<a name='L153'> 153 <b>static</b> <b>void</b>
+<a name='L154'> 154 <a href='../R/507.html' title='Multiple refered from 3 places.'>init_pool</a> (<b>struct</b> pool *p, <b>void</b> *base, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt, <b>const</b> <b>char</b> *name) 
+<a name='L155'> 155 <font color='red'>{</font>
+<a name='L156'> 156   <i><font color='green'>/* We'll put the pool's used_map at its base.</font></i>
+<a name='L157'> 157 <i><font color='green'>     Calculate the space needed for the bitmap</font></i>
+<a name='L158'> 158 <i><font color='green'>     and subtract it from the pool's size. */</font></i>
+<a name='L159'> 159   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bm_pages = <a href='../S/79.html#L10' title='Defined at 10 in src/lib/round.h.'>DIV_ROUND_UP</a> (<a href='../S/114.html#L115' title='Defined at 115 in src/lib/kernel/bitmap.c.'>bitmap_buf_size</a> (page_cnt), <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>);
+<a name='L160'> 160   <b>if</b> (bm_pages &gt; page_cnt)
+<a name='L161'> 161     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("Not enough memory in %s for bitmap.", name);
+<a name='L162'> 162   page_cnt -= bm_pages;
+<a name='L163'> 163 
+<a name='L164'> 164   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%zu pages available in %s.\n", page_cnt, name);
+<a name='L165'> 165 
+<a name='L166'> 166   <i><font color='green'>/* Initialize the pool. */</font></i>
+<a name='L167'> 167   <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;p-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L168'> 168   p-&gt;used_map = <a href='../S/114.html#L100' title='Defined at 100 in src/lib/kernel/bitmap.c.'>bitmap_create_in_buf</a> (page_cnt, base, bm_pages * <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>);
+<a name='L169'> 169   p-&gt;base = base + bm_pages * <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>;
+<a name='L170'> 170 <font color='red'>}</font>
+<a name='L171'> 171 
+<a name='L172'> 172 <i><font color='green'>/* Returns true if PAGE was allocated from POOL,</font></i>
+<a name='L173'> 173 <i><font color='green'>   false otherwise. */</font></i>
+<a name='L174'> 174 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L175'> 175 <a href='../R/681.html' title='Multiple refered from 3 places.'>page_from_pool</a> (<b>const</b> <b>struct</b> pool *pool, <b>void</b> *page) 
+<a name='L176'> 176 <font color='red'>{</font>
+<a name='L177'> 177   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_no = <a href='../S/153.html#L29' title='Defined at 29 in src/threads/vaddr.h.'>pg_no</a> (page);
+<a name='L178'> 178   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start_page = <a href='../S/153.html#L29' title='Defined at 29 in src/threads/vaddr.h.'>pg_no</a> (<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;base);
+<a name='L179'> 179   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> end_page = start_page + <a href='../S/114.html#L137' title='Defined at 137 in src/lib/kernel/bitmap.c.'>bitmap_size</a> (<a href='../S/160.html#L29' title='Defined at 29 in src/threads/palloc.c.'>pool</a>-&gt;used_map);
+<a name='L180'> 180 
+<a name='L181'> 181   <b>return</b> page_no &gt;= start_page &amp;&amp; page_no &lt; end_page;
+<a name='L182'> 182 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L46'>[^]</a><a href='#L175'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

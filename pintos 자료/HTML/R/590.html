@@ -1,0 +1,101 @@
+<html>
+<head>
+<title>list</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L25'>list</a>               25 src/devices/block.c static struct list all_blocks = LIST_INITIALIZER (all_blocks);
+<a href='../S/35.html#L58'>list</a>               58 src/filesys/inode.c static struct list open_inodes;
+<a href='../S/113.html#L15'>list</a>               15 src/lib/kernel/hash.c static struct list *find_bucket (struct hash *, struct hash_elem *);
+<a href='../S/113.html#L60'>list</a>               60 src/lib/kernel/hash.c       struct list *bucket = &amp;h-&gt;buckets[i];
+<a href='../S/113.html#L101'>list</a>              101 src/lib/kernel/hash.c   struct list *bucket = find_bucket (h, new);
+<a href='../S/113.html#L117'>list</a>              117 src/lib/kernel/hash.c   struct list *bucket = find_bucket (h, new);
+<a href='../S/113.html#L171'>list</a>              171 src/lib/kernel/hash.c       struct list *bucket = &amp;h-&gt;buckets[i];
+<a href='../S/113.html#L305'>list</a>              305 src/lib/kernel/hash.c static struct list *
+<a href='../S/113.html#L355'>list</a>              355 src/lib/kernel/hash.c   struct list *new_buckets, *old_buckets;
+<a href='../S/113.html#L397'>list</a>              397 src/lib/kernel/hash.c       struct list *old_bucket;
+<a href='../S/113.html#L404'>list</a>              404 src/lib/kernel/hash.c           struct list *new_bucket
+<a href='../S/108.html#L63'>list</a>               63 src/lib/kernel/hash.h     struct list *buckets;       /* Array of `bucket_cnt' lists. */
+<a href='../S/108.html#L73'>list</a>               73 src/lib/kernel/hash.h     struct list *bucket;        /* Current bucket. */
+<a href='../S/112.html#L63'>list</a>               63 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L64'>list</a>               64 src/lib/kernel/list.c   list-&gt;head.prev = NULL;
+<a href='../S/112.html#L65'>list</a>               65 src/lib/kernel/list.c   list-&gt;head.next = &amp;list-&gt;tail;
+<a href='../S/112.html#L66'>list</a>               66 src/lib/kernel/list.c   list-&gt;tail.prev = &amp;list-&gt;head;
+<a href='../S/112.html#L67'>list</a>               67 src/lib/kernel/list.c   list-&gt;tail.next = NULL;
+<a href='../S/112.html#L74'>list</a>               74 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L75'>list</a>               75 src/lib/kernel/list.c   return list-&gt;head.next;
+<a href='../S/112.html#L96'>list</a>               96 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L97'>list</a>               97 src/lib/kernel/list.c   return &amp;list-&gt;tail;
+<a href='../S/112.html#L105'>list</a>              105 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L106'>list</a>              106 src/lib/kernel/list.c   return list-&gt;tail.prev;
+<a href='../S/112.html#L135'>list</a>              135 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L136'>list</a>              136 src/lib/kernel/list.c   return &amp;list-&gt;head;
+<a href='../S/112.html#L153'>list</a>              153 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L154'>list</a>              154 src/lib/kernel/list.c   return &amp;list-&gt;head;
+<a href='../S/112.html#L161'>list</a>              161 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L162'>list</a>              162 src/lib/kernel/list.c   return &amp;list-&gt;tail;
+<a href='../S/112.html#L211'>list</a>              211 src/lib/kernel/list.c   list_insert (list_begin (list), elem);
+<a href='../S/112.html#L219'>list</a>              219 src/lib/kernel/list.c   list_insert (list_end (list), elem);
+<a href='../S/112.html#L262'>list</a>              262 src/lib/kernel/list.c   struct list_elem *front = list_front (list);
+<a href='../S/112.html#L272'>list</a>              272 src/lib/kernel/list.c   struct list_elem *back = list_back (list);
+<a href='../S/112.html#L282'>list</a>              282 src/lib/kernel/list.c   ASSERT (!list_empty (list));
+<a href='../S/112.html#L283'>list</a>              283 src/lib/kernel/list.c   return list-&gt;head.next;
+<a href='../S/112.html#L291'>list</a>              291 src/lib/kernel/list.c   ASSERT (!list_empty (list));
+<a href='../S/112.html#L292'>list</a>              292 src/lib/kernel/list.c   return list-&gt;tail.prev;
+<a href='../S/112.html#L303'>list</a>              303 src/lib/kernel/list.c   for (e = list_begin (list); e != list_end (list); e = list_next (e))
+<a href='../S/112.html#L312'>list</a>              312 src/lib/kernel/list.c   return list_begin (list) == list_end (list);
+<a href='../S/112.html#L328'>list</a>              328 src/lib/kernel/list.c   if (!list_empty (list)) 
+<a href='../S/112.html#L332'>list</a>              332 src/lib/kernel/list.c       for (e = list_begin (list); e != list_end (list); e = e-&gt;prev)
+<a href='../S/112.html#L334'>list</a>              334 src/lib/kernel/list.c       swap (&amp;list-&gt;head.next, &amp;list-&gt;tail.prev);
+<a href='../S/112.html#L335'>list</a>              335 src/lib/kernel/list.c       swap (&amp;list-&gt;head.next-&gt;prev, &amp;list-&gt;tail.prev-&gt;next);
+<a href='../S/112.html#L409'>list</a>              409 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L421'>list</a>              421 src/lib/kernel/list.c       for (a0 = list_begin (list); a0 != list_end (list); a0 = b1)
+<a href='../S/112.html#L428'>list</a>              428 src/lib/kernel/list.c           a1b0 = find_end_of_run (a0, list_end (list), less, aux);
+<a href='../S/112.html#L429'>list</a>              429 src/lib/kernel/list.c           if (a1b0 == list_end (list))
+<a href='../S/112.html#L431'>list</a>              431 src/lib/kernel/list.c           b1 = find_end_of_run (a1b0, list_end (list), less, aux);
+<a href='../S/112.html#L439'>list</a>              439 src/lib/kernel/list.c   ASSERT (is_sorted (list_begin (list), list_end (list), less, aux));
+<a href='../S/112.html#L451'>list</a>              451 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L455'>list</a>              455 src/lib/kernel/list.c   for (e = list_begin (list); e != list_end (list); e = list_next (e))
+<a href='../S/112.html#L471'>list</a>              471 src/lib/kernel/list.c   ASSERT (list != NULL);
+<a href='../S/112.html#L473'>list</a>              473 src/lib/kernel/list.c   if (list_empty (list))
+<a href='../S/112.html#L476'>list</a>              476 src/lib/kernel/list.c   elem = list_begin (list);
+<a href='../S/112.html#L477'>list</a>              477 src/lib/kernel/list.c   while ((next = list_next (elem)) != list_end (list))
+<a href='../S/112.html#L495'>list</a>              495 src/lib/kernel/list.c   struct list_elem *max = list_begin (list);
+<a href='../S/112.html#L496'>list</a>              496 src/lib/kernel/list.c   if (max != list_end (list)) 
+<a href='../S/112.html#L500'>list</a>              500 src/lib/kernel/list.c       for (e = list_next (max); e != list_end (list); e = list_next (e))
+<a href='../S/112.html#L514'>list</a>              514 src/lib/kernel/list.c   struct list_elem *min = list_begin (list);
+<a href='../S/112.html#L515'>list</a>              515 src/lib/kernel/list.c   if (min != list_end (list)) 
+<a href='../S/112.html#L519'>list</a>              519 src/lib/kernel/list.c       for (e = list_next (min); e != list_end (list); e = list_next (e))
+<a href='../S/172.html#L49'>list</a>               49 src/tests/internal/list.c           struct list list;
+<a href='../S/172.html#L59'>list</a>               59 src/tests/internal/list.c           list_init (&amp;list);
+<a href='../S/172.html#L61'>list</a>               61 src/tests/internal/list.c             list_push_back (&amp;list, &amp;values[i].elem);
+<a href='../S/172.html#L64'>list</a>               64 src/tests/internal/list.c           e = list_min (&amp;list, value_less, NULL);
+<a href='../S/172.html#L66'>list</a>               66 src/tests/internal/list.c                   : e == list_begin (&amp;list));
+<a href='../S/172.html#L67'>list</a>               67 src/tests/internal/list.c           e = list_max (&amp;list, value_less, NULL);
+<a href='../S/172.html#L69'>list</a>               69 src/tests/internal/list.c                   : e == list_begin (&amp;list));
+<a href='../S/172.html#L72'>list</a>               72 src/tests/internal/list.c           list_sort (&amp;list, value_less, NULL);
+<a href='../S/172.html#L73'>list</a>               73 src/tests/internal/list.c           verify_list_fwd (&amp;list, size);
+<a href='../S/172.html#L76'>list</a>               76 src/tests/internal/list.c           list_reverse (&amp;list);
+<a href='../S/172.html#L77'>list</a>               77 src/tests/internal/list.c           verify_list_bkwd (&amp;list, size);
+<a href='../S/172.html#L82'>list</a>               82 src/tests/internal/list.c           list_init (&amp;list);
+<a href='../S/172.html#L84'>list</a>               84 src/tests/internal/list.c             list_insert_ordered (&amp;list, &amp;values[i].elem,
+<a href='../S/172.html#L86'>list</a>               86 src/tests/internal/list.c           verify_list_fwd (&amp;list, size);
+<a href='../S/172.html#L90'>list</a>               90 src/tests/internal/list.c           for (e = list_begin (&amp;list); e != list_end (&amp;list);
+<a href='../S/172.html#L102'>list</a>              102 src/tests/internal/list.c           list_unique (&amp;list, NULL, value_less, NULL);
+<a href='../S/172.html#L103'>list</a>              103 src/tests/internal/list.c           verify_list_fwd (&amp;list, size);
+<a href='../S/172.html#L146'>list</a>              146 src/tests/internal/list.c   for (i = 0, e = list_begin (list);
+<a href='../S/172.html#L147'>list</a>              147 src/tests/internal/list.c        i &lt; size &amp;&amp; e != list_end (list);
+<a href='../S/172.html#L154'>list</a>              154 src/tests/internal/list.c   ASSERT (e == list_end (list));
+<a href='../S/172.html#L165'>list</a>              165 src/tests/internal/list.c   for (i = 0, e = list_rbegin (list);
+<a href='../S/172.html#L166'>list</a>              166 src/tests/internal/list.c        i &lt; size &amp;&amp; e != list_rend (list);
+<a href='../S/172.html#L173'>list</a>              173 src/tests/internal/list.c   ASSERT (e == list_rend (list));
+<a href='../S/161.html#L42'>list</a>               42 src/threads/malloc.c     struct list free_list;      /* List of free blocks. */
+<a href='../S/155.html#L11'>list</a>               11 src/threads/synch.h     struct list waiters;        /* List of waiting threads. */
+<a href='../S/155.html#L36'>list</a>               36 src/threads/synch.h     struct list waiters;        /* List of waiting threads. */
+<a href='../S/163.html#L25'>list</a>               25 src/threads/thread.c static struct list ready_list;
+<a href='../S/163.html#L29'>list</a>               29 src/threads/thread.c static struct list all_list;
+</pre>
+</body>
+</html>

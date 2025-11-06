@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>BLOCK_SECTOR_SIZE</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L205'>BLOCK_SECTOR_SIZE</a>  205 src/devices/block.c   print_human_readable_size ((uint64_t) block-&gt;size * BLOCK_SECTOR_SIZE);
+<a href='../S/123.html#L263'>BLOCK_SECTOR_SIZE</a>  263 src/devices/ide.c   char id[BLOCK_SECTOR_SIZE];
+<a href='../S/123.html#L297'>BLOCK_SECTOR_SIZE</a>  297 src/devices/ide.c   if (capacity &gt;= 1024 * 1024 * 1024 / BLOCK_SECTOR_SIZE)
+<a href='../S/123.html#L422'>BLOCK_SECTOR_SIZE</a>  422 src/devices/ide.c   insw (reg_data (c), sector, BLOCK_SECTOR_SIZE / 2);
+<a href='../S/123.html#L430'>BLOCK_SECTOR_SIZE</a>  430 src/devices/ide.c   outsw (reg_data (c), sector, BLOCK_SECTOR_SIZE / 2);
+<a href='../S/134.html#L87'>BLOCK_SECTOR_SIZE</a>   87 src/devices/partition.c   ASSERT (sizeof *pt == BLOCK_SECTOR_SIZE);
+<a href='../S/26.html#L81'>BLOCK_SECTOR_SIZE</a>   81 src/filesys/fsutil.c   header = malloc (BLOCK_SECTOR_SIZE);
+<a href='../S/26.html#L82'>BLOCK_SECTOR_SIZE</a>   82 src/filesys/fsutil.c   data = malloc (BLOCK_SECTOR_SIZE);
+<a href='../S/26.html#L130'>BLOCK_SECTOR_SIZE</a>  130 src/filesys/fsutil.c               int chunk_size = (size &gt; BLOCK_SECTOR_SIZE
+<a href='../S/26.html#L131'>BLOCK_SECTOR_SIZE</a>  131 src/filesys/fsutil.c                                 ? BLOCK_SECTOR_SIZE
+<a href='../S/26.html#L150'>BLOCK_SECTOR_SIZE</a>  150 src/filesys/fsutil.c   memset (header, 0, BLOCK_SECTOR_SIZE);
+<a href='../S/26.html#L180'>BLOCK_SECTOR_SIZE</a>  180 src/filesys/fsutil.c   buffer = malloc (BLOCK_SECTOR_SIZE);
+<a href='../S/26.html#L203'>BLOCK_SECTOR_SIZE</a>  203 src/filesys/fsutil.c       int chunk_size = size &gt; BLOCK_SECTOR_SIZE ? BLOCK_SECTOR_SIZE : size;
+<a href='../S/26.html#L208'>BLOCK_SECTOR_SIZE</a>  208 src/filesys/fsutil.c       memset (buffer + chunk_size, 0, BLOCK_SECTOR_SIZE - chunk_size);
+<a href='../S/26.html#L216'>BLOCK_SECTOR_SIZE</a>  216 src/filesys/fsutil.c   memset (buffer, 0, BLOCK_SECTOR_SIZE);
+<a href='../S/35.html#L28'>BLOCK_SECTOR_SIZE</a>   28 src/filesys/inode.c   return DIV_ROUND_UP (size, BLOCK_SECTOR_SIZE);
+<a href='../S/35.html#L51'>BLOCK_SECTOR_SIZE</a>   51 src/filesys/inode.c     return inode-&gt;data.start + pos / BLOCK_SECTOR_SIZE;
+<a href='../S/35.html#L82'>BLOCK_SECTOR_SIZE</a>   82 src/filesys/inode.c   ASSERT (sizeof *disk_inode == BLOCK_SECTOR_SIZE);
+<a href='../S/35.html#L95'>BLOCK_SECTOR_SIZE</a>   95 src/filesys/inode.c               static char zeros[BLOCK_SECTOR_SIZE];
+<a href='../S/35.html#L211'>BLOCK_SECTOR_SIZE</a>  211 src/filesys/inode.c       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
+<a href='../S/35.html#L215'>BLOCK_SECTOR_SIZE</a>  215 src/filesys/inode.c       int sector_left = BLOCK_SECTOR_SIZE - sector_ofs;
+<a href='../S/35.html#L223'>BLOCK_SECTOR_SIZE</a>  223 src/filesys/inode.c       if (sector_ofs == 0 &amp;&amp; chunk_size == BLOCK_SECTOR_SIZE)
+<a href='../S/35.html#L234'>BLOCK_SECTOR_SIZE</a>  234 src/filesys/inode.c               bounce = malloc (BLOCK_SECTOR_SIZE);
+<a href='../S/35.html#L272'>BLOCK_SECTOR_SIZE</a>  272 src/filesys/inode.c       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
+<a href='../S/35.html#L276'>BLOCK_SECTOR_SIZE</a>  276 src/filesys/inode.c       int sector_left = BLOCK_SECTOR_SIZE - sector_ofs;
+<a href='../S/35.html#L284'>BLOCK_SECTOR_SIZE</a>  284 src/filesys/inode.c       if (sector_ofs == 0 &amp;&amp; chunk_size == BLOCK_SECTOR_SIZE)
+<a href='../S/35.html#L294'>BLOCK_SECTOR_SIZE</a>  294 src/filesys/inode.c               bounce = malloc (BLOCK_SECTOR_SIZE);
+<a href='../S/35.html#L305'>BLOCK_SECTOR_SIZE</a>  305 src/filesys/inode.c             memset (bounce, 0, BLOCK_SECTOR_SIZE);
+</pre>
+</body>
+</html>

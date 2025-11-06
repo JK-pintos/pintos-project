@@ -1,0 +1,565 @@
+<html>
+<head>
+<title>src/devices/ide.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/ide.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L102'>[^]</a><a href='#L507'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L102' title='Defined at 102.'>ide_init</a>
+<li><a href='#L165' title='Defined at 165.'>reset_channel</a>
+<li><a href='#L230' title='Defined at 230.'>check_device_type</a>
+<li><a href='#L260' title='Defined at 260.'>identify_ata_device</a>
+<li><a href='#L316' title='Defined at 316.'>descramble_ata_string</a>
+<li><a href='#L345' title='Defined at 345.'>ide_read</a>
+<li><a href='#L365' title='Defined at 365.'>ide_write</a>
+<li><a href='#L389' title='Defined at 389.'>select_sector</a>
+<li><a href='#L407' title='Defined at 407.'>issue_pio_command</a>
+<li><a href='#L420' title='Defined at 420.'>input_sector</a>
+<li><a href='#L428' title='Defined at 428.'>output_sector</a>
+<li><a href='#L441' title='Defined at 441.'>wait_until_idle</a>
+<li><a href='#L460' title='Defined at 460.'>wait_while_busy</a>
+<li><a href='#L484' title='Defined at 484.'>select_device</a>
+<li><a href='#L498' title='Defined at 498.'>select_device_wait</a>
+<li><a href='#L507' title='Defined at 507.'>interrupt_handler</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='140.html'>devices/ide.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='128.html'>devices/block.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='129.html'>devices/partition.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* The code in this file is an interface to an ATA (IDE)</font></i>
+<a name='L14'>  14 <i><font color='green'>   controller.  It attempts to comply to [ATA-3]. */</font></i>
+<a name='L15'>  15 
+<a name='L16'>  16 <i><font color='green'>/* ATA command block port addresses. */</font></i>
+<a name='L17'>  17 <font color='darkred'>#define</font> <a href='../R/761.html' title='Multiple refered from 2 places.'>reg_data</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 0)     <i><font color='green'>/* Data. */</font></i>
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../S/123.html#L237' title='Refered from 237 in src/devices/ide.c.'>reg_error</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 1)    <i><font color='green'>/* Error. */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../R/767.html' title='Multiple refered from 6 places.'>reg_nsect</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 2)    <i><font color='green'>/* Sector Count. */</font></i>
+<a name='L20'>  20 <font color='darkred'>#define</font> <a href='../R/765.html' title='Multiple refered from 6 places.'>reg_lbal</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 3)     <i><font color='green'>/* LBA 0:7. */</font></i>
+<a name='L21'>  21 <font color='darkred'>#define</font> <a href='../R/766.html' title='Multiple refered from 2 places.'>reg_lbam</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 4)     <i><font color='green'>/* LBA 15:8. */</font></i>
+<a name='L22'>  22 <font color='darkred'>#define</font> <a href='../R/764.html' title='Multiple refered from 2 places.'>reg_lbah</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 5)     <i><font color='green'>/* LBA 23:16. */</font></i>
+<a name='L23'>  23 <font color='darkred'>#define</font> <a href='../R/762.html' title='Multiple refered from 2 places.'>reg_device</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 6)   <i><font color='green'>/* Device/LBA 27:24. */</font></i>
+<a name='L24'>  24 <font color='darkred'>#define</font> <a href='../R/768.html' title='Multiple refered from 4 places.'>reg_status</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 7)   <i><font color='green'>/* Status (r/o). */</font></i>
+<a name='L25'>  25 <font color='darkred'>#define</font> <a href='../S/123.html#L414' title='Refered from 414 in src/devices/ide.c.'>reg_command</a>(CHANNEL) <a href='../S/123.html#L24' title='Defined at 24 in src/devices/ide.c.'>reg_status</a> (CHANNEL)       <i><font color='green'>/* Command (w/o). */</font></i>
+<a name='L26'>  26 
+<a name='L27'>  27 <i><font color='green'>/* ATA control block port addresses.</font></i>
+<a name='L28'>  28 <i><font color='green'>   (If we supported non-legacy ATA controllers this would not be</font></i>
+<a name='L29'>  29 <i><font color='green'>   flexible enough, but it's fine for what we do.) */</font></i>
+<a name='L30'>  30 <font color='darkred'>#define</font> <a href='../R/760.html' title='Multiple refered from 4 places.'>reg_ctl</a>(CHANNEL) ((CHANNEL)-&gt;reg_base + 0x206)  <i><font color='green'>/* Control (w/o). */</font></i>
+<a name='L31'>  31 <font color='darkred'>#define</font> <a href='../R/758.html' title='Multiple refered from 3 places.'>reg_alt_status</a>(CHANNEL) <a href='../S/123.html#L30' title='Defined at 30 in src/devices/ide.c.'>reg_ctl</a> (CHANNEL)       <i><font color='green'>/* Alt Status (r/o). */</font></i>
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Alternate Status Register bits. */</font></i>
+<a name='L34'>  34 <font color='darkred'>#define</font> <a href='../R/199.html' title='Multiple refered from 3 places.'>STA_BSY</a> 0x80            <i><font color='green'>/* Busy. */</font></i>
+<a name='L35'>  35 <font color='darkred'>#define</font> <a href='../S/123.html#L243' title='Refered from 243 in src/devices/ide.c.'>STA_DRDY</a> 0x40           <i><font color='green'>/* Device Ready. */</font></i>
+<a name='L36'>  36 <font color='darkred'>#define</font> <a href='../R/201.html' title='Multiple refered from 2 places.'>STA_DRQ</a> 0x08            <i><font color='green'>/* Data Request. */</font></i>
+<a name='L37'>  37 
+<a name='L38'>  38 <i><font color='green'>/* Control Register bits. */</font></i>
+<a name='L39'>  39 <font color='darkred'>#define</font> <a href='../S/123.html#L195' title='Refered from 195 in src/devices/ide.c.'>CTL_SRST</a> 0x04           <i><font color='green'>/* Software Reset. */</font></i>
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Device Register bits. */</font></i>
+<a name='L42'>  42 <font color='darkred'>#define</font> <a href='../R/39.html' title='Multiple refered from 2 places.'>DEV_MBS</a> 0xa0            <i><font color='green'>/* Must be set. */</font></i>
+<a name='L43'>  43 <font color='darkred'>#define</font> <a href='../S/123.html#L401' title='Refered from 401 in src/devices/ide.c.'>DEV_LBA</a> 0x40            <i><font color='green'>/* Linear based addressing. */</font></i>
+<a name='L44'>  44 <font color='darkred'>#define</font> <a href='../R/37.html' title='Multiple refered from 2 places.'>DEV_DEV</a> 0x10            <i><font color='green'>/* Select device: 0=master, 1=slave. */</font></i>
+<a name='L45'>  45 
+<a name='L46'>  46 <i><font color='green'>/* Commands.</font></i>
+<a name='L47'>  47 <i><font color='green'>   Many more are defined but this is the small subset that we</font></i>
+<a name='L48'>  48 <i><font color='green'>   use. */</font></i>
+<a name='L49'>  49 <font color='darkred'>#define</font> <a href='../S/123.html#L275' title='Refered from 275 in src/devices/ide.c.'>CMD_IDENTIFY_DEVICE</a> 0xec        <i><font color='green'>/* IDENTIFY DEVICE. */</font></i>
+<a name='L50'>  50 <font color='darkred'>#define</font> <a href='../S/123.html#L351' title='Refered from 351 in src/devices/ide.c.'>CMD_READ_SECTOR_RETRY</a> 0x20      <i><font color='green'>/* READ SECTOR with retries. */</font></i>
+<a name='L51'>  51 <font color='darkred'>#define</font> <a href='../S/123.html#L371' title='Refered from 371 in src/devices/ide.c.'>CMD_WRITE_SECTOR_RETRY</a> 0x30     <i><font color='green'>/* WRITE SECTOR with retries. */</font></i>
+<a name='L52'>  52 
+<a name='L53'>  53 <i><font color='green'>/* An ATA device. */</font></i>
+<a name='L54'>  54 <b>struct</b> <a href='../R/299.html' title='Multiple refered from 5 places.'>ata_disk</a>
+<a name='L55'>  55   <font color='red'>{</font>
+<a name='L56'>  56     <b>char</b> name[8];               <i><font color='green'>/* Name, e.g. "hda". */</font></i>
+<a name='L57'>  57     <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;    <i><font color='green'>/* Channel that disk is attached to. */</font></i>
+<a name='L58'>  58     <b>int</b> dev_no;                 <i><font color='green'>/* Device 0 or 1 for master or slave. */</font></i>
+<a name='L59'>  59     <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> is_ata;                <i><font color='green'>/* Is device an ATA disk? */</font></i>
+<a name='L60'>  60   <font color='red'>}</font>;
+<a name='L61'>  61 
+<a name='L62'>  62 <i><font color='green'>/* An ATA channel (aka controller).</font></i>
+<a name='L63'>  63 <i><font color='green'>   Each channel can control up to two disks. */</font></i>
+<a name='L64'>  64 <b>struct</b> <a href='../R/360.html' title='Multiple refered from 17 places.'>channel</a>
+<a name='L65'>  65   <font color='red'>{</font>
+<a name='L66'>  66     <b>char</b> name[8];               <i><font color='green'>/* Name, e.g. "ide0". */</font></i>
+<a name='L67'>  67     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> reg_base;          <i><font color='green'>/* Base I/O port. */</font></i>
+<a name='L68'>  68     <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> irq;                <i><font color='green'>/* Interrupt in use. */</font></i>
+<a name='L69'>  69 
+<a name='L70'>  70     <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;           <i><font color='green'>/* Must acquire to access the controller. */</font></i>
+<a name='L71'>  71     <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> expecting_interrupt;   <i><font color='green'>/* True if an interrupt is expected, false if</font></i>
+<a name='L72'>  72 <i><font color='green'>                                   any interrupt would be spurious. */</font></i>
+<a name='L73'>  73     <b>struct</b> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a> completion_wait;   <i><font color='green'>/* Up'd by interrupt handler. */</font></i>
+<a name='L74'>  74 
+<a name='L75'>  75     <b>struct</b> <a href='../S/123.html#L54' title='Defined at 54 in src/devices/ide.c.'>ata_disk</a> devices[2];     <i><font color='green'>/* The devices on this channel. */</font></i>
+<a name='L76'>  76   <font color='red'>}</font>;
+<a name='L77'>  77 
+<a name='L78'>  78 <i><font color='green'>/* We support the two "legacy" ATA channels found in a standard PC. */</font></i>
+<a name='L79'>  79 <font color='darkred'>#define</font> <a href='../R/9.html' title='Multiple refered from 3 places.'>CHANNEL_CNT</a> 2
+<a name='L80'>  80 <b>static</b> <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> channels[<a href='../S/123.html#L79' title='Defined at 79 in src/devices/ide.c.'>CHANNEL_CNT</a>];
+<a name='L81'>  81 
+<a name='L82'>  82 <b>static</b> <b>struct</b> <a href='../S/128.html#L64' title='Defined at 64 in src/devices/block.h.'>block_operations</a> ide_operations;
+<a name='L83'>  83 
+<a name='L84'>  84 <b>static</b> <b>void</b> <a href='../S/123.html#L165' title='Defined at 165 in src/devices/ide.c.'>reset_channel</a> (<b>struct</b> channel *);
+<a name='L85'>  85 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/123.html#L230' title='Defined at 230 in src/devices/ide.c.'>check_device_type</a> (<b>struct</b> ata_disk *);
+<a name='L86'>  86 <b>static</b> <b>void</b> <a href='../S/123.html#L260' title='Defined at 260 in src/devices/ide.c.'>identify_ata_device</a> (<b>struct</b> ata_disk *);
+<a name='L87'>  87 
+<a name='L88'>  88 <b>static</b> <b>void</b> <a href='../S/123.html#L389' title='Defined at 389 in src/devices/ide.c.'>select_sector</a> (<b>struct</b> ata_disk *, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>);
+<a name='L89'>  89 <b>static</b> <b>void</b> <a href='../S/123.html#L407' title='Defined at 407 in src/devices/ide.c.'>issue_pio_command</a> (<b>struct</b> channel *, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> command);
+<a name='L90'>  90 <b>static</b> <b>void</b> <a href='../S/123.html#L420' title='Defined at 420 in src/devices/ide.c.'>input_sector</a> (<b>struct</b> channel *, <b>void</b> *);
+<a name='L91'>  91 <b>static</b> <b>void</b> <a href='../S/123.html#L428' title='Defined at 428 in src/devices/ide.c.'>output_sector</a> (<b>struct</b> channel *, <b>const</b> <b>void</b> *);
+<a name='L92'>  92 
+<a name='L93'>  93 <b>static</b> <b>void</b> <a href='../S/123.html#L441' title='Defined at 441 in src/devices/ide.c.'>wait_until_idle</a> (<b>const</b> <b>struct</b> ata_disk *);
+<a name='L94'>  94 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/123.html#L460' title='Defined at 460 in src/devices/ide.c.'>wait_while_busy</a> (<b>const</b> <b>struct</b> ata_disk *);
+<a name='L95'>  95 <b>static</b> <b>void</b> <a href='../S/123.html#L484' title='Defined at 484 in src/devices/ide.c.'>select_device</a> (<b>const</b> <b>struct</b> ata_disk *);
+<a name='L96'>  96 <b>static</b> <b>void</b> <a href='../S/123.html#L498' title='Defined at 498 in src/devices/ide.c.'>select_device_wait</a> (<b>const</b> <b>struct</b> ata_disk *);
+<a name='L97'>  97 
+<a name='L98'>  98 <b>static</b> <b>void</b> <a href='../S/123.html#L507' title='Defined at 507 in src/devices/ide.c.'>interrupt_handler</a> (<b>struct</b> intr_frame *);
+<a name='L99'>  99 
+<a name='L100'> 100 <i><font color='green'>/* Initialize the disk subsystem and detect disks. */</font></i>
+<a name='L101'> 101 <b>void</b>
+<a name='L102'> 102 <a href='../R/498.html' title='Multiple refered from 2 places.'>ide_init</a> (<b>void</b>) 
+<a name='L103'> 103 <font color='red'>{</font>
+<a name='L104'> 104   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> chan_no;
+<a name='L105'> 105 
+<a name='L106'> 106   <b>for</b> (chan_no = 0; chan_no &lt; <a href='../S/123.html#L79' title='Defined at 79 in src/devices/ide.c.'>CHANNEL_CNT</a>; chan_no++)
+<a name='L107'> 107     <font color='red'>{</font>
+<a name='L108'> 108       <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = &amp;channels[chan_no];
+<a name='L109'> 109       <b>int</b> dev_no;
+<a name='L110'> 110 
+<a name='L111'> 111       <i><font color='green'>/* Initialize channel. */</font></i>
+<a name='L112'> 112       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (c-&gt;name, <b>sizeof</b> c-&gt;name, "ide%zu", chan_no);
+<a name='L113'> 113       <b>switch</b> (chan_no) 
+<a name='L114'> 114         <font color='red'>{</font>
+<a name='L115'> 115         <b>case</b> 0:
+<a name='L116'> 116           c-&gt;reg_base = 0x1f0;
+<a name='L117'> 117           c-&gt;irq = 14 + 0x20;
+<a name='L118'> 118           <b>break</b>;
+<a name='L119'> 119         <b>case</b> 1:
+<a name='L120'> 120           c-&gt;reg_base = 0x170;
+<a name='L121'> 121           c-&gt;irq = 15 + 0x20;
+<a name='L122'> 122           <b>break</b>;
+<a name='L123'> 123         <b>default</b>:
+<a name='L124'> 124           <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a> ();
+<a name='L125'> 125         <font color='red'>}</font>
+<a name='L126'> 126       <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;c-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L127'> 127       c-&gt;expecting_interrupt = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L128'> 128       <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (&amp;c-&gt;completion_wait, 0);
+<a name='L129'> 129  
+<a name='L130'> 130       <i><font color='green'>/* Initialize devices. */</font></i>
+<a name='L131'> 131       <b>for</b> (dev_no = 0; dev_no &lt; 2; dev_no++)
+<a name='L132'> 132         <font color='red'>{</font>
+<a name='L133'> 133           <b>struct</b> <a href='../S/123.html#L54' title='Defined at 54 in src/devices/ide.c.'>ata_disk</a> *d = &amp;c-&gt;devices[dev_no];
+<a name='L134'> 134           <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (d-&gt;name, <b>sizeof</b> d-&gt;name,
+<a name='L135'> 135                     "hd%c", 'a' + chan_no * 2 + dev_no); 
+<a name='L136'> 136           d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> = c;
+<a name='L137'> 137           d-&gt;dev_no = dev_no;
+<a name='L138'> 138           d-&gt;is_ata = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L139'> 139         <font color='red'>}</font>
+<a name='L140'> 140 
+<a name='L141'> 141       <i><font color='green'>/* Register interrupt handler. */</font></i>
+<a name='L142'> 142       <a href='../S/168.html#L181' title='Defined at 181 in src/threads/interrupt.c.'>intr_register_ext</a> (c-&gt;irq, <a href='../S/123.html#L507' title='Defined at 507 in src/devices/ide.c.'>interrupt_handler</a>, c-&gt;name);
+<a name='L143'> 143 
+<a name='L144'> 144       <i><font color='green'>/* Reset hardware. */</font></i>
+<a name='L145'> 145       <a href='../S/123.html#L165' title='Defined at 165 in src/devices/ide.c.'>reset_channel</a> (c);
+<a name='L146'> 146 
+<a name='L147'> 147       <i><font color='green'>/* Distinguish ATA hard disks from other devices. */</font></i>
+<a name='L148'> 148       <b>if</b> (<a href='../S/123.html#L230' title='Defined at 230 in src/devices/ide.c.'>check_device_type</a> (&amp;c-&gt;devices[0]))
+<a name='L149'> 149         <a href='../S/123.html#L230' title='Defined at 230 in src/devices/ide.c.'>check_device_type</a> (&amp;c-&gt;devices[1]);
+<a name='L150'> 150 
+<a name='L151'> 151       <i><font color='green'>/* Read hard disk identity information. */</font></i>
+<a name='L152'> 152       <b>for</b> (dev_no = 0; dev_no &lt; 2; dev_no++)
+<a name='L153'> 153         <b>if</b> (c-&gt;devices[dev_no].is_ata)
+<a name='L154'> 154           <a href='../S/123.html#L260' title='Defined at 260 in src/devices/ide.c.'>identify_ata_device</a> (&amp;c-&gt;devices[dev_no]);
+<a name='L155'> 155     <font color='red'>}</font>
+<a name='L156'> 156 <font color='red'>}</font>
+<a name='L157'> 157 
+<a name='L158'> 158 <i><font color='green'>/* Disk detection and identification. */</font></i>
+<a name='L159'> 159 
+<a name='L160'> 160 <b>static</b> <b>char</b> *<a href='../S/123.html#L316' title='Defined at 316 in src/devices/ide.c.'>descramble_ata_string</a> (<b>char</b> *, <b>int</b> size);
+<a name='L161'> 161 
+<a name='L162'> 162 <i><font color='green'>/* Resets an ATA channel and waits for any devices present on it</font></i>
+<a name='L163'> 163 <i><font color='green'>   to finish the reset. */</font></i>
+<a name='L164'> 164 <b>static</b> <b>void</b>
+<a name='L165'> 165 <a href='../R/775.html' title='Multiple refered from 2 places.'>reset_channel</a> (<b>struct</b> channel *c) 
+<a name='L166'> 166 <font color='red'>{</font>
+<a name='L167'> 167   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> present[2];
+<a name='L168'> 168   <b>int</b> dev_no;
+<a name='L169'> 169 
+<a name='L170'> 170   <i><font color='green'>/* The ATA reset sequence depends on which devices are present,</font></i>
+<a name='L171'> 171 <i><font color='green'>     so we start by detecting device presence. */</font></i>
+<a name='L172'> 172   <b>for</b> (dev_no = 0; dev_no &lt; 2; dev_no++)
+<a name='L173'> 173     <font color='red'>{</font>
+<a name='L174'> 174       <b>struct</b> <a href='../S/123.html#L54' title='Defined at 54 in src/devices/ide.c.'>ata_disk</a> *d = &amp;c-&gt;devices[dev_no];
+<a name='L175'> 175 
+<a name='L176'> 176       <a href='../S/123.html#L484' title='Defined at 484 in src/devices/ide.c.'>select_device</a> (d);
+<a name='L177'> 177 
+<a name='L178'> 178       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L19' title='Defined at 19 in src/devices/ide.c.'>reg_nsect</a> (c), 0x55);
+<a name='L179'> 179       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L20' title='Defined at 20 in src/devices/ide.c.'>reg_lbal</a> (c), 0xaa);
+<a name='L180'> 180 
+<a name='L181'> 181       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L19' title='Defined at 19 in src/devices/ide.c.'>reg_nsect</a> (c), 0xaa);
+<a name='L182'> 182       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L20' title='Defined at 20 in src/devices/ide.c.'>reg_lbal</a> (c), 0x55);
+<a name='L183'> 183 
+<a name='L184'> 184       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L19' title='Defined at 19 in src/devices/ide.c.'>reg_nsect</a> (c), 0x55);
+<a name='L185'> 185       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L20' title='Defined at 20 in src/devices/ide.c.'>reg_lbal</a> (c), 0xaa);
+<a name='L186'> 186 
+<a name='L187'> 187       present[dev_no] = (<a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L19' title='Defined at 19 in src/devices/ide.c.'>reg_nsect</a> (c)) == 0x55
+<a name='L188'> 188                          &amp;&amp; <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L20' title='Defined at 20 in src/devices/ide.c.'>reg_lbal</a> (c)) == 0xaa);
+<a name='L189'> 189     <font color='red'>}</font>
+<a name='L190'> 190 
+<a name='L191'> 191   <i><font color='green'>/* Issue soft reset sequence, which selects device 0 as a side effect.</font></i>
+<a name='L192'> 192 <i><font color='green'>     Also enable interrupts. */</font></i>
+<a name='L193'> 193   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L30' title='Defined at 30 in src/devices/ide.c.'>reg_ctl</a> (c), 0);
+<a name='L194'> 194   <a href='../S/125.html#L110' title='Defined at 110 in src/devices/timer.c.'>timer_usleep</a> (10);
+<a name='L195'> 195   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L30' title='Defined at 30 in src/devices/ide.c.'>reg_ctl</a> (c), <a href='../S/123.html#L39' title='Defined at 39 in src/devices/ide.c.'>CTL_SRST</a>);
+<a name='L196'> 196   <a href='../S/125.html#L110' title='Defined at 110 in src/devices/timer.c.'>timer_usleep</a> (10);
+<a name='L197'> 197   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L30' title='Defined at 30 in src/devices/ide.c.'>reg_ctl</a> (c), 0);
+<a name='L198'> 198 
+<a name='L199'> 199   <a href='../S/125.html#L102' title='Defined at 102 in src/devices/timer.c.'>timer_msleep</a> (150);
+<a name='L200'> 200 
+<a name='L201'> 201   <i><font color='green'>/* Wait for device 0 to clear BSY. */</font></i>
+<a name='L202'> 202   <b>if</b> (present[0]) 
+<a name='L203'> 203     <font color='red'>{</font>
+<a name='L204'> 204       <a href='../S/123.html#L484' title='Defined at 484 in src/devices/ide.c.'>select_device</a> (&amp;c-&gt;devices[0]);
+<a name='L205'> 205       <a href='../S/123.html#L460' title='Defined at 460 in src/devices/ide.c.'>wait_while_busy</a> (&amp;c-&gt;devices[0]); 
+<a name='L206'> 206     <font color='red'>}</font>
+<a name='L207'> 207 
+<a name='L208'> 208   <i><font color='green'>/* Wait for device 1 to clear BSY. */</font></i>
+<a name='L209'> 209   <b>if</b> (present[1])
+<a name='L210'> 210     <font color='red'>{</font>
+<a name='L211'> 211       <b>int</b> i;
+<a name='L212'> 212 
+<a name='L213'> 213       <a href='../S/123.html#L484' title='Defined at 484 in src/devices/ide.c.'>select_device</a> (&amp;c-&gt;devices[1]);
+<a name='L214'> 214       <b>for</b> (i = 0; i &lt; 3000; i++) 
+<a name='L215'> 215         <font color='red'>{</font>
+<a name='L216'> 216           <b>if</b> (<a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L19' title='Defined at 19 in src/devices/ide.c.'>reg_nsect</a> (c)) == 1 &amp;&amp; <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L20' title='Defined at 20 in src/devices/ide.c.'>reg_lbal</a> (c)) == 1)
+<a name='L217'> 217             <b>break</b>;
+<a name='L218'> 218           <a href='../S/125.html#L102' title='Defined at 102 in src/devices/timer.c.'>timer_msleep</a> (10);
+<a name='L219'> 219         <font color='red'>}</font>
+<a name='L220'> 220       <a href='../S/123.html#L460' title='Defined at 460 in src/devices/ide.c.'>wait_while_busy</a> (&amp;c-&gt;devices[1]);
+<a name='L221'> 221     <font color='red'>}</font>
+<a name='L222'> 222 <font color='red'>}</font>
+<a name='L223'> 223 
+<a name='L224'> 224 <i><font color='green'>/* Checks whether device D is an ATA disk and sets D's is_ata</font></i>
+<a name='L225'> 225 <i><font color='green'>   member appropriately.  If D is device 0 (master), returns true</font></i>
+<a name='L226'> 226 <i><font color='green'>   if it's possible that a slave (device 1) exists on this</font></i>
+<a name='L227'> 227 <i><font color='green'>   channel.  If D is device 1 (slave), the return value is not</font></i>
+<a name='L228'> 228 <i><font color='green'>   meaningful. */</font></i>
+<a name='L229'> 229 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L230'> 230 <a href='../R/362.html' title='Multiple refered from 3 places.'>check_device_type</a> (<b>struct</b> ata_disk *d) 
+<a name='L231'> 231 <font color='red'>{</font>
+<a name='L232'> 232   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L233'> 233   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> error, lbam, lbah, status;
+<a name='L234'> 234 
+<a name='L235'> 235   <a href='../S/123.html#L484' title='Defined at 484 in src/devices/ide.c.'>select_device</a> (d);
+<a name='L236'> 236 
+<a name='L237'> 237   error = <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L18' title='Defined at 18 in src/devices/ide.c.'>reg_error</a> (c));
+<a name='L238'> 238   lbam = <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L21' title='Defined at 21 in src/devices/ide.c.'>reg_lbam</a> (c));
+<a name='L239'> 239   lbah = <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L22' title='Defined at 22 in src/devices/ide.c.'>reg_lbah</a> (c));
+<a name='L240'> 240   status = <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L24' title='Defined at 24 in src/devices/ide.c.'>reg_status</a> (c));
+<a name='L241'> 241 
+<a name='L242'> 242   <b>if</b> ((error != 1 &amp;&amp; (error != 0x81 || d-&gt;dev_no == 1))
+<a name='L243'> 243       || (status &amp; <a href='../S/123.html#L35' title='Defined at 35 in src/devices/ide.c.'>STA_DRDY</a>) == 0
+<a name='L244'> 244       || (status &amp; <a href='../S/123.html#L34' title='Defined at 34 in src/devices/ide.c.'>STA_BSY</a>) != 0)
+<a name='L245'> 245     <font color='red'>{</font>
+<a name='L246'> 246       d-&gt;is_ata = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L247'> 247       <b>return</b> error != 0x81;      
+<a name='L248'> 248     <font color='red'>}</font>
+<a name='L249'> 249   <b>else</b> 
+<a name='L250'> 250     <font color='red'>{</font>
+<a name='L251'> 251       d-&gt;is_ata = (lbam == 0 &amp;&amp; lbah == 0) || (lbam == 0x3c &amp;&amp; lbah == 0xc3);
+<a name='L252'> 252       <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>; 
+<a name='L253'> 253     <font color='red'>}</font>
+<a name='L254'> 254 <font color='red'>}</font>
+<a name='L255'> 255 
+<a name='L256'> 256 <i><font color='green'>/* Sends an IDENTIFY DEVICE command to disk D and reads the</font></i>
+<a name='L257'> 257 <i><font color='green'>   response.  Registers the disk with the block device</font></i>
+<a name='L258'> 258 <i><font color='green'>   layer. */</font></i>
+<a name='L259'> 259 <b>static</b> <b>void</b>
+<a name='L260'> 260 <a href='../R/501.html' title='Multiple refered from 2 places.'>identify_ata_device</a> (<b>struct</b> ata_disk *d) 
+<a name='L261'> 261 <font color='red'>{</font>
+<a name='L262'> 262   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L263'> 263   <b>char</b> id[<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>];
+<a name='L264'> 264   <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> capacity;
+<a name='L265'> 265   <b>char</b> *model, *serial;
+<a name='L266'> 266   <b>char</b> extra_info[128];
+<a name='L267'> 267   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L268'> 268 
+<a name='L269'> 269   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (d-&gt;is_ata);
+<a name='L270'> 270 
+<a name='L271'> 271   <i><font color='green'>/* Send the IDENTIFY DEVICE command, wait for an interrupt</font></i>
+<a name='L272'> 272 <i><font color='green'>     indicating the device's response is ready, and read the data</font></i>
+<a name='L273'> 273 <i><font color='green'>     into our buffer. */</font></i>
+<a name='L274'> 274   <a href='../S/123.html#L498' title='Defined at 498 in src/devices/ide.c.'>select_device_wait</a> (d);
+<a name='L275'> 275   <a href='../S/123.html#L407' title='Defined at 407 in src/devices/ide.c.'>issue_pio_command</a> (c, <a href='../S/123.html#L49' title='Defined at 49 in src/devices/ide.c.'>CMD_IDENTIFY_DEVICE</a>);
+<a name='L276'> 276   <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;c-&gt;completion_wait);
+<a name='L277'> 277   <b>if</b> (!<a href='../S/123.html#L460' title='Defined at 460 in src/devices/ide.c.'>wait_while_busy</a> (d))
+<a name='L278'> 278     <font color='red'>{</font>
+<a name='L279'> 279       d-&gt;is_ata = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L280'> 280       <b>return</b>;
+<a name='L281'> 281     <font color='red'>}</font>
+<a name='L282'> 282   <a href='../S/123.html#L420' title='Defined at 420 in src/devices/ide.c.'>input_sector</a> (c, id);
+<a name='L283'> 283 
+<a name='L284'> 284   <i><font color='green'>/* Calculate capacity.</font></i>
+<a name='L285'> 285 <i><font color='green'>     Read model name and serial number. */</font></i>
+<a name='L286'> 286   capacity = *(<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *) &amp;id[60 * 2];
+<a name='L287'> 287   model = <a href='../S/123.html#L316' title='Defined at 316 in src/devices/ide.c.'>descramble_ata_string</a> (&amp;id[10 * 2], 20);
+<a name='L288'> 288   serial = <a href='../S/123.html#L316' title='Defined at 316 in src/devices/ide.c.'>descramble_ata_string</a> (&amp;id[27 * 2], 40);
+<a name='L289'> 289   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (extra_info, <b>sizeof</b> extra_info,
+<a name='L290'> 290             "model \"%s\", serial \"%s\"", model, serial);
+<a name='L291'> 291 
+<a name='L292'> 292   <i><font color='green'>/* Disable access to IDE disks over 1 GB, which are likely</font></i>
+<a name='L293'> 293 <i><font color='green'>     physical IDE disks rather than virtual ones.  If we don't</font></i>
+<a name='L294'> 294 <i><font color='green'>     allow access to those, we're less likely to scribble on</font></i>
+<a name='L295'> 295 <i><font color='green'>     someone's important data.  You can disable this check by</font></i>
+<a name='L296'> 296 <i><font color='green'>     hand if you really want to do so. */</font></i>
+<a name='L297'> 297   <b>if</b> (capacity &gt;= 1024 * 1024 * 1024 / <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>)
+<a name='L298'> 298     <font color='red'>{</font>
+<a name='L299'> 299       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: ignoring ", d-&gt;name);
+<a name='L300'> 300       <a href='../S/115.html#L642' title='Defined at 642 in src/lib/stdio.c.'>print_human_readable_size</a> (capacity * 512);
+<a name='L301'> 301       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("disk for safety\n");
+<a name='L302'> 302       d-&gt;is_ata = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L303'> 303       <b>return</b>;
+<a name='L304'> 304     <font color='red'>}</font>
+<a name='L305'> 305 
+<a name='L306'> 306   <i><font color='green'>/* Register. */</font></i>
+<a name='L307'> 307   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/132.html#L187' title='Defined at 187 in src/devices/block.c.'>block_register</a> (d-&gt;name, BLOCK_RAW, extra_info, capacity,
+<a name='L308'> 308                           &amp;ide_operations, d);
+<a name='L309'> 309   <a href='../S/134.html#L28' title='Defined at 28 in src/devices/partition.c.'>partition_scan</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>);
+<a name='L310'> 310 <font color='red'>}</font>
+<a name='L311'> 311 
+<a name='L312'> 312 <i><font color='green'>/* Translates STRING, which consists of SIZE bytes in a funky</font></i>
+<a name='L313'> 313 <i><font color='green'>   format, into a null-terminated string in-place.  Drops</font></i>
+<a name='L314'> 314 <i><font color='green'>   trailing whitespace and null bytes.  Returns STRING.  */</font></i>
+<a name='L315'> 315 <b>static</b> <b>char</b> *
+<a name='L316'> 316 <a href='../R/393.html' title='Multiple refered from 3 places.'>descramble_ata_string</a> (<b>char</b> *string, <b>int</b> size) 
+<a name='L317'> 317 <font color='red'>{</font>
+<a name='L318'> 318   <b>int</b> i;
+<a name='L319'> 319 
+<a name='L320'> 320   <i><font color='green'>/* Swap all pairs of bytes. */</font></i>
+<a name='L321'> 321   <b>for</b> (i = 0; i + 1 &lt; size; i += 2)
+<a name='L322'> 322     <font color='red'>{</font>
+<a name='L323'> 323       <b>char</b> tmp = string[i];
+<a name='L324'> 324       string[i] = string[i + 1];
+<a name='L325'> 325       string[i + 1] = tmp;
+<a name='L326'> 326     <font color='red'>}</font>
+<a name='L327'> 327 
+<a name='L328'> 328   <i><font color='green'>/* Find the last non-white, non-null character. */</font></i>
+<a name='L329'> 329   <b>for</b> (size--; size &gt; 0; size--)
+<a name='L330'> 330     <font color='red'>{</font>
+<a name='L331'> 331       <b>int</b> c = string[size - 1];
+<a name='L332'> 332       <b>if</b> (c != '\0' &amp;&amp; !<a href='../S/93.html#L12' title='Defined at 12 in src/lib/ctype.h.'>isspace</a> (c))
+<a name='L333'> 333         <b>break</b>; 
+<a name='L334'> 334     <font color='red'>}</font>
+<a name='L335'> 335   string[size] = '\0';
+<a name='L336'> 336 
+<a name='L337'> 337   <b>return</b> string;
+<a name='L338'> 338 <font color='red'>}</font>
+<a name='L339'> 339 
+<a name='L340'> 340 <i><font color='green'>/* Reads sector SEC_NO from disk D into BUFFER, which must have</font></i>
+<a name='L341'> 341 <i><font color='green'>   room for BLOCK_SECTOR_SIZE bytes.</font></i>
+<a name='L342'> 342 <i><font color='green'>   Internally synchronizes accesses to disks, so external</font></i>
+<a name='L343'> 343 <i><font color='green'>   per-disk locking is unneeded. */</font></i>
+<a name='L344'> 344 <b>static</b> <b>void</b>
+<a name='L345'> 345 <a href='../S/123.html#L381' title='Refered from 381 in src/devices/ide.c.'>ide_read</a> (<b>void</b> *d_, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sec_no, <b>void</b> *buffer)
+<a name='L346'> 346 <font color='red'>{</font>
+<a name='L347'> 347   <b>struct</b> <a href='../S/123.html#L54' title='Defined at 54 in src/devices/ide.c.'>ata_disk</a> *d = d_;
+<a name='L348'> 348   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L349'> 349   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;c-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L350'> 350   <a href='../S/123.html#L389' title='Defined at 389 in src/devices/ide.c.'>select_sector</a> (d, sec_no);
+<a name='L351'> 351   <a href='../S/123.html#L407' title='Defined at 407 in src/devices/ide.c.'>issue_pio_command</a> (c, <a href='../S/123.html#L50' title='Defined at 50 in src/devices/ide.c.'>CMD_READ_SECTOR_RETRY</a>);
+<a name='L352'> 352   <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;c-&gt;completion_wait);
+<a name='L353'> 353   <b>if</b> (!<a href='../S/123.html#L460' title='Defined at 460 in src/devices/ide.c.'>wait_while_busy</a> (d))
+<a name='L354'> 354     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: disk read failed, sector=%"<a href='../S/128.html#L19' title='Defined at 19 in src/devices/block.h.'>PRDSNu</a>, d-&gt;name, sec_no);
+<a name='L355'> 355   <a href='../S/123.html#L420' title='Defined at 420 in src/devices/ide.c.'>input_sector</a> (c, buffer);
+<a name='L356'> 356   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;c-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L357'> 357 <font color='red'>}</font>
+<a name='L358'> 358 
+<a name='L359'> 359 <i><font color='green'>/* Write sector SEC_NO to disk D from BUFFER, which must contain</font></i>
+<a name='L360'> 360 <i><font color='green'>   BLOCK_SECTOR_SIZE bytes.  Returns after the disk has</font></i>
+<a name='L361'> 361 <i><font color='green'>   acknowledged receiving the data.</font></i>
+<a name='L362'> 362 <i><font color='green'>   Internally synchronizes accesses to disks, so external</font></i>
+<a name='L363'> 363 <i><font color='green'>   per-disk locking is unneeded. */</font></i>
+<a name='L364'> 364 <b>static</b> <b>void</b>
+<a name='L365'> 365 <a href='../S/123.html#L382' title='Refered from 382 in src/devices/ide.c.'>ide_write</a> (<b>void</b> *d_, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sec_no, <b>const</b> <b>void</b> *buffer)
+<a name='L366'> 366 <font color='red'>{</font>
+<a name='L367'> 367   <b>struct</b> <a href='../S/123.html#L54' title='Defined at 54 in src/devices/ide.c.'>ata_disk</a> *d = d_;
+<a name='L368'> 368   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L369'> 369   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;c-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L370'> 370   <a href='../S/123.html#L389' title='Defined at 389 in src/devices/ide.c.'>select_sector</a> (d, sec_no);
+<a name='L371'> 371   <a href='../S/123.html#L407' title='Defined at 407 in src/devices/ide.c.'>issue_pio_command</a> (c, <a href='../S/123.html#L51' title='Defined at 51 in src/devices/ide.c.'>CMD_WRITE_SECTOR_RETRY</a>);
+<a name='L372'> 372   <b>if</b> (!<a href='../S/123.html#L460' title='Defined at 460 in src/devices/ide.c.'>wait_while_busy</a> (d))
+<a name='L373'> 373     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("%s: disk write failed, sector=%"<a href='../S/128.html#L19' title='Defined at 19 in src/devices/block.h.'>PRDSNu</a>, d-&gt;name, sec_no);
+<a name='L374'> 374   <a href='../S/123.html#L428' title='Defined at 428 in src/devices/ide.c.'>output_sector</a> (c, buffer);
+<a name='L375'> 375   <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;c-&gt;completion_wait);
+<a name='L376'> 376   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;c-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L377'> 377 <font color='red'>}</font>
+<a name='L378'> 378 
+<a name='L379'> 379 <b>static</b> <b>struct</b> <a href='../S/128.html#L64' title='Defined at 64 in src/devices/block.h.'>block_operations</a> ide_operations =
+<a name='L380'> 380   <font color='red'>{</font>
+<a name='L381'> 381     <a href='../S/123.html#L345' title='Defined at 345 in src/devices/ide.c.'>ide_read</a>,
+<a name='L382'> 382     <a href='../S/123.html#L365' title='Defined at 365 in src/devices/ide.c.'>ide_write</a>
+<a name='L383'> 383   <font color='red'>}</font>;
+<a name='L384'> 384 
+<a name='L385'> 385 <i><font color='green'>/* Selects device D, waiting for it to become ready, and then</font></i>
+<a name='L386'> 386 <i><font color='green'>   writes SEC_NO to the disk's sector selection registers.  (We</font></i>
+<a name='L387'> 387 <i><font color='green'>   use LBA mode.) */</font></i>
+<a name='L388'> 388 <b>static</b> <b>void</b>
+<a name='L389'> 389 <a href='../R/787.html' title='Multiple refered from 3 places.'>select_sector</a> (<b>struct</b> ata_disk *d, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sec_no)
+<a name='L390'> 390 <font color='red'>{</font>
+<a name='L391'> 391   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L392'> 392 
+<a name='L393'> 393   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (sec_no &lt; (1UL &lt;&lt; 28));
+<a name='L394'> 394   
+<a name='L395'> 395   <a href='../S/123.html#L498' title='Defined at 498 in src/devices/ide.c.'>select_device_wait</a> (d);
+<a name='L396'> 396   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L19' title='Defined at 19 in src/devices/ide.c.'>reg_nsect</a> (c), 1);
+<a name='L397'> 397   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L20' title='Defined at 20 in src/devices/ide.c.'>reg_lbal</a> (c), sec_no);
+<a name='L398'> 398   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L21' title='Defined at 21 in src/devices/ide.c.'>reg_lbam</a> (c), sec_no &gt;&gt; 8);
+<a name='L399'> 399   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L22' title='Defined at 22 in src/devices/ide.c.'>reg_lbah</a> (c), (sec_no &gt;&gt; 16));
+<a name='L400'> 400   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L23' title='Defined at 23 in src/devices/ide.c.'>reg_device</a> (c),
+<a name='L401'> 401         <a href='../S/123.html#L42' title='Defined at 42 in src/devices/ide.c.'>DEV_MBS</a> | <a href='../S/123.html#L43' title='Defined at 43 in src/devices/ide.c.'>DEV_LBA</a> | (d-&gt;dev_no == 1 ? <a href='../S/123.html#L44' title='Defined at 44 in src/devices/ide.c.'>DEV_DEV</a> : 0) | (sec_no &gt;&gt; 24));
+<a name='L402'> 402 <font color='red'>}</font>
+<a name='L403'> 403 
+<a name='L404'> 404 <i><font color='green'>/* Writes COMMAND to channel C and prepares for receiving a</font></i>
+<a name='L405'> 405 <i><font color='green'>   completion interrupt. */</font></i>
+<a name='L406'> 406 <b>static</b> <b>void</b>
+<a name='L407'> 407 <a href='../R/579.html' title='Multiple refered from 4 places.'>issue_pio_command</a> (<b>struct</b> channel *c, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> command) 
+<a name='L408'> 408 <font color='red'>{</font>
+<a name='L409'> 409   <i><font color='green'>/* Interrupts must be enabled or our semaphore will never be</font></i>
+<a name='L410'> 410 <i><font color='green'>     up'd by the completion handler. */</font></i>
+<a name='L411'> 411   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/168.html#L65' title='Defined at 65 in src/threads/interrupt.c.'>intr_get_level</a> () == INTR_ON);
+<a name='L412'> 412 
+<a name='L413'> 413   c-&gt;expecting_interrupt = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L414'> 414   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L25' title='Defined at 25 in src/devices/ide.c.'>reg_command</a> (c), command);
+<a name='L415'> 415 <font color='red'>}</font>
+<a name='L416'> 416 
+<a name='L417'> 417 <i><font color='green'>/* Reads a sector from channel C's data register in PIO mode into</font></i>
+<a name='L418'> 418 <i><font color='green'>   SECTOR, which must have room for BLOCK_SECTOR_SIZE bytes. */</font></i>
+<a name='L419'> 419 <b>static</b> <b>void</b>
+<a name='L420'> 420 <a href='../R/528.html' title='Multiple refered from 3 places.'>input_sector</a> (<b>struct</b> channel *c, <b>void</b> *sector) 
+<a name='L421'> 421 <font color='red'>{</font>
+<a name='L422'> 422   <a href='../S/157.html#L39' title='Defined at 39 in src/threads/io.h.'>insw</a> (<a href='../S/123.html#L17' title='Defined at 17 in src/devices/ide.c.'>reg_data</a> (c), sector, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> / 2);
+<a name='L423'> 423 <font color='red'>}</font>
+<a name='L424'> 424 
+<a name='L425'> 425 <i><font color='green'>/* Writes SECTOR to channel C's data register in PIO mode.</font></i>
+<a name='L426'> 426 <i><font color='green'>   SECTOR must contain BLOCK_SECTOR_SIZE bytes. */</font></i>
+<a name='L427'> 427 <b>static</b> <b>void</b>
+<a name='L428'> 428 <a href='../R/677.html' title='Multiple refered from 2 places.'>output_sector</a> (<b>struct</b> channel *c, <b>const</b> <b>void</b> *sector) 
+<a name='L429'> 429 <font color='red'>{</font>
+<a name='L430'> 430   <a href='../S/157.html#L92' title='Defined at 92 in src/threads/io.h.'>outsw</a> (<a href='../S/123.html#L17' title='Defined at 17 in src/devices/ide.c.'>reg_data</a> (c), sector, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> / 2);
+<a name='L431'> 431 <font color='red'>}</font>
+<a name='L432'> 432 
+<a name='L433'> 433 <i><font color='green'>/* Low-level ATA primitives. */</font></i>
+<a name='L434'> 434 
+<a name='L435'> 435 <i><font color='green'>/* Wait up to 10 seconds for the controller to become idle, that</font></i>
+<a name='L436'> 436 <i><font color='green'>   is, for the BSY and DRQ bits to clear in the status register.</font></i>
+<a name='L437'> 437 <i><font color='green'></font></i>
+<a name='L438'> 438 <i><font color='green'>   As a side effect, reading the status register clears any</font></i>
+<a name='L439'> 439 <i><font color='green'>   pending interrupt. */</font></i>
+<a name='L440'> 440 <b>static</b> <b>void</b>
+<a name='L441'> 441 <a href='../R/972.html' title='Multiple refered from 3 places.'>wait_until_idle</a> (<b>const</b> <b>struct</b> ata_disk *d) 
+<a name='L442'> 442 <font color='red'>{</font>
+<a name='L443'> 443   <b>int</b> i;
+<a name='L444'> 444 
+<a name='L445'> 445   <b>for</b> (i = 0; i &lt; 1000; i++) 
+<a name='L446'> 446     <font color='red'>{</font>
+<a name='L447'> 447       <b>if</b> ((<a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L24' title='Defined at 24 in src/devices/ide.c.'>reg_status</a> (d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>)) &amp; (<a href='../S/123.html#L34' title='Defined at 34 in src/devices/ide.c.'>STA_BSY</a> | <a href='../S/123.html#L36' title='Defined at 36 in src/devices/ide.c.'>STA_DRQ</a>)) == 0)
+<a name='L448'> 448         <b>return</b>;
+<a name='L449'> 449       <a href='../S/125.html#L110' title='Defined at 110 in src/devices/timer.c.'>timer_usleep</a> (10);
+<a name='L450'> 450     <font color='red'>}</font>
+<a name='L451'> 451 
+<a name='L452'> 452   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: idle timeout\n", d-&gt;name);
+<a name='L453'> 453 <font color='red'>}</font>
+<a name='L454'> 454 
+<a name='L455'> 455 <i><font color='green'>/* Wait up to 30 seconds for disk D to clear BSY,</font></i>
+<a name='L456'> 456 <i><font color='green'>   and then return the status of the DRQ bit.</font></i>
+<a name='L457'> 457 <i><font color='green'>   The ATA standards say that a disk may take as long as that to</font></i>
+<a name='L458'> 458 <i><font color='green'>   complete its reset. */</font></i>
+<a name='L459'> 459 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L460'> 460 <a href='../R/973.html' title='Multiple refered from 6 places.'>wait_while_busy</a> (<b>const</b> <b>struct</b> ata_disk *d) 
+<a name='L461'> 461 <font color='red'>{</font>
+<a name='L462'> 462   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L463'> 463   <b>int</b> i;
+<a name='L464'> 464   
+<a name='L465'> 465   <b>for</b> (i = 0; i &lt; 3000; i++)
+<a name='L466'> 466     <font color='red'>{</font>
+<a name='L467'> 467       <b>if</b> (i == 700)
+<a name='L468'> 468         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: busy, waiting...", d-&gt;name);
+<a name='L469'> 469       <b>if</b> (!(<a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L31' title='Defined at 31 in src/devices/ide.c.'>reg_alt_status</a> (c)) &amp; <a href='../S/123.html#L34' title='Defined at 34 in src/devices/ide.c.'>STA_BSY</a>)) 
+<a name='L470'> 470         <font color='red'>{</font>
+<a name='L471'> 471           <b>if</b> (i &gt;= 700)
+<a name='L472'> 472             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("ok\n");
+<a name='L473'> 473           <b>return</b> (<a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L31' title='Defined at 31 in src/devices/ide.c.'>reg_alt_status</a> (c)) &amp; <a href='../S/123.html#L36' title='Defined at 36 in src/devices/ide.c.'>STA_DRQ</a>) != 0;
+<a name='L474'> 474         <font color='red'>}</font>
+<a name='L475'> 475       <a href='../S/125.html#L102' title='Defined at 102 in src/devices/timer.c.'>timer_msleep</a> (10);
+<a name='L476'> 476     <font color='red'>}</font>
+<a name='L477'> 477 
+<a name='L478'> 478   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("failed\n");
+<a name='L479'> 479   <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L480'> 480 <font color='red'>}</font>
+<a name='L481'> 481 
+<a name='L482'> 482 <i><font color='green'>/* Program D's channel so that D is now the selected disk. */</font></i>
+<a name='L483'> 483 <b>static</b> <b>void</b>
+<a name='L484'> 484 <a href='../R/785.html' title='Multiple refered from 6 places.'>select_device</a> (<b>const</b> <b>struct</b> ata_disk *d)
+<a name='L485'> 485 <font color='red'>{</font>
+<a name='L486'> 486   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c = d-&gt;<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>;
+<a name='L487'> 487   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> dev = <a href='../S/123.html#L42' title='Defined at 42 in src/devices/ide.c.'>DEV_MBS</a>;
+<a name='L488'> 488   <b>if</b> (d-&gt;dev_no == 1)
+<a name='L489'> 489     dev |= <a href='../S/123.html#L44' title='Defined at 44 in src/devices/ide.c.'>DEV_DEV</a>;
+<a name='L490'> 490   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/123.html#L23' title='Defined at 23 in src/devices/ide.c.'>reg_device</a> (c), dev);
+<a name='L491'> 491   <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L31' title='Defined at 31 in src/devices/ide.c.'>reg_alt_status</a> (c));
+<a name='L492'> 492   <a href='../S/125.html#L118' title='Defined at 118 in src/devices/timer.c.'>timer_nsleep</a> (400);
+<a name='L493'> 493 <font color='red'>}</font>
+<a name='L494'> 494 
+<a name='L495'> 495 <i><font color='green'>/* Select disk D in its channel, as select_device(), but wait for</font></i>
+<a name='L496'> 496 <i><font color='green'>   the channel to become idle before and after. */</font></i>
+<a name='L497'> 497 <b>static</b> <b>void</b>
+<a name='L498'> 498 <a href='../R/786.html' title='Multiple refered from 3 places.'>select_device_wait</a> (<b>const</b> <b>struct</b> ata_disk *d) 
+<a name='L499'> 499 <font color='red'>{</font>
+<a name='L500'> 500   <a href='../S/123.html#L441' title='Defined at 441 in src/devices/ide.c.'>wait_until_idle</a> (d);
+<a name='L501'> 501   <a href='../S/123.html#L484' title='Defined at 484 in src/devices/ide.c.'>select_device</a> (d);
+<a name='L502'> 502   <a href='../S/123.html#L441' title='Defined at 441 in src/devices/ide.c.'>wait_until_idle</a> (d);
+<a name='L503'> 503 <font color='red'>}</font>
+<a name='L504'> 504 
+<a name='L505'> 505 <i><font color='green'>/* ATA interrupt handler. */</font></i>
+<a name='L506'> 506 <b>static</b> <b>void</b>
+<a name='L507'> 507 <a href='../R/536.html' title='Multiple refered from 2 places.'>interrupt_handler</a> (<b>struct</b> intr_frame *f) 
+<a name='L508'> 508 <font color='red'>{</font>
+<a name='L509'> 509   <b>struct</b> <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> *c;
+<a name='L510'> 510 
+<a name='L511'> 511   <b>for</b> (c = channels; c &lt; channels + <a href='../S/123.html#L79' title='Defined at 79 in src/devices/ide.c.'>CHANNEL_CNT</a>; c++)
+<a name='L512'> 512     <b>if</b> (f-&gt;vec_no == c-&gt;irq)
+<a name='L513'> 513       <font color='red'>{</font>
+<a name='L514'> 514         <b>if</b> (c-&gt;expecting_interrupt) 
+<a name='L515'> 515           <font color='red'>{</font>
+<a name='L516'> 516             <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/123.html#L24' title='Defined at 24 in src/devices/ide.c.'>reg_status</a> (c));               <i><font color='green'>/* Acknowledge interrupt. */</font></i>
+<a name='L517'> 517             <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (&amp;c-&gt;completion_wait);      <i><font color='green'>/* Wake up waiter. */</font></i>
+<a name='L518'> 518           <font color='red'>}</font>
+<a name='L519'> 519         <b>else</b>
+<a name='L520'> 520           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: unexpected interrupt\n", c-&gt;name);
+<a name='L521'> 521         <b>return</b>;
+<a name='L522'> 522       <font color='red'>}</font>
+<a name='L523'> 523 
+<a name='L524'> 524   <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a> ();
+<a name='L525'> 525 <font color='red'>}</font>
+<a name='L526'> 526 
+<a name='L527'> 527 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L102'>[^]</a><a href='#L507'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

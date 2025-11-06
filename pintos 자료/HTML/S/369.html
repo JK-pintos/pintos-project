@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>src/tests/vm/pt-grow-stk-sc.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/pt-grow-stk-sc.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L14' title='Defined at 14.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* This test checks that the stack is properly extended even if</font></i>
+<a name='L2'>   2 <i><font color='green'>   the first access to a stack location occurs inside a system</font></i>
+<a name='L3'>   3 <i><font color='green'>   call.</font></i>
+<a name='L4'>   4 <i><font color='green'></font></i>
+<a name='L5'>   5 <i><font color='green'>   From Godmar Back. */</font></i>
+<a name='L6'>   6 
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L9'>   9 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L12'>  12 
+<a name='L13'>  13 <b>void</b>
+<a name='L14'>  14 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L15'>  15 <font color='red'>{</font>
+<a name='L16'>  16   <b>int</b> handle;
+<a name='L17'>  17   <b>int</b> slen = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample);
+<a name='L18'>  18   <b>char</b> buf2[65536];
+<a name='L19'>  19 
+<a name='L20'>  20   <i><font color='green'>/* Write file via write(). */</font></i>
+<a name='L21'>  21   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("sample.txt", slen), "create \"sample.txt\"");
+<a name='L22'>  22   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a name='L23'>  23   CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, sample, slen) == slen, "write \"sample.txt\"");
+<a name='L24'>  24   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L25'>  25 
+<a name='L26'>  26   <i><font color='green'>/* Read back via read(). */</font></i>
+<a name='L27'>  27   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "2nd open \"sample.txt\"");
+<a name='L28'>  28   CHECK (<a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (handle, buf2 + 32768, slen) == slen, "read \"sample.txt\"");
+<a name='L29'>  29 
+<a name='L30'>  30   CHECK (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (sample, buf2 + 32768, slen), "compare written data against read data");
+<a name='L31'>  31   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L32'>  32 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L14'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

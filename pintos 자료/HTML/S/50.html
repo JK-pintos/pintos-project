@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>src/examples/lineup.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/lineup.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* lineup.c</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Converts a file to uppercase in-place.</font></i>
+<a name='L4'>   4 <i><font color='green'></font></i>
+<a name='L5'>   5 <i><font color='green'>   Incidentally, another way to do this while avoiding the seeks</font></i>
+<a name='L6'>   6 <i><font color='green'>   would be to open the input file, then remove() it and reopen</font></i>
+<a name='L7'>   7 <i><font color='green'>   it under another handle.  Because of Unix deletion semantics</font></i>
+<a name='L8'>   8 <i><font color='green'>   this works fine. */</font></i>
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L13'>  13 
+<a name='L14'>  14 <b>int</b>
+<a name='L15'>  15 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[])
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <b>char</b> buf[1024];
+<a name='L18'>  18   <b>int</b> handle;
+<a name='L19'>  19 
+<a name='L20'>  20   <b>if</b> (argc != 2)
+<a name='L21'>  21     <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (1);
+<a name='L22'>  22 
+<a name='L23'>  23   handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[1]);
+<a name='L24'>  24   <b>if</b> (handle &lt; 0)
+<a name='L25'>  25     <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (2);
+<a name='L26'>  26 
+<a name='L27'>  27   <b>for</b> (;;) 
+<a name='L28'>  28     <font color='red'>{</font>
+<a name='L29'>  29       <b>int</b> n, i;
+<a name='L30'>  30 
+<a name='L31'>  31       n = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (handle, buf, <b>sizeof</b> buf);
+<a name='L32'>  32       <b>if</b> (n &lt;= 0)
+<a name='L33'>  33         <b>break</b>;
+<a name='L34'>  34 
+<a name='L35'>  35       <b>for</b> (i = 0; i &lt; n; i++)
+<a name='L36'>  36         buf[i] = <a href='../S/93.html#L26' title='Defined at 26 in src/lib/ctype.h.'>toupper</a> ((<b>unsigned</b> <b>char</b>) buf[i]);
+<a name='L37'>  37 
+<a name='L38'>  38       <a href='../S/97.html#L127' title='Defined at 127 in src/lib/user/syscall.c.'>seek</a> (handle, <a href='../S/97.html#L133' title='Defined at 133 in src/lib/user/syscall.c.'>tell</a> (handle) - n);
+<a name='L39'>  39       <b>if</b> (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, buf, n) != n)
+<a name='L40'>  40         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("write failed\n");
+<a name='L41'>  41     <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L44'>  44 
+<a name='L45'>  45   <b>return</b> <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a>;
+<a name='L46'>  46 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L15'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>write</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L138'>write</a>             138 src/devices/block.c   block-&gt;ops-&gt;write (block-&gt;aux, sector, buffer);
+<a href='../S/128.html#L67'>write</a>              67 src/devices/block.h     void (*write) (void *aux, block_sector_t, const void *buffer);
+<a href='../S/43.html#L29'>write</a>              29 src/examples/cat.c           write (STDOUT_FILENO, buffer, bytes_read);
+<a href='../S/51.html#L47'>write</a>              47 src/examples/cp.c       if (write (out_fd, buffer, bytes_read) != bytes_read) 
+<a href='../S/50.html#L39'>write</a>              39 src/examples/lineup.c       if (write (handle, buf, n) != n)
+<a href='../S/61.html#L39'>write</a>              39 src/examples/mcat.c       write (STDOUT_FILENO, data, size);
+<a href='../S/94.html#L33'>write</a>              33 src/lib/user/console.c   write (STDOUT_FILENO, s, strlen (s));
+<a href='../S/94.html#L44'>write</a>              44 src/lib/user/console.c   write (STDOUT_FILENO, &amp;c2, 1);
+<a href='../S/94.html#L92'>write</a>              92 src/lib/user/console.c     write (aux-&gt;handle, aux-&gt;buf, aux-&gt;p - aux-&gt;buf);
+<a href='../S/184.html#L29'>write</a>              29 src/tests/filesys/base/child-syn-wrt.c   CHECK (write (fd, buf + CHUNK_SIZE * child_idx, CHUNK_SIZE) &gt; 0,
+<a href='../S/210.html#L25'>write</a>              25 src/tests/filesys/base/syn-read.c   CHECK (write (fd, buf, sizeof buf) &gt; 0, "write \"%s\"", file_name);
+<a href='../S/209.html#L23'>write</a>              23 src/tests/filesys/base/syn-remove.c   CHECK (write (fd, buf1, sizeof buf1) &gt; 0, "write \"%s\"", file_name);
+<a href='../S/283.html#L18'>write</a>              18 src/tests/filesys/extended/dir-open.c   retval = write (fd, "foobar", 6);
+<a href='../S/217.html#L38'>write</a>              38 src/tests/filesys/extended/dir-vine.c       if (write (fd, contents, strlen (contents)) != (int) strlen (contents)) 
+<a href='../S/262.html#L21'>write</a>              21 src/tests/filesys/extended/grow-sparse.c   CHECK (write (fd, &amp;zero, 1) &gt; 0, "write \"%s\"", file_name);
+<a href='../S/294.html#L23'>write</a>              23 src/tests/filesys/extended/grow-two-files.c       ret_val = write (fd, buf + *ofs, block_size);
+<a href='../S/248.html#L29'>write</a>              29 src/tests/filesys/extended/syn-rw.c     CHECK (write (fd, buf + ofs, CHUNK_SIZE) &gt; 0,
+<a href='../S/233.html#L197'>write</a>             197 src/tests/filesys/extended/tar.c   if (write (fd, buffer, size) == size) 
+<a href='../S/296.html#L26'>write</a>              26 src/tests/filesys/seq-test.c       if (write (fd, buf + ofs, block_size) != (int) block_size)
+<a href='../S/591.html#L24'>write</a>              24 src/tests/lib.c   write (STDOUT_FILENO, buf, strlen (buf));
+<a href='../S/482.html#L25'>write</a>              25 src/tests/userprog/child-rox.c   CHECK (write (handle, buffer, sizeof buffer) == 0,
+<a href='../S/488.html#L17'>write</a>              17 src/tests/userprog/rox-simple.c   CHECK (write (handle, buffer, sizeof buffer) == 0,
+<a href='../S/393.html#L13'>write</a>              13 src/tests/userprog/write-bad-fd.c   write (0x01012342, &amp;buf, 1);
+<a href='../S/393.html#L14'>write</a>              14 src/tests/userprog/write-bad-fd.c   write (7, &amp;buf, 1);
+<a href='../S/393.html#L15'>write</a>              15 src/tests/userprog/write-bad-fd.c   write (2546, &amp;buf, 1);
+<a href='../S/393.html#L16'>write</a>              16 src/tests/userprog/write-bad-fd.c   write (-5, &amp;buf, 1);
+<a href='../S/393.html#L17'>write</a>              17 src/tests/userprog/write-bad-fd.c   write (-8192, &amp;buf, 1);
+<a href='../S/393.html#L18'>write</a>              18 src/tests/userprog/write-bad-fd.c   write (INT_MIN + 1, &amp;buf, 1);
+<a href='../S/393.html#L19'>write</a>              19 src/tests/userprog/write-bad-fd.c   write (INT_MAX - 1, &amp;buf, 1);
+<a href='../S/476.html#L14'>write</a>              14 src/tests/userprog/write-bad-ptr.c   write (handle, (char *) 0x10123420, 123);
+<a href='../S/427.html#L22'>write</a>              22 src/tests/userprog/write-boundary.c   byte_cnt = write (handle, sample_p, sizeof sample - 1);
+<a href='../S/453.html#L16'>write</a>              16 src/tests/userprog/write-normal.c   byte_cnt = write (handle, sample, sizeof sample - 1);
+<a href='../S/517.html#L13'>write</a>              13 src/tests/userprog/write-stdin.c   write (0, &amp;buf, 1);
+<a href='../S/405.html#L17'>write</a>              17 src/tests/userprog/write-zero.c   byte_cnt = write (handle, &amp;buf, 0);
+<a href='../S/341.html#L28'>write</a>              28 src/tests/vm/child-qsort.c   write (handle, buf, size);
+<a href='../S/380.html#L38'>write</a>              38 src/tests/vm/child-sort.c   write (handle, buf, size);
+<a href='../S/324.html#L26'>write</a>              26 src/tests/vm/mmap-clean.c   CHECK (write (handle, overwrite, strlen (overwrite))
+<a href='../S/350.html#L54'>write</a>              54 src/tests/vm/page-merge-seq.c       write (handle, buf1 + CHUNK_SIZE * i, CHUNK_SIZE);
+<a href='../S/339.html#L57'>write</a>              57 src/tests/vm/parallel-merge.c       write (handle, buf1 + CHUNK_SIZE * i, CHUNK_SIZE);
+<a href='../S/369.html#L23'>write</a>              23 src/tests/vm/pt-grow-stk-sc.c   CHECK (write (handle, sample, slen) == slen, "write \"sample.txt\"");
+<a href='../S/64.html#L126'>write</a>             126 src/userprog/exception.c   bool write;        /* True: access was write, false: access was read. */
+<a href='../S/64.html#L148'>write</a>             148 src/userprog/exception.c   write = (f-&gt;error_code &amp; PF_W) != 0;
+<a href='../S/64.html#L157'>write</a>             157 src/userprog/exception.c           write ? "writing" : "reading",
+<a href='../S/7.html#L199'>write</a>             199 src/utils/squish-pty.c               ssize_t n = write (p-&gt;out, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+<a href='../S/7.html#L225'>write</a>             225 src/utils/squish-pty.c             n = write (p-&gt;out, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+<a href='../S/7.html#L246'>write</a>             246 src/utils/squish-pty.c   if (write (dead_child_fd, "", 1) &lt; 0)
+<a href='../S/1.html#L179'>write</a>             179 src/utils/squish-unix.c                       n = write (p-&gt;out, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+<a href='../S/1.html#L219'>write</a>             219 src/utils/squish-unix.c               ssize_t n = write (p-&gt;out, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+</pre>
+</body>
+</html>

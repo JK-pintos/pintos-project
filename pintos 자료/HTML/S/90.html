@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>src/lib/limits.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/limits.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/73.html' title='Multiple included from 8 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/90.html#L2' title='Defined at 2 in src/lib/limits.h.'>__LIB_LIMITS_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/90.html#L1' title='Refered from 1 in src/lib/limits.h.'>__LIB_LIMITS_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#define</font> <a href='../S/114.html#L22' title='Refered from 22 in src/lib/kernel/bitmap.c.'>CHAR_BIT</a> 8
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#define</font> <a href='../R/184.html' title='Multiple refered from 2 places.'>SCHAR_MAX</a> 127
+<a name='L7'>   7 <font color='darkred'>#define</font> <a href='../S/90.html#L14' title='Refered from 14 in src/lib/limits.h.'>SCHAR_MIN</a> (-<a href='../S/90.html#L6' title='Defined at 6 in src/lib/limits.h.'>SCHAR_MAX</a> - 1)
+<a name='L8'>   8 <font color='darkred'>#define</font> <a href='../S/90.html#L12' title='Refered from 12 in src/lib/limits.h.'>UCHAR_MAX</a> 255
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#ifdef</font> __CHAR_UNSIGNED__
+<a name='L11'>  11 <font color='darkred'>#define</font> CHAR_MIN 0
+<a name='L12'>  12 <font color='darkred'>#define</font> CHAR_MAX <a href='../S/90.html#L8' title='Defined at 8 in src/lib/limits.h.'>UCHAR_MAX</a>
+<a name='L13'>  13 <font color='darkred'>#else</font>
+<a name='L14'>  14 <font color='darkred'>#define</font> CHAR_MIN <a href='../S/90.html#L7' title='Defined at 7 in src/lib/limits.h.'>SCHAR_MIN</a>
+<a name='L15'>  15 <font color='darkred'>#define</font> CHAR_MAX <a href='../S/90.html#L6' title='Defined at 6 in src/lib/limits.h.'>SCHAR_MAX</a>
+<a name='L16'>  16 <font color='darkred'>#endif</font>
+<a name='L17'>  17 
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../S/90.html#L19' title='Refered from 19 in src/lib/limits.h.'>SHRT_MAX</a> 32767
+<a name='L19'>  19 <font color='darkred'>#define</font> SHRT_MIN (-<a href='../S/90.html#L18' title='Defined at 18 in src/lib/limits.h.'>SHRT_MAX</a> - 1)
+<a name='L20'>  20 <font color='darkred'>#define</font> USHRT_MAX 65535
+<a name='L21'>  21 
+<a name='L22'>  22 <font color='darkred'>#define</font> <a href='../R/79.html' title='Multiple refered from 5 places.'>INT_MAX</a> 2147483647
+<a name='L23'>  23 <font color='darkred'>#define</font> <a href='../R/80.html' title='Multiple refered from 2 places.'>INT_MIN</a> (-<a href='../S/90.html#L22' title='Defined at 22 in src/lib/limits.h.'>INT_MAX</a> - 1)
+<a name='L24'>  24 <font color='darkred'>#define</font> UINT_MAX 4294967295U
+<a name='L25'>  25 
+<a name='L26'>  26 <font color='darkred'>#define</font> <a href='../R/98.html' title='Multiple refered from 2 places.'>LONG_MAX</a> 2147483647L
+<a name='L27'>  27 <font color='darkred'>#define</font> LONG_MIN (-<a href='../S/90.html#L26' title='Defined at 26 in src/lib/limits.h.'>LONG_MAX</a> - 1)
+<a name='L28'>  28 <font color='darkred'>#define</font> <a href='../S/116.html#L140' title='Refered from 140 in src/lib/ustar.c.'>ULONG_MAX</a> 4294967295UL
+<a name='L29'>  29 
+<a name='L30'>  30 <font color='darkred'>#define</font> <a href='../S/90.html#L31' title='Refered from 31 in src/lib/limits.h.'>LLONG_MAX</a> 9223372036854775807LL
+<a name='L31'>  31 <font color='darkred'>#define</font> LLONG_MIN (-<a href='../S/90.html#L30' title='Defined at 30 in src/lib/limits.h.'>LLONG_MAX</a> - 1)
+<a name='L32'>  32 <font color='darkred'>#define</font> ULLONG_MAX 18446744073709551615ULL
+<a name='L33'>  33 
+<a name='L34'>  34 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/limits.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

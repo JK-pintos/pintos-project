@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>src/lib/stdio.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/stdio.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/72.html' title='Multiple included from 93 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/84.html#L2' title='Defined at 2 in src/lib/stdio.h.'>__LIB_STDIO_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/84.html#L1' title='Refered from 1 in src/lib/stdio.h.'>__LIB_STDIO_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Include lib/user/stdio.h or lib/kernel/stdio.h, as</font></i>
+<a name='L11'>  11 <i><font color='green'>   appropriate. */</font></i>
+<a name='L12'>  12 <font color='darkred'>#include_next</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Predefined file handles. */</font></i>
+<a name='L15'>  15 <font color='darkred'>#define</font> <a href='../R/202.html' title='Multiple refered from 8 places.'>STDIN_FILENO</a> 0
+<a name='L16'>  16 <font color='darkred'>#define</font> <a href='../R/203.html' title='Multiple refered from 15 places.'>STDOUT_FILENO</a> 1
+<a name='L17'>  17 
+<a name='L18'>  18 <i><font color='green'>/* Standard functions. */</font></i>
+<a name='L19'>  19 <b>int</b> <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (<b>const</b> <b>char</b> *, ...) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (1, 2);
+<a name='L20'>  20 <b>int</b> snprintf (<b>char</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>, <b>const</b> <b>char</b> *, ...) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (3, 4);
+<a name='L21'>  21 <b>int</b> vprintf (<b>const</b> <b>char</b> *, va_list) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (1, 0);
+<a name='L22'>  22 <b>int</b> vsnprintf (<b>char</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>, <b>const</b> <b>char</b> *, va_list) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (3, 0);
+<a name='L23'>  23 <b>int</b> putchar (<b>int</b>);
+<a name='L24'>  24 <b>int</b> puts (<b>const</b> <b>char</b> *);
+<a name='L25'>  25 
+<a name='L26'>  26 <i><font color='green'>/* Nonstandard functions. */</font></i>
+<a name='L27'>  27 <b>void</b> hex_dump (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> ofs, <b>const</b> <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, bool ascii);
+<a name='L28'>  28 <b>void</b> print_human_readable_size (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> sz);
+<a name='L29'>  29 
+<a name='L30'>  30 <i><font color='green'>/* Internal functions. */</font></i>
+<a name='L31'>  31 <b>void</b> __vprintf (<b>const</b> <b>char</b> *format, va_list args,
+<a name='L32'>  32                 <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux);
+<a name='L33'>  33 <b>void</b> __printf (<b>const</b> <b>char</b> *format,
+<a name='L34'>  34                <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux, ...);
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Try to be helpful. */</font></i>
+<a name='L37'>  37 <font color='darkred'>#define</font> sprintf dont_use_sprintf_use_snprintf
+<a name='L38'>  38 <font color='darkred'>#define</font> vsprintf dont_use_vsprintf_use_vsnprintf
+<a name='L39'>  39 
+<a name='L40'>  40 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/stdio.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

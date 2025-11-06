@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>src/tests/userprog/sc-boundary.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/sc-boundary.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Invokes a system call with the system call number and its</font></i>
+<a name='L2'>   2 <i><font color='green'>   argument on separate pages.  This must work. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='89.html'>syscall-nr.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='509.html'>tests/userprog/boundary.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <i><font color='green'>/* Put a syscall number at the end of one page</font></i>
+<a name='L13'>  13 <i><font color='green'>     and its argument at the beginning of another. */</font></i>
+<a name='L14'>  14   <b>int</b> *p = <a href='../S/496.html#L15' title='Defined at 15 in src/tests/userprog/boundary.c.'>get_boundary_area</a> ();
+<a name='L15'>  15   p--;
+<a name='L16'>  16   p[0] = SYS_EXIT;
+<a name='L17'>  17   p[1] = 42;
+<a name='L18'>  18 
+<a name='L19'>  19   <i><font color='green'>/* Invoke the system call. */</font></i>
+<a name='L20'>  20   <b>asm</b> <b>volatile</b> ("movl %0, %%esp; int $0x30" : : "g" (p));
+<a name='L21'>  21   <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("should have called exit(42)");
+<a name='L22'>  22 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

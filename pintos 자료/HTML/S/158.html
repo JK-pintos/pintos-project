@@ -1,0 +1,280 @@
+<html>
+<head>
+<title>src/threads/loader.S</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/loader.S</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#</font>### Kernel loader.
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#</font>### This code should be stored in the first sector of a hard disk.
+<a name='L6'>   6 <font color='darkred'>#</font>### When the BIOS runs, it loads this code at physical address
+<a name='L7'>   7 <font color='darkred'>#</font>### 0x7c00-0x7e00 (512 bytes) and jumps to the beginning of it,
+<a name='L8'>   8 <font color='darkred'>#</font>### in real mode.  The loader loads the kernel into memory and jumps
+<a name='L9'>   9 <font color='darkred'>#</font>### to its entry point, which is the start function in start.S.
+<a name='L10'>  10 <font color='darkred'>#</font>###
+<a name='L11'>  11 <font color='darkred'>#</font>### The BIOS passes in the drive that the loader was read from as
+<a name='L12'>  12 <font color='darkred'>#</font>### DL, with floppy drives numbered 0x00, 0x01, ... and hard drives
+<a name='L13'>  13 <font color='darkred'>#</font>### numbered 0x80, 0x81, ...  We want to support booting a kernel on
+<a name='L14'>  14 <font color='darkred'>#</font>### a different drive from the loader, so we don't take advantage of
+<a name='L15'>  15 <font color='darkred'>#</font>### this.
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'># Runs in real mode, which is a 16-bit segment.</font></i>
+<a name='L18'>  18         .code16
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'># Set up segment registers.</font></i>
+<a name='L21'>  21 <i><font color='green'># Set stack to grow downward from 60 kB (after boot, the kernel</font></i>
+<a name='L22'>  22 <i><font color='green'># continues to use this stack for its initial thread).</font></i>
+<a name='L23'>  23 
+<a name='L24'>  24         sub %ax, %ax
+<a name='L25'>  25         mov %ax, %ds
+<a name='L26'>  26         mov %ax, %ss
+<a name='L27'>  27         mov $0xf000, %esp
+<a name='L28'>  28 
+<a name='L29'>  29 <i><font color='green'># Configure serial port so we can report progress without connected VGA.</font></i>
+<a name='L30'>  30 <i><font color='green'># See [IntrList] for details.</font></i>
+<a name='L31'>  31         sub %dx, %dx                    # Serial port 0.
+<a name='L32'>  32         mov $0xe3, %al                  # 9600 bps, N-8-1.
+<a name='L33'>  33 <i><font color='green'>                                        # AH is already 0 (Initialize Port).</font></i>
+<a name='L34'>  34         int $0x14                       # Destroys AX.
+<a name='L35'>  35 
+<a name='L36'>  36         call puts
+<a name='L37'>  37         .string "PiLo"
+<a name='L38'>  38 
+<a name='L39'>  39 <font color='darkred'>#</font>### Read the partition table on each system hard disk and scan for a
+<a name='L40'>  40 <font color='darkred'>#</font>### partition of type 0x20, which is the type that we use for a
+<a name='L41'>  41 <font color='darkred'>#</font>### Pintos kernel.
+<a name='L42'>  42 <font color='darkred'>#</font>###
+<a name='L43'>  43 <font color='darkred'>#</font>### Read [Partitions] for a description of the partition table format
+<a name='L44'>  44 <font color='darkred'>#</font>### that we parse.
+<a name='L45'>  45 <font color='darkred'>#</font>###
+<a name='L46'>  46 <font color='darkred'>#</font>### We print out status messages to show the disk and partition being
+<a name='L47'>  47 <font color='darkred'>#</font>### scanned, e.g. hda1234 as we scan four partitions on the first
+<a name='L48'>  48 <font color='darkred'>#</font>### hard disk.
+<a name='L49'>  49 
+<a name='L50'>  50         mov $0x80, %dl                  # Hard disk 0.
+<a name='L51'>  51 read_mbr:
+<a name='L52'>  52         sub %ebx, %ebx                  # Sector 0.
+<a name='L53'>  53         mov $0x2000, %ax                # Use 0x20000 for buffer.
+<a name='L54'>  54         mov %ax, %es
+<a name='L55'>  55         call read_sector
+<a name='L56'>  56         jc no_such_drive
+<a name='L57'>  57 
+<a name='L58'>  58 <i><font color='green'>        # Print hd[a-z].</font></i>
+<a name='L59'>  59         call puts
+<a name='L60'>  60         .string " hd"
+<a name='L61'>  61         mov %dl, %al
+<a name='L62'>  62         add $'a' - 0x80, %al
+<a name='L63'>  63         call putc
+<a name='L64'>  64 
+<a name='L65'>  65 <i><font color='green'>        # Check for MBR signature--if not present, it's not a</font></i>
+<a name='L66'>  66 <i><font color='green'>        # partitioned hard disk.</font></i>
+<a name='L67'>  67         cmpw $0xaa55, %es:510
+<a name='L68'>  68         jne next_drive
+<a name='L69'>  69 
+<a name='L70'>  70         mov $446, %si                   # Offset of partition table entry 1.
+<a name='L71'>  71         mov $'1', %al
+<a name='L72'>  72 check_partition:
+<a name='L73'>  73 <i><font color='green'>        # Is it an unused partition?</font></i>
+<a name='L74'>  74         cmpl $0, %es:(%si)
+<a name='L75'>  75         je next_partition
+<a name='L76'>  76 
+<a name='L77'>  77 <i><font color='green'>        # Print [1-4].</font></i>
+<a name='L78'>  78         call putc
+<a name='L79'>  79 
+<a name='L80'>  80 <i><font color='green'>        # Is it a Pintos kernel partition?</font></i>
+<a name='L81'>  81         cmpb $0x20, %es:4(%si)
+<a name='L82'>  82         jne next_partition
+<a name='L83'>  83 
+<a name='L84'>  84 <i><font color='green'>        # Is it a bootable partition?</font></i>
+<a name='L85'>  85         cmpb $0x80, %es:(%si)
+<a name='L86'>  86         je load_kernel
+<a name='L87'>  87 
+<a name='L88'>  88 next_partition:
+<a name='L89'>  89 <i><font color='green'>        # No match for this partition, go on to the next one.</font></i>
+<a name='L90'>  90         add $16, %si                    # Offset to next partition table entry.
+<a name='L91'>  91         inc %al
+<a name='L92'>  92         cmp $510, %si
+<a name='L93'>  93         jb check_partition
+<a name='L94'>  94 
+<a name='L95'>  95 next_drive:
+<a name='L96'>  96 <i><font color='green'>        # No match on this drive, go on to the next one.</font></i>
+<a name='L97'>  97         inc %dl
+<a name='L98'>  98         jnc read_mbr
+<a name='L99'>  99 
+<a name='L100'> 100 no_such_drive:
+<a name='L101'> 101 no_boot_partition:
+<a name='L102'> 102 <i><font color='green'>        # Didn't find a Pintos kernel partition anywhere, give up.</font></i>
+<a name='L103'> 103         call puts
+<a name='L104'> 104         .string "\rNot found\r"
+<a name='L105'> 105 
+<a name='L106'> 106 <i><font color='green'>        # Notify BIOS that boot failed.  See [IntrList].</font></i>
+<a name='L107'> 107         int $0x18
+<a name='L108'> 108 
+<a name='L109'> 109 <font color='darkred'>#</font>### We found a kernel.  The kernel's drive is in DL.  The partition
+<a name='L110'> 110 <font color='darkred'>#</font>### table entry for the kernel's partition is at ES:SI.  Our job now
+<a name='L111'> 111 <font color='darkred'>#</font>### is to read the kernel from disk and jump to its start address.
+<a name='L112'> 112 
+<a name='L113'> 113 load_kernel:
+<a name='L114'> 114         call puts
+<a name='L115'> 115         .string "\rLoading"
+<a name='L116'> 116 
+<a name='L117'> 117 <i><font color='green'>        # Figure out number of sectors to read.  A Pintos kernel is</font></i>
+<a name='L118'> 118 <i><font color='green'>        # just an ELF format object, which doesn't have an</font></i>
+<a name='L119'> 119 <i><font color='green'>        # easy-to-read field to identify its own size (see [ELF1]).</font></i>
+<a name='L120'> 120 <i><font color='green'>        # But we limit Pintos kernels to 512 kB for other reasons, so</font></i>
+<a name='L121'> 121 <i><font color='green'>        # it's easy enough to just read the entire contents of the</font></i>
+<a name='L122'> 122 <i><font color='green'>        # partition or 512 kB from disk, whichever is smaller.</font></i>
+<a name='L123'> 123         mov %es:12(%si), %ecx           # EBP = number of sectors
+<a name='L124'> 124         cmp $1024, %ecx                 # Cap size at 512 kB
+<a name='L125'> 125         jbe 1f
+<a name='L126'> 126         mov $1024, %cx
+<a name='L127'> 127 1:
+<a name='L128'> 128 
+<a name='L129'> 129         mov %es:8(%si), %ebx            # EBX = first sector
+<a name='L130'> 130         mov $0x2000, %ax                # Start load address: 0x20000
+<a name='L131'> 131 
+<a name='L132'> 132 next_sector:
+<a name='L133'> 133 <i><font color='green'>        # Read one sector into memory.</font></i>
+<a name='L134'> 134         mov %ax, %es                    # ES:0000 -&gt; load address
+<a name='L135'> 135         call read_sector
+<a name='L136'> 136         jc read_failed
+<a name='L137'> 137 
+<a name='L138'> 138 <i><font color='green'>        # Print '.' as progress indicator once every 16 sectors == 8 kB.</font></i>
+<a name='L139'> 139         test $15, %bl
+<a name='L140'> 140         jnz 1f
+<a name='L141'> 141         call puts
+<a name='L142'> 142         .string "."
+<a name='L143'> 143 1:
+<a name='L144'> 144 
+<a name='L145'> 145 <i><font color='green'>        # Advance memory pointer and disk sector.</font></i>
+<a name='L146'> 146         add $0x20, %ax
+<a name='L147'> 147         inc %bx
+<a name='L148'> 148         loop next_sector
+<a name='L149'> 149 
+<a name='L150'> 150         call puts
+<a name='L151'> 151         .string "\r"
+<a name='L152'> 152 
+<a name='L153'> 153 <font color='darkred'>#</font>### Transfer control to the kernel that we loaded.  We read the start
+<a name='L154'> 154 <font color='darkred'>#</font>### address out of the ELF header (see [ELF1]) and convert it from a
+<a name='L155'> 155 <font color='darkred'>#</font>### 32-bit linear address into a 16:16 segment:offset address for
+<a name='L156'> 156 <font color='darkred'>#</font>### real mode, then jump to the converted address.  The 80x86 doesn't
+<a name='L157'> 157 <font color='darkred'>#</font>### have an instruction to jump to an absolute segment:offset kept in
+<a name='L158'> 158 <font color='darkred'>#</font>### registers, so in fact we store the address in a temporary memory
+<a name='L159'> 159 <font color='darkred'>#</font>### location, then jump indirectly through that location.  To save 4
+<a name='L160'> 160 <font color='darkred'>#</font>### bytes in the loader, we reuse 4 bytes of the loader's code for
+<a name='L161'> 161 <font color='darkred'>#</font>### this temporary pointer.
+<a name='L162'> 162 
+<a name='L163'> 163         mov $0x2000, %ax
+<a name='L164'> 164         mov %ax, %es
+<a name='L165'> 165         mov %es:0x18, %dx
+<a name='L166'> 166         mov %dx, start
+<a name='L167'> 167         movw $0x2000, start + 2
+<a name='L168'> 168         ljmp *start
+<a name='L169'> 169 
+<a name='L170'> 170 read_failed:
+<a name='L171'> 171 start:
+<a name='L172'> 172 <i><font color='green'>        # Disk sector read failed.</font></i>
+<a name='L173'> 173         call puts
+<a name='L174'> 174 1:      .string "\rBad read\r"
+<a name='L175'> 175 
+<a name='L176'> 176 <i><font color='green'>        # Notify BIOS that boot failed.  See [IntrList].</font></i>
+<a name='L177'> 177         int $0x18
+<a name='L178'> 178 
+<a name='L179'> 179 <font color='darkred'>#</font>### Print string subroutine.  To save space in the loader, this
+<a name='L180'> 180 <font color='darkred'>#</font>### subroutine takes its null-terminated string argument from the
+<a name='L181'> 181 <font color='darkred'>#</font>### code stream just after the call, and then returns to the byte
+<a name='L182'> 182 <font color='darkred'>#</font>### just after the terminating null.  This subroutine preserves all
+<a name='L183'> 183 <font color='darkred'>#</font>### general-purpose registers.
+<a name='L184'> 184 
+<a name='L185'> 185 puts:   xchg %si, %ss:(%esp)
+<a name='L186'> 186         push %ax
+<a name='L187'> 187 next_char:
+<a name='L188'> 188         mov %cs:(%si), %al
+<a name='L189'> 189         inc %si
+<a name='L190'> 190         test %al, %al
+<a name='L191'> 191         jz 1f
+<a name='L192'> 192         call putc
+<a name='L193'> 193         jmp next_char
+<a name='L194'> 194 1:      pop %ax
+<a name='L195'> 195         xchg %si, %ss:(%esp)
+<a name='L196'> 196         ret
+<a name='L197'> 197 
+<a name='L198'> 198 <font color='darkred'>#</font>### Character output subroutine.  Prints the character in AL to the
+<a name='L199'> 199 <font color='darkred'>#</font>### VGA display and serial port 0, using BIOS services (see
+<a name='L200'> 200 <font color='darkred'>#</font>### [IntrList]).  Preserves all general-purpose registers.
+<a name='L201'> 201 <font color='darkred'>#</font>###
+<a name='L202'> 202 <font color='darkred'>#</font>### If called upon to output a carriage return, this subroutine
+<a name='L203'> 203 <font color='darkred'>#</font>### automatically supplies the following line feed.
+<a name='L204'> 204 
+<a name='L205'> 205 putc:   pusha
+<a name='L206'> 206 
+<a name='L207'> 207 1:      sub %bh, %bh                    # Page 0.
+<a name='L208'> 208         mov $0x0e, %ah                  # Teletype output service.
+<a name='L209'> 209         int $0x10
+<a name='L210'> 210 
+<a name='L211'> 211         mov $0x01, %ah                  # Serial port output service.
+<a name='L212'> 212         sub %dx, %dx                    # Serial port 0.
+<a name='L213'> 213 2:      int $0x14                       # Destroys AH.
+<a name='L214'> 214         test $0x80, %ah                 # Output timed out?
+<a name='L215'> 215         jz 3f
+<a name='L216'> 216         movw $0x9090, 2b                # Turn "int $0x14" above into NOPs.
+<a name='L217'> 217 
+<a name='L218'> 218 3:
+<a name='L219'> 219         cmp $'\r', %al
+<a name='L220'> 220         jne popa_ret
+<a name='L221'> 221         mov $'\n', %al
+<a name='L222'> 222         jmp 1b
+<a name='L223'> 223 
+<a name='L224'> 224 <font color='darkred'>#</font>### Sector read subroutine.  Takes a drive number in DL (0x80 = hard
+<a name='L225'> 225 <font color='darkred'>#</font>### disk 0, 0x81 = hard disk 1, ...) and a sector number in EBX, and
+<a name='L226'> 226 <font color='darkred'>#</font>### reads the specified sector into memory at ES:0000.  Returns with
+<a name='L227'> 227 <font color='darkred'>#</font>### carry set on error, clear otherwise.  Preserves all
+<a name='L228'> 228 <font color='darkred'>#</font>### general-purpose registers.
+<a name='L229'> 229 
+<a name='L230'> 230 read_sector:
+<a name='L231'> 231         pusha
+<a name='L232'> 232         sub %ax, %ax
+<a name='L233'> 233         push %ax                        # LBA sector number [48:63]
+<a name='L234'> 234         push %ax                        # LBA sector number [32:47]
+<a name='L235'> 235         push %ebx                       # LBA sector number [0:31]
+<a name='L236'> 236         push %es                        # Buffer segment
+<a name='L237'> 237         push %ax                        # Buffer offset (always 0)
+<a name='L238'> 238         push $1                         # Number of sectors to read
+<a name='L239'> 239         push $16                        # Packet size
+<a name='L240'> 240         mov $0x42, %ah                  # Extended read
+<a name='L241'> 241         mov %sp, %si                    # DS:SI -&gt; packet
+<a name='L242'> 242         int $0x13                       # Error code in CF
+<a name='L243'> 243         popa                            # Pop 16 bytes, preserve flags
+<a name='L244'> 244 popa_ret:
+<a name='L245'> 245         popa
+<a name='L246'> 246         ret                             # Error code still in CF
+<a name='L247'> 247 
+<a name='L248'> 248 <font color='darkred'>#</font>### Command-line arguments and their count.
+<a name='L249'> 249 <font color='darkred'>#</font>### This is written by the `pintos' utility and read by the kernel.
+<a name='L250'> 250 <font color='darkred'>#</font>### The loader itself does not do anything with the command line.
+<a name='L251'> 251         .org LOADER_ARG_CNT - LOADER_BASE
+<a name='L252'> 252         .fill LOADER_ARG_CNT_LEN, 1, 0
+<a name='L253'> 253 
+<a name='L254'> 254         .org LOADER_ARGS - LOADER_BASE
+<a name='L255'> 255         .fill LOADER_ARGS_LEN, 1, 0
+<a name='L256'> 256 
+<a name='L257'> 257 <font color='darkred'>#</font>### Partition table.
+<a name='L258'> 258         .org LOADER_PARTS - LOADER_BASE
+<a name='L259'> 259         .fill LOADER_PARTS_LEN, 1, 0
+<a name='L260'> 260 
+<a name='L261'> 261 <font color='darkred'>#</font>### Boot-sector signature for BIOS inspection.
+<a name='L262'> 262         .org LOADER_SIG - LOADER_BASE
+<a name='L263'> 263         .word 0xaa55
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>dir</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/47.html#L18'>dir</a>                18 src/examples/ls.c   int dir_fd = open (dir);
+<a href='../S/47.html#L21'>dir</a>                21 src/examples/ls.c       printf ("%s: not found\n", dir);
+<a href='../S/47.html#L29'>dir</a>                29 src/examples/ls.c       printf ("%s", dir);
+<a href='../S/47.html#L42'>dir</a>                42 src/examples/ls.c               snprintf (full_name, sizeof full_name, "%s/%s", dir, name);
+<a href='../S/47.html#L62'>dir</a>                62 src/examples/ls.c     printf ("%s: not a directory\n", dir);
+<a href='../S/32.html#L34'>dir</a>                34 src/filesys/directory.c struct dir *
+<a href='../S/32.html#L37'>dir</a>                37 src/filesys/directory.c   struct dir *dir = calloc (1, sizeof *dir);
+<a href='../S/32.html#L38'>dir</a>                38 src/filesys/directory.c   if (inode != NULL &amp;&amp; dir != NULL)
+<a href='../S/32.html#L40'>dir</a>                40 src/filesys/directory.c       dir-&gt;inode = inode;
+<a href='../S/32.html#L41'>dir</a>                41 src/filesys/directory.c       dir-&gt;pos = 0;
+<a href='../S/32.html#L42'>dir</a>                42 src/filesys/directory.c       return dir;
+<a href='../S/32.html#L47'>dir</a>                47 src/filesys/directory.c       free (dir);
+<a href='../S/32.html#L54'>dir</a>                54 src/filesys/directory.c struct dir *
+<a href='../S/32.html#L62'>dir</a>                62 src/filesys/directory.c struct dir *
+<a href='../S/32.html#L65'>dir</a>                65 src/filesys/directory.c   return dir_open (inode_reopen (dir-&gt;inode));
+<a href='../S/32.html#L72'>dir</a>                72 src/filesys/directory.c   if (dir != NULL)
+<a href='../S/32.html#L74'>dir</a>                74 src/filesys/directory.c       inode_close (dir-&gt;inode);
+<a href='../S/32.html#L75'>dir</a>                75 src/filesys/directory.c       free (dir);
+<a href='../S/32.html#L83'>dir</a>                83 src/filesys/directory.c   return dir-&gt;inode;
+<a href='../S/32.html#L98'>dir</a>                98 src/filesys/directory.c   ASSERT (dir != NULL);
+<a href='../S/32.html#L101'>dir</a>               101 src/filesys/directory.c   for (ofs = 0; inode_read_at (dir-&gt;inode, &amp;e, sizeof e, ofs) == sizeof e;
+<a href='../S/32.html#L124'>dir</a>               124 src/filesys/directory.c   ASSERT (dir != NULL);
+<a href='../S/32.html#L127'>dir</a>               127 src/filesys/directory.c   if (lookup (dir, name, &amp;e, NULL))
+<a href='../S/32.html#L148'>dir</a>               148 src/filesys/directory.c   ASSERT (dir != NULL);
+<a href='../S/32.html#L156'>dir</a>               156 src/filesys/directory.c   if (lookup (dir, name, NULL, NULL))
+<a href='../S/32.html#L166'>dir</a>               166 src/filesys/directory.c   for (ofs = 0; inode_read_at (dir-&gt;inode, &amp;e, sizeof e, ofs) == sizeof e;
+<a href='../S/32.html#L175'>dir</a>               175 src/filesys/directory.c   success = inode_write_at (dir-&gt;inode, &amp;e, sizeof e, ofs) == sizeof e;
+<a href='../S/32.html#L192'>dir</a>               192 src/filesys/directory.c   ASSERT (dir != NULL);
+<a href='../S/32.html#L196'>dir</a>               196 src/filesys/directory.c   if (!lookup (dir, name, &amp;e, &amp;ofs))
+<a href='../S/32.html#L206'>dir</a>               206 src/filesys/directory.c   if (inode_write_at (dir-&gt;inode, &amp;e, sizeof e, ofs) != sizeof e) 
+<a href='../S/32.html#L226'>dir</a>               226 src/filesys/directory.c   while (inode_read_at (dir-&gt;inode, &amp;e, sizeof e, dir-&gt;pos) == sizeof e) 
+<a href='../S/32.html#L228'>dir</a>               228 src/filesys/directory.c       dir-&gt;pos += sizeof e;
+<a href='../S/28.html#L18'>dir</a>                18 src/filesys/directory.h struct dir *dir_open (struct inode *);
+<a href='../S/28.html#L19'>dir</a>                19 src/filesys/directory.h struct dir *dir_open_root (void);
+<a href='../S/28.html#L20'>dir</a>                20 src/filesys/directory.h struct dir *dir_reopen (struct dir *);
+<a href='../S/38.html#L49'>dir</a>                49 src/filesys/filesys.c   struct dir *dir = dir_open_root ();
+<a href='../S/38.html#L50'>dir</a>                50 src/filesys/filesys.c   bool success = (dir != NULL
+<a href='../S/38.html#L53'>dir</a>                53 src/filesys/filesys.c                   &amp;&amp; dir_add (dir, name, inode_sector));
+<a href='../S/38.html#L56'>dir</a>                56 src/filesys/filesys.c   dir_close (dir);
+<a href='../S/38.html#L69'>dir</a>                69 src/filesys/filesys.c   struct dir *dir = dir_open_root ();
+<a href='../S/38.html#L72'>dir</a>                72 src/filesys/filesys.c   if (dir != NULL)
+<a href='../S/38.html#L73'>dir</a>                73 src/filesys/filesys.c     dir_lookup (dir, name, &amp;inode);
+<a href='../S/38.html#L74'>dir</a>                74 src/filesys/filesys.c   dir_close (dir);
+<a href='../S/38.html#L86'>dir</a>                86 src/filesys/filesys.c   struct dir *dir = dir_open_root ();
+<a href='../S/38.html#L87'>dir</a>                87 src/filesys/filesys.c   bool success = dir != NULL &amp;&amp; dir_remove (dir, name);
+<a href='../S/38.html#L88'>dir</a>                88 src/filesys/filesys.c   dir_close (dir); 
+<a href='../S/26.html#L18'>dir</a>                18 src/filesys/fsutil.c   struct dir *dir;
+<a href='../S/26.html#L22'>dir</a>                22 src/filesys/fsutil.c   dir = dir_open_root ();
+<a href='../S/26.html#L23'>dir</a>                23 src/filesys/fsutil.c   if (dir == NULL)
+<a href='../S/26.html#L25'>dir</a>                25 src/filesys/fsutil.c   while (dir_readdir (dir, name))
+<a href='../S/26.html#L27'>dir</a>                27 src/filesys/fsutil.c   dir_close (dir);
+<a href='../S/97.html#L159'>dir</a>               159 src/lib/user/syscall.c   return syscall1 (SYS_CHDIR, dir);
+<a href='../S/97.html#L165'>dir</a>               165 src/lib/user/syscall.c   return syscall1 (SYS_MKDIR, dir);
+<a href='../S/227.html#L46'>dir</a>                46 src/tests/filesys/extended/mk-tree.c   char dir[128];
+<a href='../S/227.html#L50'>dir</a>                50 src/tests/filesys/extended/mk-tree.c   vsnprintf (dir, sizeof dir, format, args);
+<a href='../S/227.html#L53'>dir</a>                53 src/tests/filesys/extended/mk-tree.c   CHECK (mkdir (dir), "mkdir \"%s\"", dir);
+</pre>
+</body>
+</html>

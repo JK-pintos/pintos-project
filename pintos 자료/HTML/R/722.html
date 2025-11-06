@@ -1,0 +1,25 @@
+<html>
+<head>
+<title>pool</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/160.html#L37'>pool</a>               37 src/threads/palloc.c static struct pool kernel_pool, user_pool;
+<a href='../S/160.html#L73'>pool</a>               73 src/threads/palloc.c   struct pool *pool = flags &amp; PAL_USER ? &amp;user_pool : &amp;kernel_pool;
+<a href='../S/160.html#L80'>pool</a>               80 src/threads/palloc.c   lock_acquire (&amp;pool-&gt;lock);
+<a href='../S/160.html#L81'>pool</a>               81 src/threads/palloc.c   page_idx = bitmap_scan_and_flip (pool-&gt;used_map, 0, page_cnt, false);
+<a href='../S/160.html#L82'>pool</a>               82 src/threads/palloc.c   lock_release (&amp;pool-&gt;lock);
+<a href='../S/160.html#L85'>pool</a>               85 src/threads/palloc.c     pages = pool-&gt;base + PGSIZE * page_idx;
+<a href='../S/160.html#L120'>pool</a>              120 src/threads/palloc.c   struct pool *pool;
+<a href='../S/160.html#L128'>pool</a>              128 src/threads/palloc.c     pool = &amp;kernel_pool;
+<a href='../S/160.html#L130'>pool</a>              130 src/threads/palloc.c     pool = &amp;user_pool;
+<a href='../S/160.html#L134'>pool</a>              134 src/threads/palloc.c   page_idx = pg_no (pages) - pg_no (pool-&gt;base);
+<a href='../S/160.html#L140'>pool</a>              140 src/threads/palloc.c   ASSERT (bitmap_all (pool-&gt;used_map, page_idx, page_cnt));
+<a href='../S/160.html#L141'>pool</a>              141 src/threads/palloc.c   bitmap_set_multiple (pool-&gt;used_map, page_idx, page_cnt, false);
+<a href='../S/160.html#L178'>pool</a>              178 src/threads/palloc.c   size_t start_page = pg_no (pool-&gt;base);
+<a href='../S/160.html#L179'>pool</a>              179 src/threads/palloc.c   size_t end_page = start_page + bitmap_size (pool-&gt;used_map);
+</pre>
+</body>
+</html>

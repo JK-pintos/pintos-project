@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-inherit.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-inherit.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Maps a file into memory and runs child-inherit to verify that</font></i>
+<a name='L2'>   2 <i><font color='green'>   mappings are not inherited. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b>
+<a name='L11'>  11 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <b>char</b> *actual = (<b>char</b> *) 0x54321000;
+<a name='L14'>  14   <b>int</b> handle;
+<a name='L15'>  15   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> child;
+<a name='L16'>  16 
+<a name='L17'>  17   <i><font color='green'>/* Open file, map, verify data. */</font></i>
+<a name='L18'>  18   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a name='L19'>  19   CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle, actual) != <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>, "mmap \"sample.txt\"");
+<a name='L20'>  20   <b>if</b> (<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (actual, sample, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample)))
+<a name='L21'>  21     <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("read of mmap'd file reported bad data");
+<a name='L22'>  22 
+<a name='L23'>  23   <i><font color='green'>/* Spawn child and wait. */</font></i>
+<a name='L24'>  24   CHECK ((child = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> ("child-inherit")) != -1, "exec \"child-inherit\"");
+<a name='L25'>  25   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L26'>  26   CHECK (<a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (child) == -1, "wait for child (should return -1)");
+<a name='L27'>  27   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L28'>  28 
+<a name='L29'>  29   <i><font color='green'>/* Verify data again. */</font></i>
+<a name='L30'>  30   CHECK (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (actual, sample, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample)),
+<a name='L31'>  31          "checking that mmap'd file still has same data");
+<a name='L32'>  32 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

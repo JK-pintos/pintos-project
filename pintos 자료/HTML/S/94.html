@@ -1,0 +1,123 @@
+<html>
+<head>
+<title>src/lib/user/console.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/601.html'>user</a>/console.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a><a href='#L89'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L9' title='Defined at 9.'>vprintf</a>
+<li><a href='#L16' title='Defined at 16.'>hprintf</a>
+<li><a href='#L31' title='Defined at 31.'>puts</a>
+<li><a href='#L41' title='Defined at 41.'>putchar</a>
+<li><a href='#L64' title='Defined at 64.'>vhprintf</a>
+<li><a href='#L78' title='Defined at 78.'>add_char</a>
+<li><a href='#L89' title='Defined at 89.'>flush</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='89.html'>syscall-nr.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* The standard vprintf() function,</font></i>
+<a name='L7'>   7 <i><font color='green'>   which is like printf() but uses a va_list. */</font></i>
+<a name='L8'>   8 <b>int</b>
+<a name='L9'>   9 <a href='../R/964.html' title='Multiple refered from 6 places.'>vprintf</a> (<b>const</b> <b>char</b> *format, va_list args) 
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   <b>return</b> <a href='../S/94.html#L64' title='Defined at 64 in src/lib/user/console.c.'>vhprintf</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, format, args);
+<a name='L12'>  12 <font color='red'>}</font>
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Like printf(), but writes output to the given HANDLE. */</font></i>
+<a name='L15'>  15 <b>int</b>
+<a name='L16'>  16 <a href='../R/497.html' title='Multiple refered from 6 places.'>hprintf</a> (<b>int</b> handle, <b>const</b> <b>char</b> *format, ...) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L19'>  19   <b>int</b> retval;
+<a name='L20'>  20 
+<a name='L21'>  21   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L22'>  22   retval = <a href='../S/94.html#L64' title='Defined at 64 in src/lib/user/console.c.'>vhprintf</a> (handle, format, args);
+<a name='L23'>  23   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L24'>  24 
+<a name='L25'>  25   <b>return</b> retval;
+<a name='L26'>  26 <font color='red'>}</font>
+<a name='L27'>  27 
+<a name='L28'>  28 <i><font color='green'>/* Writes string S to the console, followed by a new-line</font></i>
+<a name='L29'>  29 <i><font color='green'>   character. */</font></i>
+<a name='L30'>  30 <b>int</b>
+<a name='L31'>  31 puts (<b>const</b> <b>char</b> *s) 
+<a name='L32'>  32 <font color='red'>{</font>
+<a name='L33'>  33   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, s, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (s));
+<a name='L34'>  34   <a href='../D/850.html' title='Multiple defined in 2 places.'>putchar</a> ('\n');
+<a name='L35'>  35 
+<a name='L36'>  36   <b>return</b> 0;
+<a name='L37'>  37 <font color='red'>}</font>
+<a name='L38'>  38 
+<a name='L39'>  39 <i><font color='green'>/* Writes C to the console. */</font></i>
+<a name='L40'>  40 <b>int</b>
+<a name='L41'>  41 <a href='../R/743.html' title='Multiple refered from 5 places.'>putchar</a> (<b>int</b> c) 
+<a name='L42'>  42 <font color='red'>{</font>
+<a name='L43'>  43   <b>char</b> c2 = c;
+<a name='L44'>  44   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, &amp;c2, 1);
+<a name='L45'>  45   <b>return</b> c;
+<a name='L46'>  46 <font color='red'>}</font>
+<a name='L47'>  47 
+<a name='L48'>  48 <i><font color='green'>/* Auxiliary data for vhprintf_helper(). */</font></i>
+<a name='L49'>  49 <b>struct</b> <a href='../R/962.html' title='Multiple refered from 2 places.'>vhprintf_aux</a> 
+<a name='L50'>  50   <font color='red'>{</font>
+<a name='L51'>  51     <b>char</b> buf[64];       <i><font color='green'>/* Character buffer. */</font></i>
+<a name='L52'>  52     <b>char</b> *p;            <i><font color='green'>/* Current position in buffer. */</font></i>
+<a name='L53'>  53     <b>int</b> char_cnt;       <i><font color='green'>/* Total characters written so far. */</font></i>
+<a name='L54'>  54     <b>int</b> handle;         <i><font color='green'>/* Output file handle. */</font></i>
+<a name='L55'>  55   <font color='red'>}</font>;
+<a name='L56'>  56 
+<a name='L57'>  57 <b>static</b> <b>void</b> <a href='../S/94.html#L78' title='Defined at 78 in src/lib/user/console.c.'>add_char</a> (<b>char</b>, <b>void</b> *);
+<a name='L58'>  58 <b>static</b> <b>void</b> <a href='../S/94.html#L89' title='Defined at 89 in src/lib/user/console.c.'>flush</a> (<b>struct</b> vhprintf_aux *);
+<a name='L59'>  59 
+<a name='L60'>  60 <i><font color='green'>/* Formats the printf() format specification FORMAT with</font></i>
+<a name='L61'>  61 <i><font color='green'>   arguments given in ARGS and writes the output to the given</font></i>
+<a name='L62'>  62 <i><font color='green'>   HANDLE. */</font></i>
+<a name='L63'>  63 <b>int</b>
+<a name='L64'>  64 <a href='../R/961.html' title='Multiple refered from 2 places.'>vhprintf</a> (<b>int</b> handle, <b>const</b> <b>char</b> *format, va_list args) 
+<a name='L65'>  65 <font color='red'>{</font>
+<a name='L66'>  66   <b>struct</b> <a href='../S/94.html#L49' title='Defined at 49 in src/lib/user/console.c.'>vhprintf_aux</a> aux;
+<a name='L67'>  67   aux.p = aux.buf;
+<a name='L68'>  68   aux.char_cnt = 0;
+<a name='L69'>  69   aux.handle = handle;
+<a name='L70'>  70   <a href='../S/115.html#L157' title='Defined at 157 in src/lib/stdio.c.'>__vprintf</a> (format, args, <a href='../S/94.html#L78' title='Defined at 78 in src/lib/user/console.c.'>add_char</a>, &amp;aux);
+<a name='L71'>  71   <a href='../S/94.html#L89' title='Defined at 89 in src/lib/user/console.c.'>flush</a> (&amp;aux);
+<a name='L72'>  72   <b>return</b> aux.char_cnt;
+<a name='L73'>  73 <font color='red'>}</font>
+<a name='L74'>  74 
+<a name='L75'>  75 <i><font color='green'>/* Adds C to the buffer in AUX, flushing it if the buffer fills</font></i>
+<a name='L76'>  76 <i><font color='green'>   up. */</font></i>
+<a name='L77'>  77 <b>static</b> <b>void</b>
+<a name='L78'>  78 <a href='../R/287.html' title='Multiple refered from 2 places.'>add_char</a> (<b>char</b> c, <b>void</b> *aux_) 
+<a name='L79'>  79 <font color='red'>{</font>
+<a name='L80'>  80   <b>struct</b> <a href='../S/94.html#L49' title='Defined at 49 in src/lib/user/console.c.'>vhprintf_aux</a> *aux = aux_;
+<a name='L81'>  81   *aux-&gt;p++ = c;
+<a name='L82'>  82   <b>if</b> (aux-&gt;p &gt;= aux-&gt;buf + <b>sizeof</b> aux-&gt;buf)
+<a name='L83'>  83     <a href='../S/94.html#L89' title='Defined at 89 in src/lib/user/console.c.'>flush</a> (aux);
+<a name='L84'>  84   aux-&gt;char_cnt++;
+<a name='L85'>  85 <font color='red'>}</font>
+<a name='L86'>  86 
+<a name='L87'>  87 <i><font color='green'>/* Flushes the buffer in AUX. */</font></i>
+<a name='L88'>  88 <b>static</b> <b>void</b>
+<a name='L89'>  89 <a href='../R/451.html' title='Multiple refered from 3 places.'>flush</a> (<b>struct</b> vhprintf_aux *aux)
+<a name='L90'>  90 <font color='red'>{</font>
+<a name='L91'>  91   <b>if</b> (aux-&gt;p &gt; aux-&gt;buf)
+<a name='L92'>  92     <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (aux-&gt;handle, aux-&gt;buf, aux-&gt;p - aux-&gt;buf);
+<a name='L93'>  93   aux-&gt;p = aux-&gt;buf;
+<a name='L94'>  94 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a><a href='#L89'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

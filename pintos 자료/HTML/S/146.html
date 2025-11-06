@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>src/threads/switch.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/switch.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/307.html' title='Multiple included from 3 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/146.html#L2' title='Defined at 2 in src/threads/switch.h.'>THREADS_SWITCH_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/146.html#L1' title='Refered from 1 in src/threads/switch.h.'>THREADS_SWITCH_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#ifndef</font> __ASSEMBLER__
+<a name='L5'>   5 <i><font color='green'>/* switch_thread()'s stack frame. */</font></i>
+<a name='L6'>   6 <b>struct</b> <a href='../R/847.html' title='Multiple refered from 3 places.'>switch_threads_frame</a> 
+<a name='L7'>   7   <font color='red'>{</font>
+<a name='L8'>   8     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> edi;               <i><font color='green'>/*  0: Saved %edi. */</font></i>
+<a name='L9'>   9     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> esi;               <i><font color='green'>/*  4: Saved %esi. */</font></i>
+<a name='L10'>  10     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> ebp;               <i><font color='green'>/*  8: Saved %ebp. */</font></i>
+<a name='L11'>  11     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> ebx;               <i><font color='green'>/* 12: Saved %ebx. */</font></i>
+<a name='L12'>  12     <b>void</b> (*eip) (<b>void</b>);         <i><font color='green'>/* 16: Return address. */</font></i>
+<a name='L13'>  13     <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a> *cur;         <i><font color='green'>/* 20: switch_threads()'s CUR argument. */</font></i>
+<a name='L14'>  14     <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a> *<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;        <i><font color='green'>/* 24: switch_threads()'s NEXT argument. */</font></i>
+<a name='L15'>  15   <font color='red'>}</font>;
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Switches from CUR, which must be the running thread, to NEXT,</font></i>
+<a name='L18'>  18 <i><font color='green'>   which must also be running switch_threads(), returning CUR in</font></i>
+<a name='L19'>  19 <i><font color='green'>   NEXT's context. */</font></i>
+<a name='L20'>  20 <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a> *switch_threads (<b>struct</b> thread *cur, <b>struct</b> thread *next);
+<a name='L21'>  21 
+<a name='L22'>  22 <i><font color='green'>/* Stack frame for switch_entry(). */</font></i>
+<a name='L23'>  23 <b>struct</b> <a href='../S/163.html#L171' title='Refered from 171 in src/threads/thread.c.'>switch_entry_frame</a>
+<a name='L24'>  24   <font color='red'>{</font>
+<a name='L25'>  25     <b>void</b> (*eip) (<b>void</b>);
+<a name='L26'>  26   <font color='red'>}</font>;
+<a name='L27'>  27 
+<a name='L28'>  28 <b>void</b> switch_entry (<b>void</b>);
+<a name='L29'>  29 
+<a name='L30'>  30 <i><font color='green'>/* Pops the CUR and NEXT arguments off the stack, for use in</font></i>
+<a name='L31'>  31 <i><font color='green'>   initializing threads. */</font></i>
+<a name='L32'>  32 <b>void</b> switch_thunk (<b>void</b>);
+<a name='L33'>  33 <font color='darkred'>#endif</font>
+<a name='L34'>  34 
+<a name='L35'>  35 <i><font color='green'>/* Offsets used by switch.S. */</font></i>
+<a name='L36'>  36 <font color='darkred'>#define</font> SWITCH_CUR      20
+<a name='L37'>  37 <font color='darkred'>#define</font> SWITCH_NEXT     24
+<a name='L38'>  38 
+<a name='L39'>  39 <font color='darkred'>#endif</font> <i><font color='green'>/* threads/switch.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

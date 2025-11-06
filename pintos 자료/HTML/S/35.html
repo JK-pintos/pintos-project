@@ -1,0 +1,381 @@
+<html>
+<head>
+<title>src/filesys/inode.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/inode.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L26'>[^]</a><a href='#L342'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L26' title='Defined at 26.'>bytes_to_sectors</a>
+<li><a href='#L47' title='Defined at 47.'>byte_to_sector</a>
+<li><a href='#L62' title='Defined at 62.'>inode_init</a>
+<li><a href='#L73' title='Defined at 73.'>inode_create</a>
+<li><a href='#L112' title='Defined at 112.'>inode_open</a>
+<li><a href='#L146' title='Defined at 146.'>inode_reopen</a>
+<li><a href='#L155' title='Defined at 155.'>inode_get_inumber</a>
+<li><a href='#L164' title='Defined at 164.'>inode_close</a>
+<li><a href='#L191' title='Defined at 191.'>inode_remove</a>
+<li><a href='#L201' title='Defined at 201.'>inode_read_at</a>
+<li><a href='#L258' title='Defined at 258.'>inode_write_at</a>
+<li><a href='#L323' title='Defined at 323.'>inode_deny_write</a>
+<li><a href='#L333' title='Defined at 333.'>inode_allow_write</a>
+<li><a href='#L342' title='Defined at 342.'>inode_length</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='34.html'>filesys/inode.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='107.html'>list.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='27.html'>filesys/free-map.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Identifies an inode. */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> <a href='../S/35.html#L89' title='Refered from 89 in src/filesys/inode.c.'>INODE_MAGIC</a> 0x494e4f44
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* On-disk inode.</font></i>
+<a name='L14'>  14 <i><font color='green'>   Must be exactly BLOCK_SECTOR_SIZE bytes long. */</font></i>
+<a name='L15'>  15 <b>struct</b> <a href='../R/514.html' title='Multiple refered from 2 places.'>inode_disk</a>
+<a name='L16'>  16   <font color='red'>{</font>
+<a name='L17'>  17     <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>;               <i><font color='green'>/* First data sector. */</font></i>
+<a name='L18'>  18     <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> length;                       <i><font color='green'>/* File size in bytes. */</font></i>
+<a name='L19'>  19     <b>unsigned</b> magic;                     <i><font color='green'>/* Magic number. */</font></i>
+<a name='L20'>  20     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> unused[125];               <i><font color='green'>/* Not used. */</font></i>
+<a name='L21'>  21   <font color='red'>}</font>;
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* Returns the number of sectors to allocate for an inode SIZE</font></i>
+<a name='L24'>  24 <i><font color='green'>   bytes long. */</font></i>
+<a name='L25'>  25 <b>static</b> <b>inline</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L26'>  26 <a href='../R/355.html' title='Multiple refered from 2 places.'>bytes_to_sectors</a> (<a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size)
+<a name='L27'>  27 <font color='red'>{</font>
+<a name='L28'>  28   <b>return</b> <a href='../S/79.html#L10' title='Defined at 10 in src/lib/round.h.'>DIV_ROUND_UP</a> (size, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L29'>  29 <font color='red'>}</font>
+<a name='L30'>  30 
+<a name='L31'>  31 <i><font color='green'>/* In-memory inode. */</font></i>
+<a name='L32'>  32 <b>struct</b> <a href='../R/509.html' title='Multiple refered from 89 places.'>inode</a> 
+<a name='L33'>  33   <font color='red'>{</font>
+<a name='L34'>  34     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> elem;              <i><font color='green'>/* Element in inode list. */</font></i>
+<a name='L35'>  35     <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector;              <i><font color='green'>/* Sector number of disk location. */</font></i>
+<a name='L36'>  36     <b>int</b> open_cnt;                       <i><font color='green'>/* Number of openers. */</font></i>
+<a name='L37'>  37     <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> removed;                       <i><font color='green'>/* True if deleted, false otherwise. */</font></i>
+<a name='L38'>  38     <b>int</b> deny_write_cnt;                 <i><font color='green'>/* 0: writes ok, &gt;0: deny writes. */</font></i>
+<a name='L39'>  39     <b>struct</b> <a href='../S/35.html#L15' title='Defined at 15 in src/filesys/inode.c.'>inode_disk</a> data;             <i><font color='green'>/* Inode content. */</font></i>
+<a name='L40'>  40   <font color='red'>}</font>;
+<a name='L41'>  41 
+<a name='L42'>  42 <i><font color='green'>/* Returns the block device sector that contains byte offset POS</font></i>
+<a name='L43'>  43 <i><font color='green'>   within INODE.</font></i>
+<a name='L44'>  44 <i><font color='green'>   Returns -1 if INODE does not contain data for a byte at offset</font></i>
+<a name='L45'>  45 <i><font color='green'>   POS. */</font></i>
+<a name='L46'>  46 <b>static</b> <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>
+<a name='L47'>  47 <a href='../R/354.html' title='Multiple refered from 2 places.'>byte_to_sector</a> (<b>const</b> <b>struct</b> inode *inode, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> pos) 
+<a name='L48'>  48 <font color='red'>{</font>
+<a name='L49'>  49   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L50'>  50   <b>if</b> (pos &lt; <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;data.length)
+<a name='L51'>  51     <b>return</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;data.<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + pos / <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>;
+<a name='L52'>  52   <b>else</b>
+<a name='L53'>  53     <b>return</b> -1;
+<a name='L54'>  54 <font color='red'>}</font>
+<a name='L55'>  55 
+<a name='L56'>  56 <i><font color='green'>/* List of open inodes, so that opening a single inode twice</font></i>
+<a name='L57'>  57 <i><font color='green'>   returns the same `struct inode'. */</font></i>
+<a name='L58'>  58 <b>static</b> <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> open_inodes;
+<a name='L59'>  59 
+<a name='L60'>  60 <i><font color='green'>/* Initializes the inode module. */</font></i>
+<a name='L61'>  61 <b>void</b>
+<a name='L62'>  62 <a href='../R/516.html' title='Multiple refered from 2 places.'>inode_init</a> (<b>void</b>) 
+<a name='L63'>  63 <font color='red'>{</font>
+<a name='L64'>  64   <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (&amp;open_inodes);
+<a name='L65'>  65 <font color='red'>}</font>
+<a name='L66'>  66 
+<a name='L67'>  67 <i><font color='green'>/* Initializes an inode with LENGTH bytes of data and</font></i>
+<a name='L68'>  68 <i><font color='green'>   writes the new inode to sector SECTOR on the file system</font></i>
+<a name='L69'>  69 <i><font color='green'>   device.</font></i>
+<a name='L70'>  70 <i><font color='green'>   Returns true if successful.</font></i>
+<a name='L71'>  71 <i><font color='green'>   Returns false if memory or disk allocation fails. */</font></i>
+<a name='L72'>  72 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L73'>  73 <a href='../R/512.html' title='Multiple refered from 4 places.'>inode_create</a> (<a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> length)
+<a name='L74'>  74 <font color='red'>{</font>
+<a name='L75'>  75   <b>struct</b> <a href='../S/35.html#L15' title='Defined at 15 in src/filesys/inode.c.'>inode_disk</a> *disk_inode = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L76'>  76   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L77'>  77 
+<a name='L78'>  78   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (length &gt;= 0);
+<a name='L79'>  79 
+<a name='L80'>  80   <i><font color='green'>/* If this assertion fails, the inode structure is not exactly</font></i>
+<a name='L81'>  81 <i><font color='green'>     one sector in size, and you should fix that. */</font></i>
+<a name='L82'>  82   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<b>sizeof</b> *disk_inode == <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L83'>  83 
+<a name='L84'>  84   disk_inode = <a href='../S/161.html#L159' title='Defined at 159 in src/threads/malloc.c.'>calloc</a> (1, <b>sizeof</b> *disk_inode);
+<a name='L85'>  85   <b>if</b> (disk_inode != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L86'>  86     <font color='red'>{</font>
+<a name='L87'>  87       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> sectors = <a href='../S/35.html#L26' title='Defined at 26 in src/filesys/inode.c.'>bytes_to_sectors</a> (length);
+<a name='L88'>  88       disk_inode-&gt;length = length;
+<a name='L89'>  89       disk_inode-&gt;magic = <a href='../S/35.html#L11' title='Defined at 11 in src/filesys/inode.c.'>INODE_MAGIC</a>;
+<a name='L90'>  90       <b>if</b> (<a href='../S/25.html#L28' title='Defined at 28 in src/filesys/free-map.c.'>free_map_allocate</a> (sectors, &amp;disk_inode-&gt;<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>)) 
+<a name='L91'>  91         <font color='red'>{</font>
+<a name='L92'>  92           <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (fs_device, sector, disk_inode);
+<a name='L93'>  93           <b>if</b> (sectors &gt; 0) 
+<a name='L94'>  94             <font color='red'>{</font>
+<a name='L95'>  95               <b>static</b> <b>char</b> zeros[<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>];
+<a name='L96'>  96               <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L97'>  97               
+<a name='L98'>  98               <b>for</b> (i = 0; i &lt; sectors; i++) 
+<a name='L99'>  99                 <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (fs_device, disk_inode-&gt;<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + i, zeros);
+<a name='L100'> 100             <font color='red'>}</font>
+<a name='L101'> 101           success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>; 
+<a name='L102'> 102         <font color='red'>}</font> 
+<a name='L103'> 103       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (disk_inode);
+<a name='L104'> 104     <font color='red'>}</font>
+<a name='L105'> 105   <b>return</b> success;
+<a name='L106'> 106 <font color='red'>}</font>
+<a name='L107'> 107 
+<a name='L108'> 108 <i><font color='green'>/* Reads an inode from SECTOR</font></i>
+<a name='L109'> 109 <i><font color='green'>   and returns a `struct inode' that contains it.</font></i>
+<a name='L110'> 110 <i><font color='green'>   Returns a null pointer if memory allocation fails. */</font></i>
+<a name='L111'> 111 <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *
+<a name='L112'> 112 <a href='../R/518.html' title='Multiple refered from 6 places.'>inode_open</a> (<a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector)
+<a name='L113'> 113 <font color='red'>{</font>
+<a name='L114'> 114   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L115'> 115   <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L116'> 116 
+<a name='L117'> 117   <i><font color='green'>/* Check whether this inode is already open. */</font></i>
+<a name='L118'> 118   <b>for</b> (e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (&amp;open_inodes); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (&amp;open_inodes);
+<a name='L119'> 119        e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e)) 
+<a name='L120'> 120     <font color='red'>{</font>
+<a name='L121'> 121       <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, elem);
+<a name='L122'> 122       <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;sector == sector) 
+<a name='L123'> 123         <font color='red'>{</font>
+<a name='L124'> 124           <a href='../S/35.html#L146' title='Defined at 146 in src/filesys/inode.c.'>inode_reopen</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L125'> 125           <b>return</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>; 
+<a name='L126'> 126         <font color='red'>}</font>
+<a name='L127'> 127     <font color='red'>}</font>
+<a name='L128'> 128 
+<a name='L129'> 129   <i><font color='green'>/* Allocate memory. */</font></i>
+<a name='L130'> 130   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<b>sizeof</b> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L131'> 131   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L132'> 132     <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L133'> 133 
+<a name='L134'> 134   <i><font color='green'>/* Initialize. */</font></i>
+<a name='L135'> 135   <a href='../S/112.html#L209' title='Defined at 209 in src/lib/kernel/list.c.'>list_push_front</a> (&amp;open_inodes, &amp;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;elem);
+<a name='L136'> 136   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;sector = sector;
+<a name='L137'> 137   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;open_cnt = 1;
+<a name='L138'> 138   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt = 0;
+<a name='L139'> 139   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;removed = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L140'> 140   <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (fs_device, <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;sector, &amp;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;data);
+<a name='L141'> 141   <b>return</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L142'> 142 <font color='red'>}</font>
+<a name='L143'> 143 
+<a name='L144'> 144 <i><font color='green'>/* Reopens and returns INODE. */</font></i>
+<a name='L145'> 145 <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *
+<a name='L146'> 146 <a href='../R/521.html' title='Multiple refered from 4 places.'>inode_reopen</a> (<b>struct</b> inode *inode)
+<a name='L147'> 147 <font color='red'>{</font>
+<a name='L148'> 148   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L149'> 149     <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;open_cnt++;
+<a name='L150'> 150   <b>return</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L151'> 151 <font color='red'>}</font>
+<a name='L152'> 152 
+<a name='L153'> 153 <i><font color='green'>/* Returns INODE's inode number. */</font></i>
+<a name='L154'> 154 <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>
+<a name='L155'> 155 <a href='../S/34.html#L14' title='Refered from 14 in src/filesys/inode.h.'>inode_get_inumber</a> (<b>const</b> <b>struct</b> inode *inode)
+<a name='L156'> 156 <font color='red'>{</font>
+<a name='L157'> 157   <b>return</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;sector;
+<a name='L158'> 158 <font color='red'>}</font>
+<a name='L159'> 159 
+<a name='L160'> 160 <i><font color='green'>/* Closes INODE and writes it to disk.</font></i>
+<a name='L161'> 161 <i><font color='green'>   If this was the last reference to INODE, frees its memory.</font></i>
+<a name='L162'> 162 <i><font color='green'>   If INODE was also a removed inode, frees its blocks. */</font></i>
+<a name='L163'> 163 <b>void</b>
+<a name='L164'> 164 <a href='../R/511.html' title='Multiple refered from 6 places.'>inode_close</a> (<b>struct</b> inode *inode) 
+<a name='L165'> 165 <font color='red'>{</font>
+<a name='L166'> 166   <i><font color='green'>/* Ignore null pointer. */</font></i>
+<a name='L167'> 167   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L168'> 168     <b>return</b>;
+<a name='L169'> 169 
+<a name='L170'> 170   <i><font color='green'>/* Release resources if this was the last opener. */</font></i>
+<a name='L171'> 171   <b>if</b> (--<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;open_cnt == 0)
+<a name='L172'> 172     <font color='red'>{</font>
+<a name='L173'> 173       <i><font color='green'>/* Remove from inode list and release lock. */</font></i>
+<a name='L174'> 174       <a href='../S/112.html#L249' title='Defined at 249 in src/lib/kernel/list.c.'>list_remove</a> (&amp;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;elem);
+<a name='L175'> 175  
+<a name='L176'> 176       <i><font color='green'>/* Deallocate blocks if removed. */</font></i>
+<a name='L177'> 177       <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;removed) 
+<a name='L178'> 178         <font color='red'>{</font>
+<a name='L179'> 179           <a href='../S/25.html#L45' title='Defined at 45 in src/filesys/free-map.c.'>free_map_release</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;sector, 1);
+<a name='L180'> 180           <a href='../S/25.html#L45' title='Defined at 45 in src/filesys/free-map.c.'>free_map_release</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;data.<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>,
+<a name='L181'> 181                             <a href='../S/35.html#L26' title='Defined at 26 in src/filesys/inode.c.'>bytes_to_sectors</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;data.length)); 
+<a name='L182'> 182         <font color='red'>}</font>
+<a name='L183'> 183 
+<a name='L184'> 184       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>); 
+<a name='L185'> 185     <font color='red'>}</font>
+<a name='L186'> 186 <font color='red'>}</font>
+<a name='L187'> 187 
+<a name='L188'> 188 <i><font color='green'>/* Marks INODE to be deleted when it is closed by the last caller who</font></i>
+<a name='L189'> 189 <i><font color='green'>   has it open. */</font></i>
+<a name='L190'> 190 <b>void</b>
+<a name='L191'> 191 <a href='../R/520.html' title='Multiple refered from 2 places.'>inode_remove</a> (<b>struct</b> inode *inode) 
+<a name='L192'> 192 <font color='red'>{</font>
+<a name='L193'> 193   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L194'> 194   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;removed = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L195'> 195 <font color='red'>}</font>
+<a name='L196'> 196 
+<a name='L197'> 197 <i><font color='green'>/* Reads SIZE bytes from INODE into BUFFER, starting at position OFFSET.</font></i>
+<a name='L198'> 198 <i><font color='green'>   Returns the number of bytes actually read, which may be less</font></i>
+<a name='L199'> 199 <i><font color='green'>   than SIZE if an error occurs or end of file is reached. */</font></i>
+<a name='L200'> 200 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L201'> 201 <a href='../R/519.html' title='Multiple refered from 6 places.'>inode_read_at</a> (<b>struct</b> inode *inode, <b>void</b> *buffer_, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> offset) 
+<a name='L202'> 202 <font color='red'>{</font>
+<a name='L203'> 203   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *buffer = buffer_;
+<a name='L204'> 204   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> bytes_read = 0;
+<a name='L205'> 205   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *bounce = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L206'> 206 
+<a name='L207'> 207   <b>while</b> (size &gt; 0) 
+<a name='L208'> 208     <font color='red'>{</font>
+<a name='L209'> 209       <i><font color='green'>/* Disk sector to read, starting byte offset within sector. */</font></i>
+<a name='L210'> 210       <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector_idx = <a href='../S/35.html#L47' title='Defined at 47 in src/filesys/inode.c.'>byte_to_sector</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, offset);
+<a name='L211'> 211       <b>int</b> sector_ofs = offset % <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>;
+<a name='L212'> 212 
+<a name='L213'> 213       <i><font color='green'>/* Bytes left in inode, bytes left in sector, lesser of the two. */</font></i>
+<a name='L214'> 214       <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> inode_left = <a href='../S/35.html#L342' title='Defined at 342 in src/filesys/inode.c.'>inode_length</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>) - offset;
+<a name='L215'> 215       <b>int</b> sector_left = <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> - sector_ofs;
+<a name='L216'> 216       <b>int</b> min_left = inode_left &lt; sector_left ? inode_left : sector_left;
+<a name='L217'> 217 
+<a name='L218'> 218       <i><font color='green'>/* Number of bytes to actually copy out of this sector. */</font></i>
+<a name='L219'> 219       <b>int</b> chunk_size = size &lt; min_left ? size : min_left;
+<a name='L220'> 220       <b>if</b> (chunk_size &lt;= 0)
+<a name='L221'> 221         <b>break</b>;
+<a name='L222'> 222 
+<a name='L223'> 223       <b>if</b> (sector_ofs == 0 &amp;&amp; chunk_size == <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>)
+<a name='L224'> 224         <font color='red'>{</font>
+<a name='L225'> 225           <i><font color='green'>/* Read full sector directly into caller's buffer. */</font></i>
+<a name='L226'> 226           <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (fs_device, sector_idx, buffer + bytes_read);
+<a name='L227'> 227         <font color='red'>}</font>
+<a name='L228'> 228       <b>else</b> 
+<a name='L229'> 229         <font color='red'>{</font>
+<a name='L230'> 230           <i><font color='green'>/* Read sector into bounce buffer, then partially copy</font></i>
+<a name='L231'> 231 <i><font color='green'>             into caller's buffer. */</font></i>
+<a name='L232'> 232           <b>if</b> (bounce == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L233'> 233             <font color='red'>{</font>
+<a name='L234'> 234               bounce = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L235'> 235               <b>if</b> (bounce == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L236'> 236                 <b>break</b>;
+<a name='L237'> 237             <font color='red'>}</font>
+<a name='L238'> 238           <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (fs_device, sector_idx, bounce);
+<a name='L239'> 239           <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (buffer + bytes_read, bounce + sector_ofs, chunk_size);
+<a name='L240'> 240         <font color='red'>}</font>
+<a name='L241'> 241       
+<a name='L242'> 242       <i><font color='green'>/* Advance. */</font></i>
+<a name='L243'> 243       size -= chunk_size;
+<a name='L244'> 244       offset += chunk_size;
+<a name='L245'> 245       bytes_read += chunk_size;
+<a name='L246'> 246     <font color='red'>}</font>
+<a name='L247'> 247   <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (bounce);
+<a name='L248'> 248 
+<a name='L249'> 249   <b>return</b> bytes_read;
+<a name='L250'> 250 <font color='red'>}</font>
+<a name='L251'> 251 
+<a name='L252'> 252 <i><font color='green'>/* Writes SIZE bytes from BUFFER into INODE, starting at OFFSET.</font></i>
+<a name='L253'> 253 <i><font color='green'>   Returns the number of bytes actually written, which may be</font></i>
+<a name='L254'> 254 <i><font color='green'>   less than SIZE if end of file is reached or an error occurs.</font></i>
+<a name='L255'> 255 <i><font color='green'>   (Normally a write at end of file would extend the inode, but</font></i>
+<a name='L256'> 256 <i><font color='green'>   growth is not yet implemented.) */</font></i>
+<a name='L257'> 257 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L258'> 258 <a href='../R/522.html' title='Multiple refered from 5 places.'>inode_write_at</a> (<b>struct</b> inode *inode, <b>const</b> <b>void</b> *buffer_, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size,
+<a name='L259'> 259                 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> offset) 
+<a name='L260'> 260 <font color='red'>{</font>
+<a name='L261'> 261   <b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *buffer = buffer_;
+<a name='L262'> 262   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> bytes_written = 0;
+<a name='L263'> 263   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *bounce = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L264'> 264 
+<a name='L265'> 265   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt)
+<a name='L266'> 266     <b>return</b> 0;
+<a name='L267'> 267 
+<a name='L268'> 268   <b>while</b> (size &gt; 0) 
+<a name='L269'> 269     <font color='red'>{</font>
+<a name='L270'> 270       <i><font color='green'>/* Sector to write, starting byte offset within sector. */</font></i>
+<a name='L271'> 271       <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector_idx = <a href='../S/35.html#L47' title='Defined at 47 in src/filesys/inode.c.'>byte_to_sector</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, offset);
+<a name='L272'> 272       <b>int</b> sector_ofs = offset % <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>;
+<a name='L273'> 273 
+<a name='L274'> 274       <i><font color='green'>/* Bytes left in inode, bytes left in sector, lesser of the two. */</font></i>
+<a name='L275'> 275       <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> inode_left = <a href='../S/35.html#L342' title='Defined at 342 in src/filesys/inode.c.'>inode_length</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>) - offset;
+<a name='L276'> 276       <b>int</b> sector_left = <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a> - sector_ofs;
+<a name='L277'> 277       <b>int</b> min_left = inode_left &lt; sector_left ? inode_left : sector_left;
+<a name='L278'> 278 
+<a name='L279'> 279       <i><font color='green'>/* Number of bytes to actually write into this sector. */</font></i>
+<a name='L280'> 280       <b>int</b> chunk_size = size &lt; min_left ? size : min_left;
+<a name='L281'> 281       <b>if</b> (chunk_size &lt;= 0)
+<a name='L282'> 282         <b>break</b>;
+<a name='L283'> 283 
+<a name='L284'> 284       <b>if</b> (sector_ofs == 0 &amp;&amp; chunk_size == <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>)
+<a name='L285'> 285         <font color='red'>{</font>
+<a name='L286'> 286           <i><font color='green'>/* Write full sector directly to disk. */</font></i>
+<a name='L287'> 287           <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (fs_device, sector_idx, buffer + bytes_written);
+<a name='L288'> 288         <font color='red'>}</font>
+<a name='L289'> 289       <b>else</b> 
+<a name='L290'> 290         <font color='red'>{</font>
+<a name='L291'> 291           <i><font color='green'>/* We need a bounce buffer. */</font></i>
+<a name='L292'> 292           <b>if</b> (bounce == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L293'> 293             <font color='red'>{</font>
+<a name='L294'> 294               bounce = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L295'> 295               <b>if</b> (bounce == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L296'> 296                 <b>break</b>;
+<a name='L297'> 297             <font color='red'>}</font>
+<a name='L298'> 298 
+<a name='L299'> 299           <i><font color='green'>/* If the sector contains data before or after the chunk</font></i>
+<a name='L300'> 300 <i><font color='green'>             we're writing, then we need to read in the sector</font></i>
+<a name='L301'> 301 <i><font color='green'>             first.  Otherwise we start with a sector of all zeros. */</font></i>
+<a name='L302'> 302           <b>if</b> (sector_ofs &gt; 0 || chunk_size &lt; sector_left) 
+<a name='L303'> 303             <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (fs_device, sector_idx, bounce);
+<a name='L304'> 304           <b>else</b>
+<a name='L305'> 305             <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (bounce, 0, <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L306'> 306           <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (bounce + sector_ofs, buffer + bytes_written, chunk_size);
+<a name='L307'> 307           <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (fs_device, sector_idx, bounce);
+<a name='L308'> 308         <font color='red'>}</font>
+<a name='L309'> 309 
+<a name='L310'> 310       <i><font color='green'>/* Advance. */</font></i>
+<a name='L311'> 311       size -= chunk_size;
+<a name='L312'> 312       offset += chunk_size;
+<a name='L313'> 313       bytes_written += chunk_size;
+<a name='L314'> 314     <font color='red'>}</font>
+<a name='L315'> 315   <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (bounce);
+<a name='L316'> 316 
+<a name='L317'> 317   <b>return</b> bytes_written;
+<a name='L318'> 318 <font color='red'>}</font>
+<a name='L319'> 319 
+<a name='L320'> 320 <i><font color='green'>/* Disables writes to INODE.</font></i>
+<a name='L321'> 321 <i><font color='green'>   May be called at most once per inode opener. */</font></i>
+<a name='L322'> 322 <b>void</b>
+<a name='L323'> 323 <a href='../R/513.html' title='Multiple refered from 2 places.'>inode_deny_write</a> (<b>struct</b> inode *inode) 
+<a name='L324'> 324 <font color='red'>{</font>
+<a name='L325'> 325   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt++;
+<a name='L326'> 326   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt &lt;= <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;open_cnt);
+<a name='L327'> 327 <font color='red'>}</font>
+<a name='L328'> 328 
+<a name='L329'> 329 <i><font color='green'>/* Re-enables writes to INODE.</font></i>
+<a name='L330'> 330 <i><font color='green'>   Must be called once by each inode opener who has called</font></i>
+<a name='L331'> 331 <i><font color='green'>   inode_deny_write() on the inode, before closing the inode. */</font></i>
+<a name='L332'> 332 <b>void</b>
+<a name='L333'> 333 <a href='../R/510.html' title='Multiple refered from 2 places.'>inode_allow_write</a> (<b>struct</b> inode *inode) 
+<a name='L334'> 334 <font color='red'>{</font>
+<a name='L335'> 335   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt &gt; 0);
+<a name='L336'> 336   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt &lt;= <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;open_cnt);
+<a name='L337'> 337   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;deny_write_cnt--;
+<a name='L338'> 338 <font color='red'>}</font>
+<a name='L339'> 339 
+<a name='L340'> 340 <i><font color='green'>/* Returns the length, in bytes, of INODE's data. */</font></i>
+<a name='L341'> 341 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>
+<a name='L342'> 342 <a href='../R/517.html' title='Multiple refered from 4 places.'>inode_length</a> (<b>const</b> <b>struct</b> inode *inode)
+<a name='L343'> 343 <font color='red'>{</font>
+<a name='L344'> 344   <b>return</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>-&gt;data.length;
+<a name='L345'> 345 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L26'>[^]</a><a href='#L342'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

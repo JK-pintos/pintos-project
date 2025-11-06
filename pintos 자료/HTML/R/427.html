@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>file</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/29.html#L17'>file</a>               17 src/filesys/file.c struct file *
+<a href='../S/29.html#L20'>file</a>               20 src/filesys/file.c   struct file *file = calloc (1, sizeof *file);
+<a href='../S/29.html#L21'>file</a>               21 src/filesys/file.c   if (inode != NULL &amp;&amp; file != NULL)
+<a href='../S/29.html#L23'>file</a>               23 src/filesys/file.c       file-&gt;inode = inode;
+<a href='../S/29.html#L24'>file</a>               24 src/filesys/file.c       file-&gt;pos = 0;
+<a href='../S/29.html#L25'>file</a>               25 src/filesys/file.c       file-&gt;deny_write = false;
+<a href='../S/29.html#L26'>file</a>               26 src/filesys/file.c       return file;
+<a href='../S/29.html#L31'>file</a>               31 src/filesys/file.c       free (file);
+<a href='../S/29.html#L38'>file</a>               38 src/filesys/file.c struct file *
+<a href='../S/29.html#L41'>file</a>               41 src/filesys/file.c   return file_open (inode_reopen (file-&gt;inode));
+<a href='../S/29.html#L48'>file</a>               48 src/filesys/file.c   if (file != NULL)
+<a href='../S/29.html#L50'>file</a>               50 src/filesys/file.c       file_allow_write (file);
+<a href='../S/29.html#L51'>file</a>               51 src/filesys/file.c       inode_close (file-&gt;inode);
+<a href='../S/29.html#L52'>file</a>               52 src/filesys/file.c       free (file); 
+<a href='../S/29.html#L60'>file</a>               60 src/filesys/file.c   return file-&gt;inode;
+<a href='../S/29.html#L71'>file</a>               71 src/filesys/file.c   off_t bytes_read = inode_read_at (file-&gt;inode, buffer, size, file-&gt;pos);
+<a href='../S/29.html#L72'>file</a>               72 src/filesys/file.c   file-&gt;pos += bytes_read;
+<a href='../S/29.html#L84'>file</a>               84 src/filesys/file.c   return inode_read_at (file-&gt;inode, buffer, size, file_ofs);
+<a href='../S/29.html#L97'>file</a>               97 src/filesys/file.c   off_t bytes_written = inode_write_at (file-&gt;inode, buffer, size, file-&gt;pos);
+<a href='../S/29.html#L98'>file</a>               98 src/filesys/file.c   file-&gt;pos += bytes_written;
+<a href='../S/29.html#L113'>file</a>              113 src/filesys/file.c   return inode_write_at (file-&gt;inode, buffer, size, file_ofs);
+<a href='../S/29.html#L121'>file</a>              121 src/filesys/file.c   ASSERT (file != NULL);
+<a href='../S/29.html#L122'>file</a>              122 src/filesys/file.c   if (!file-&gt;deny_write) 
+<a href='../S/29.html#L124'>file</a>              124 src/filesys/file.c       file-&gt;deny_write = true;
+<a href='../S/29.html#L125'>file</a>              125 src/filesys/file.c       inode_deny_write (file-&gt;inode);
+<a href='../S/29.html#L135'>file</a>              135 src/filesys/file.c   ASSERT (file != NULL);
+<a href='../S/29.html#L136'>file</a>              136 src/filesys/file.c   if (file-&gt;deny_write) 
+<a href='../S/29.html#L138'>file</a>              138 src/filesys/file.c       file-&gt;deny_write = false;
+<a href='../S/29.html#L139'>file</a>              139 src/filesys/file.c       inode_allow_write (file-&gt;inode);
+<a href='../S/29.html#L147'>file</a>              147 src/filesys/file.c   ASSERT (file != NULL);
+<a href='../S/29.html#L148'>file</a>              148 src/filesys/file.c   return inode_length (file-&gt;inode);
+<a href='../S/29.html#L156'>file</a>              156 src/filesys/file.c   ASSERT (file != NULL);
+<a href='../S/29.html#L158'>file</a>              158 src/filesys/file.c   file-&gt;pos = new_pos;
+<a href='../S/29.html#L166'>file</a>              166 src/filesys/file.c   ASSERT (file != NULL);
+<a href='../S/29.html#L167'>file</a>              167 src/filesys/file.c   return file-&gt;pos;
+<a href='../S/36.html#L9'>file</a>                9 src/filesys/file.h struct file *file_open (struct inode *);
+<a href='../S/36.html#L10'>file</a>               10 src/filesys/file.h struct file *file_reopen (struct file *);
+<a href='../S/38.html#L66'>file</a>               66 src/filesys/filesys.c struct file *
+<a href='../S/33.html#L17'>file</a>               17 src/filesys/filesys.h struct file *filesys_open (const char *name);
+<a href='../S/25.html#L8'>file</a>                8 src/filesys/free-map.c static struct file *free_map_file;   /* Free map file. */
+<a href='../S/26.html#L38'>file</a>               38 src/filesys/fsutil.c   struct file *file;
+<a href='../S/26.html#L42'>file</a>               42 src/filesys/fsutil.c   file = filesys_open (file_name);
+<a href='../S/26.html#L43'>file</a>               43 src/filesys/fsutil.c   if (file == NULL)
+<a href='../S/26.html#L48'>file</a>               48 src/filesys/fsutil.c       off_t pos = file_tell (file);
+<a href='../S/26.html#L49'>file</a>               49 src/filesys/fsutil.c       off_t n = file_read (file, buffer, PGSIZE);
+<a href='../S/26.html#L56'>file</a>               56 src/filesys/fsutil.c   file_close (file);
+<a href='../S/26.html#L116'>file</a>              116 src/filesys/fsutil.c           struct file *dst;
+<a href='../S/26.html#L173'>file</a>              173 src/filesys/fsutil.c   struct file *src;
+<a href='../S/114.html#L348'>file</a>              348 src/lib/kernel/bitmap.c       success = file_read_at (file, b-&gt;bits, size, 0) == size;
+<a href='../S/114.html#L360'>file</a>              360 src/lib/kernel/bitmap.c   return file_write_at (file, b-&gt;bits, size, 0) == size;
+<a href='../S/111.html#L42'>file</a>               42 src/lib/kernel/bitmap.h struct file;
+<a href='../S/109.html#L31'>file</a>               31 src/lib/kernel/debug.c       printf ("Kernel PANIC at %s:%d in %s(): ", file, line, function);
+<a href='../S/109.html#L42'>file</a>               42 src/lib/kernel/debug.c             file, line, function);
+<a href='../S/98.html#L15'>file</a>               15 src/lib/user/debug.c   printf ("User process ABORT at %s:%d in %s(): ", file, line, function);
+<a href='../S/97.html#L81'>file</a>               81 src/lib/user/syscall.c   return (pid_t) syscall1 (SYS_EXEC, file);
+<a href='../S/97.html#L93'>file</a>               93 src/lib/user/syscall.c   return syscall2 (SYS_CREATE, file, initial_size);
+<a href='../S/97.html#L99'>file</a>               99 src/lib/user/syscall.c   return syscall1 (SYS_REMOVE, file);
+<a href='../S/97.html#L105'>file</a>              105 src/lib/user/syscall.c   return syscall1 (SYS_OPEN, file);
+<a href='../S/227.html#L59'>file</a>               59 src/tests/filesys/extended/mk-tree.c   char file[128];
+<a href='../S/227.html#L63'>file</a>               63 src/tests/filesys/extended/mk-tree.c   vsnprintf (file, sizeof file, format, args);
+<a href='../S/227.html#L66'>file</a>               66 src/tests/filesys/extended/mk-tree.c   CHECK (create (file, 0), "create \"%s\"", file);
+<a href='../S/66.html#L213'>file</a>              213 src/userprog/process.c   struct file *file = NULL;
+<a href='../S/66.html#L225'>file</a>              225 src/userprog/process.c   file = filesys_open (file_name);
+<a href='../S/66.html#L226'>file</a>              226 src/userprog/process.c   if (file == NULL) 
+<a href='../S/66.html#L233'>file</a>              233 src/userprog/process.c   if (file_read (file, &amp;ehdr, sizeof ehdr) != sizeof ehdr
+<a href='../S/66.html#L251'>file</a>              251 src/userprog/process.c       if (file_ofs &lt; 0 || file_ofs &gt; file_length (file))
+<a href='../S/66.html#L253'>file</a>              253 src/userprog/process.c       file_seek (file, file_ofs);
+<a href='../S/66.html#L255'>file</a>              255 src/userprog/process.c       if (file_read (file, &amp;phdr, sizeof phdr) != sizeof phdr)
+<a href='../S/66.html#L272'>file</a>              272 src/userprog/process.c           if (validate_segment (&amp;phdr, file)) 
+<a href='../S/66.html#L294'>file</a>              294 src/userprog/process.c               if (!load_segment (file, file_page, (void *) mem_page,
+<a href='../S/66.html#L315'>file</a>              315 src/userprog/process.c   file_close (file);
+<a href='../S/66.html#L333'>file</a>              333 src/userprog/process.c   if (phdr-&gt;p_offset &gt; (Elf32_Off) file_length (file)) 
+<a href='../S/66.html#L390'>file</a>              390 src/userprog/process.c   file_seek (file, ofs);
+<a href='../S/66.html#L405'>file</a>              405 src/userprog/process.c       if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
+</pre>
+</body>
+</html>

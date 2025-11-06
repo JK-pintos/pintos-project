@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>src/examples/cmp.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/cmp.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L9' title='Defined at 9.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* cat.c</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Compares two files. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 
+<a name='L8'>   8 <b>int</b>
+<a name='L9'>   9 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   <b>int</b> fd[2];
+<a name='L12'>  12 
+<a name='L13'>  13   <b>if</b> (argc != 3) 
+<a name='L14'>  14     <font color='red'>{</font>
+<a name='L15'>  15       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("usage: cmp A B\n");
+<a name='L16'>  16       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L17'>  17     <font color='red'>}</font>
+<a name='L18'>  18 
+<a name='L19'>  19   <i><font color='green'>/* Open files. */</font></i>
+<a name='L20'>  20   fd[0] = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[1]);
+<a name='L21'>  21   <b>if</b> (fd[0] &lt; 0) 
+<a name='L22'>  22     <font color='red'>{</font>
+<a name='L23'>  23       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: open failed\n", argv[1]);
+<a name='L24'>  24       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L25'>  25     <font color='red'>}</font>
+<a name='L26'>  26   fd[1] = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[2]);
+<a name='L27'>  27   <b>if</b> (fd[1] &lt; 0) 
+<a name='L28'>  28     <font color='red'>{</font>
+<a name='L29'>  29       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: open failed\n", argv[1]);
+<a name='L30'>  30       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L31'>  31     <font color='red'>}</font>
+<a name='L32'>  32 
+<a name='L33'>  33   <i><font color='green'>/* Compare data. */</font></i>
+<a name='L34'>  34   <b>for</b> (;;) 
+<a name='L35'>  35     <font color='red'>{</font>
+<a name='L36'>  36       <b>int</b> pos;
+<a name='L37'>  37       <b>char</b> buffer[2][1024];
+<a name='L38'>  38       <b>int</b> bytes_read[2];
+<a name='L39'>  39       <b>int</b> min_read;
+<a name='L40'>  40       <b>int</b> i;
+<a name='L41'>  41 
+<a name='L42'>  42       pos = <a href='../S/97.html#L133' title='Defined at 133 in src/lib/user/syscall.c.'>tell</a> (fd[0]);
+<a name='L43'>  43       bytes_read[0] = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (fd[0], buffer[0], <b>sizeof</b> buffer[0]);
+<a name='L44'>  44       bytes_read[1] = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (fd[1], buffer[1], <b>sizeof</b> buffer[1]);
+<a name='L45'>  45       min_read = bytes_read[0] &lt; bytes_read[1] ? bytes_read[0] : bytes_read[1];
+<a name='L46'>  46       <b>if</b> (min_read == 0)
+<a name='L47'>  47         <b>break</b>;
+<a name='L48'>  48 
+<a name='L49'>  49       <b>for</b> (i = 0; i &lt; min_read; i++)
+<a name='L50'>  50         <b>if</b> (buffer[0][i] != buffer[1][i]) 
+<a name='L51'>  51           <font color='red'>{</font>
+<a name='L52'>  52             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Byte %d is %02hhx ('%c') in %s but %02hhx ('%c') in %s\n",
+<a name='L53'>  53                     pos + i,
+<a name='L54'>  54                     buffer[0][i], buffer[0][i], argv[1],
+<a name='L55'>  55                     buffer[1][i], buffer[1][i], argv[2]);
+<a name='L56'>  56             <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L57'>  57           <font color='red'>}</font>
+<a name='L58'>  58 
+<a name='L59'>  59       <b>if</b> (min_read &lt; bytes_read[1])
+<a name='L60'>  60         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s is shorter than %s\n", argv[1], argv[2]);
+<a name='L61'>  61       <b>else</b> <b>if</b> (min_read &lt; bytes_read[0])
+<a name='L62'>  62         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s is shorter than %s\n", argv[2], argv[1]);
+<a name='L63'>  63     <font color='red'>}</font>
+<a name='L64'>  64 
+<a name='L65'>  65   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s and %s are identical\n", argv[1], argv[2]);
+<a name='L66'>  66 
+<a name='L67'>  67   <b>return</b> <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a>;
+<a name='L68'>  68 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L9'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<html>
+<head>
+<title>src/lib/stdint.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/stdint.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/81.html' title='Multiple included from 32 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/87.html#L2' title='Defined at 2 in src/lib/stdint.h.'>__LIB_STDINT_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/87.html#L1' title='Refered from 1 in src/lib/stdint.h.'>__LIB_STDINT_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <b>typedef</b> <b>signed</b> <b>char</b> int8_t;
+<a name='L5'>   5 <font color='darkred'>#define</font> <a href='../S/87.html#L6' title='Refered from 6 in src/lib/stdint.h.'>INT8_MAX</a> 127
+<a name='L6'>   6 <font color='darkred'>#define</font> INT8_MIN (-<a href='../S/87.html#L5' title='Defined at 5 in src/lib/stdint.h.'>INT8_MAX</a> - 1)
+<a name='L7'>   7 
+<a name='L8'>   8 <b>typedef</b> <b>signed</b> <b>short</b> <b>int</b> int16_t;
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../S/87.html#L10' title='Refered from 10 in src/lib/stdint.h.'>INT16_MAX</a> 32767
+<a name='L10'>  10 <font color='darkred'>#define</font> INT16_MIN (-<a href='../S/87.html#L9' title='Defined at 9 in src/lib/stdint.h.'>INT16_MAX</a> - 1)
+<a name='L11'>  11 
+<a name='L12'>  12 <b>typedef</b> <b>signed</b> <b>int</b> <a href='../R/532.html' title='Multiple refered from 7 places.'>int32_t</a>;
+<a name='L13'>  13 <font color='darkred'>#define</font> <a href='../R/72.html' title='Multiple refered from 3 places.'>INT32_MAX</a> 2147483647
+<a name='L14'>  14 <font color='darkred'>#define</font> <a href='../R/73.html' title='Multiple refered from 2 places.'>INT32_MIN</a> (-<a href='../S/87.html#L13' title='Defined at 13 in src/lib/stdint.h.'>INT32_MAX</a> - 1)
+<a name='L15'>  15 
+<a name='L16'>  16 <b>typedef</b> <b>signed</b> <b>long</b> <b>long</b> <b>int</b> <a href='../R/533.html' title='Multiple refered from 60 places.'>int64_t</a>;
+<a name='L17'>  17 <font color='darkred'>#define</font> <a href='../R/74.html' title='Multiple refered from 2 places.'>INT64_MAX</a> 9223372036854775807LL
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../S/87.html#L40' title='Refered from 40 in src/lib/stdint.h.'>INT64_MIN</a> (-<a href='../S/87.html#L17' title='Defined at 17 in src/lib/stdint.h.'>INT64_MAX</a> - 1)
+<a name='L19'>  19 
+<a name='L20'>  20 <b>typedef</b> <b>unsigned</b> <b>char</b> <a href='../R/938.html' title='Multiple refered from 95 places.'>uint8_t</a>;
+<a name='L21'>  21 <font color='darkred'>#define</font> UINT8_MAX 255
+<a name='L22'>  22 
+<a name='L23'>  23 <b>typedef</b> <b>unsigned</b> <b>short</b> <b>int</b> <a href='../R/935.html' title='Multiple refered from 43 places.'>uint16_t</a>;
+<a name='L24'>  24 <font color='darkred'>#define</font> UINT16_MAX 65535
+<a name='L25'>  25 
+<a name='L26'>  26 <b>typedef</b> <b>unsigned</b> <b>int</b> <a href='../R/936.html' title='Multiple refered from 116 places.'>uint32_t</a>;
+<a name='L27'>  27 <font color='darkred'>#define</font> <a href='../R/237.html' title='Multiple refered from 2 places.'>UINT32_MAX</a> 4294967295U
+<a name='L28'>  28 
+<a name='L29'>  29 <b>typedef</b> <b>unsigned</b> <b>long</b> <b>long</b> <b>int</b> <a href='../R/937.html' title='Multiple refered from 38 places.'>uint64_t</a>;
+<a name='L30'>  30 <font color='darkred'>#define</font> <a href='../S/87.html#L44' title='Refered from 44 in src/lib/stdint.h.'>UINT64_MAX</a> 18446744073709551615ULL
+<a name='L31'>  31 
+<a name='L32'>  32 <b>typedef</b> <a href='../S/87.html#L12' title='Defined at 12 in src/lib/stdint.h.'>int32_t</a> intptr_t;
+<a name='L33'>  33 <font color='darkred'>#define</font> INTPTR_MIN <a href='../S/87.html#L14' title='Defined at 14 in src/lib/stdint.h.'>INT32_MIN</a>
+<a name='L34'>  34 <font color='darkred'>#define</font> INTPTR_MAX <a href='../S/87.html#L13' title='Defined at 13 in src/lib/stdint.h.'>INT32_MAX</a>
+<a name='L35'>  35 
+<a name='L36'>  36 <b>typedef</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> <a href='../R/940.html' title='Multiple refered from 22 places.'>uintptr_t</a>;
+<a name='L37'>  37 <font color='darkred'>#define</font> UINTPTR_MAX <a href='../S/87.html#L27' title='Defined at 27 in src/lib/stdint.h.'>UINT32_MAX</a>
+<a name='L38'>  38 
+<a name='L39'>  39 <b>typedef</b> <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> <a href='../R/537.html' title='Multiple refered from 2 places.'>intmax_t</a>;
+<a name='L40'>  40 <font color='darkred'>#define</font> INTMAX_MIN <a href='../S/87.html#L18' title='Defined at 18 in src/lib/stdint.h.'>INT64_MIN</a>
+<a name='L41'>  41 <font color='darkred'>#define</font> INTMAX_MAX <a href='../S/87.html#L17' title='Defined at 17 in src/lib/stdint.h.'>INT64_MAX</a>
+<a name='L42'>  42 
+<a name='L43'>  43 <b>typedef</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> <a href='../R/939.html' title='Multiple refered from 6 places.'>uintmax_t</a>;
+<a name='L44'>  44 <font color='darkred'>#define</font> <a href='../S/115.html#L259' title='Refered from 259 in src/lib/stdio.c.'>UINTMAX_MAX</a> <a href='../S/87.html#L30' title='Defined at 30 in src/lib/stdint.h.'>UINT64_MAX</a>
+<a name='L45'>  45 
+<a name='L46'>  46 <font color='darkred'>#define</font> PTRDIFF_MIN <a href='../S/87.html#L14' title='Defined at 14 in src/lib/stdint.h.'>INT32_MIN</a>
+<a name='L47'>  47 <font color='darkred'>#define</font> <a href='../R/159.html' title='Multiple refered from 2 places.'>PTRDIFF_MAX</a> <a href='../S/87.html#L13' title='Defined at 13 in src/lib/stdint.h.'>INT32_MAX</a>
+<a name='L48'>  48 
+<a name='L49'>  49 <font color='darkred'>#define</font> <a href='../R/195.html' title='Multiple refered from 4 places.'>SIZE_MAX</a> <a href='../S/87.html#L27' title='Defined at 27 in src/lib/stdint.h.'>UINT32_MAX</a>
+<a name='L50'>  50 
+<a name='L51'>  51 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/stdint.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

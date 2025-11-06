@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>uint64_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L205'>uint64_t</a>          205 src/devices/block.c   print_human_readable_size ((uint64_t) block-&gt;size * BLOCK_SECTOR_SIZE);
+<a href='../S/125.html#L66'>uint64_t</a>           66 src/devices/timer.c   printf ("%'"PRIu64" loops/s.\n", (uint64_t) loops_per_tick * TIMER_FREQ);
+<a href='../S/86.html#L26'>uint64_t</a>           26 src/lib/arithmetic.c divl (uint64_t n, uint32_t d)
+<a href='../S/86.html#L77'>uint64_t</a>           77 src/lib/arithmetic.c static uint64_t
+<a href='../S/86.html#L78'>uint64_t</a>           78 src/lib/arithmetic.c udiv64 (uint64_t n, uint64_t d)
+<a href='../S/86.html#L106'>uint64_t</a>          106 src/lib/arithmetic.c       uint64_t b = 1ULL &lt;&lt; 32;
+<a href='../S/86.html#L123'>uint64_t</a>          123 src/lib/arithmetic.c           uint64_t q = divl (n &gt;&gt; 1, (d &lt;&lt; s) &gt;&gt; 32) &gt;&gt; (31 - s);
+<a href='../S/86.html#L132'>uint64_t</a>          132 src/lib/arithmetic.c umod64 (uint64_t n, uint64_t d)
+<a href='../S/86.html#L142'>uint64_t</a>          142 src/lib/arithmetic.c   uint64_t n_abs = n &gt;= 0 ? (uint64_t) n : -(uint64_t) n;
+<a href='../S/86.html#L143'>uint64_t</a>          143 src/lib/arithmetic.c   uint64_t d_abs = d &gt;= 0 ? (uint64_t) d : -(uint64_t) d;
+<a href='../S/86.html#L144'>uint64_t</a>          144 src/lib/arithmetic.c   uint64_t q_abs = udiv64 (n_abs, d_abs);
+<a href='../S/87.html#L43'>uint64_t</a>           43 src/lib/stdint.h typedef uint64_t uintmax_t;
+<a href='../S/115.html#L642'>uint64_t</a>          642 src/lib/stdio.c print_human_readable_size (uint64_t size) 
+<a href='../S/84.html#L28'>uint64_t</a>           28 src/lib/stdio.h void print_human_readable_size (uint64_t sz);
+<a href='../S/168.html#L28'>uint64_t</a>           28 src/threads/interrupt.c static uint64_t idt[INTR_CNT];
+<a href='../S/168.html#L55'>uint64_t</a>           55 src/threads/interrupt.c static uint64_t make_intr_gate (void (*) (void), int dpl);
+<a href='../S/168.html#L56'>uint64_t</a>           56 src/threads/interrupt.c static uint64_t make_trap_gate (void (*) (void), int dpl);
+<a href='../S/168.html#L57'>uint64_t</a>           57 src/threads/interrupt.c static inline uint64_t make_idtr_operand (uint16_t limit, void *base);
+<a href='../S/168.html#L120'>uint64_t</a>          120 src/threads/interrupt.c   uint64_t idtr_operand;
+<a href='../S/168.html#L293'>uint64_t</a>          293 src/threads/interrupt.c static uint64_t
+<a href='../S/168.html#L311'>uint64_t</a>          311 src/threads/interrupt.c   return e0 | ((uint64_t) e1 &lt;&lt; 32);
+<a href='../S/168.html#L316'>uint64_t</a>          316 src/threads/interrupt.c static uint64_t
+<a href='../S/168.html#L324'>uint64_t</a>          324 src/threads/interrupt.c static uint64_t
+<a href='../S/168.html#L332'>uint64_t</a>          332 src/threads/interrupt.c static inline uint64_t
+<a href='../S/168.html#L335'>uint64_t</a>          335 src/threads/interrupt.c   return limit | ((uint64_t) (uint32_t) base &lt;&lt; 16);
+<a href='../S/65.html#L25'>uint64_t</a>           25 src/userprog/gdt.c static uint64_t gdt[SEL_CNT];
+<a href='../S/65.html#L28'>uint64_t</a>           28 src/userprog/gdt.c static uint64_t make_code_desc (int dpl);
+<a href='../S/65.html#L29'>uint64_t</a>           29 src/userprog/gdt.c static uint64_t make_data_desc (int dpl);
+<a href='../S/65.html#L30'>uint64_t</a>           30 src/userprog/gdt.c static uint64_t make_tss_desc (void *laddr);
+<a href='../S/65.html#L31'>uint64_t</a>           31 src/userprog/gdt.c static uint64_t make_gdtr_operand (uint16_t limit, void *base);
+<a href='../S/65.html#L38'>uint64_t</a>           38 src/userprog/gdt.c   uint64_t gdtr_operand;
+<a href='../S/65.html#L81'>uint64_t</a>           81 src/userprog/gdt.c static uint64_t
+<a href='../S/65.html#L110'>uint64_t</a>          110 src/userprog/gdt.c   return e0 | ((uint64_t) e1 &lt;&lt; 32);
+<a href='../S/65.html#L115'>uint64_t</a>          115 src/userprog/gdt.c static uint64_t
+<a href='../S/65.html#L123'>uint64_t</a>          123 src/userprog/gdt.c static uint64_t
+<a href='../S/65.html#L133'>uint64_t</a>          133 src/userprog/gdt.c static uint64_t
+<a href='../S/65.html#L142'>uint64_t</a>          142 src/userprog/gdt.c static uint64_t
+<a href='../S/65.html#L145'>uint64_t</a>          145 src/userprog/gdt.c   return limit | ((uint64_t) (uint32_t) base &lt;&lt; 16);
+</pre>
+</body>
+</html>

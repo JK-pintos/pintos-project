@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>PGSIZE</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/26.html#L49'>PGSIZE</a>             49 src/filesys/fsutil.c       off_t n = file_read (file, buffer, PGSIZE);
+<a href='../S/109.html#L99'>PGSIZE</a>             99 src/lib/kernel/debug.c       if (t-&gt;stack == (uint8_t *)t + PGSIZE || saved_frame-&gt;eip == switch_entry)
+<a href='../S/156.html#L95'>PGSIZE</a>             95 src/threads/init.c           init_ram_pages * PGSIZE / 1024);
+<a href='../S/156.html#L168'>PGSIZE</a>            168 src/threads/init.c       uintptr_t paddr = page * PGSIZE;
+<a href='../S/161.html#L76'>PGSIZE</a>             76 src/threads/malloc.c   for (block_size = 16; block_size &lt; PGSIZE / 2; block_size *= 2)
+<a href='../S/161.html#L81'>PGSIZE</a>             81 src/threads/malloc.c       d-&gt;blocks_per_arena = (PGSIZE - sizeof (struct arena)) / block_size;
+<a href='../S/161.html#L109'>PGSIZE</a>            109 src/threads/malloc.c       size_t page_cnt = DIV_ROUND_UP (size + sizeof *a, PGSIZE);
+<a href='../S/161.html#L185'>PGSIZE</a>            185 src/threads/malloc.c   return d != NULL ? d-&gt;block_size : PGSIZE * a-&gt;free_cnt - pg_ofs (block);
+<a href='../S/160.html#L50'>PGSIZE</a>             50 src/threads/palloc.c   uint8_t *free_end = ptov (init_ram_pages * PGSIZE);
+<a href='../S/160.html#L51'>PGSIZE</a>             51 src/threads/palloc.c   size_t free_pages = (free_end - free_start) / PGSIZE;
+<a href='../S/160.html#L60'>PGSIZE</a>             60 src/threads/palloc.c   init_pool (&amp;user_pool, free_start + kernel_pages * PGSIZE,
+<a href='../S/160.html#L85'>PGSIZE</a>             85 src/threads/palloc.c     pages = pool-&gt;base + PGSIZE * page_idx;
+<a href='../S/160.html#L92'>PGSIZE</a>             92 src/threads/palloc.c         memset (pages, 0, PGSIZE * page_cnt);
+<a href='../S/160.html#L137'>PGSIZE</a>            137 src/threads/palloc.c   memset (pages, 0xcc, PGSIZE * page_cnt);
+<a href='../S/160.html#L159'>PGSIZE</a>            159 src/threads/palloc.c   size_t bm_pages = DIV_ROUND_UP (bitmap_buf_size (page_cnt), PGSIZE);
+<a href='../S/160.html#L168'>PGSIZE</a>            168 src/threads/palloc.c   p-&gt;used_map = bitmap_create_in_buf (page_cnt, base, bm_pages * PGSIZE);
+<a href='../S/160.html#L169'>PGSIZE</a>            169 src/threads/palloc.c   p-&gt;base = base + bm_pages * PGSIZE;
+<a href='../S/163.html#L469'>PGSIZE</a>            469 src/threads/thread.c   t-&gt;stack = (uint8_t *) t + PGSIZE;
+<a href='../S/153.html#L35'>PGSIZE</a>             35 src/threads/vaddr.h   return (void *) (((uintptr_t) va + PGSIZE - 1) &amp; ~PGMASK);
+<a href='../S/75.html#L21'>PGSIZE</a>             21 src/userprog/pagedir.c     memcpy (pd, init_page_dir, PGSIZE);
+<a href='../S/75.html#L42'>PGSIZE</a>             42 src/userprog/pagedir.c         for (pte = pt; pte &lt; pt + PGSIZE / sizeof *pte; pte++)
+<a href='../S/66.html#L39'>PGSIZE</a>             39 src/userprog/process.c   strlcpy (fn_copy, file_name, PGSIZE);
+<a href='../S/66.html#L284'>PGSIZE</a>            284 src/userprog/process.c                   zero_bytes = (ROUND_UP (page_offset + phdr.p_memsz, PGSIZE)
+<a href='../S/66.html#L292'>PGSIZE</a>            292 src/userprog/process.c                   zero_bytes = ROUND_UP (page_offset + phdr.p_memsz, PGSIZE);
+<a href='../S/66.html#L361'>PGSIZE</a>            361 src/userprog/process.c   if (phdr-&gt;p_vaddr &lt; PGSIZE)
+<a href='../S/66.html#L386'>PGSIZE</a>            386 src/userprog/process.c   ASSERT ((read_bytes + zero_bytes) % PGSIZE == 0);
+<a href='../S/66.html#L388'>PGSIZE</a>            388 src/userprog/process.c   ASSERT (ofs % PGSIZE == 0);
+<a href='../S/66.html#L396'>PGSIZE</a>            396 src/userprog/process.c       size_t page_read_bytes = read_bytes &lt; PGSIZE ? read_bytes : PGSIZE;
+<a href='../S/66.html#L397'>PGSIZE</a>            397 src/userprog/process.c       size_t page_zero_bytes = PGSIZE - page_read_bytes;
+<a href='../S/66.html#L422'>PGSIZE</a>            422 src/userprog/process.c       upage += PGSIZE;
+<a href='../S/66.html#L438'>PGSIZE</a>            438 src/userprog/process.c       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
+<a href='../S/72.html#L105'>PGSIZE</a>            105 src/userprog/tss.c   tss-&gt;esp0 = (uint8_t *) thread_current () + PGSIZE;
+</pre>
+</body>
+</html>

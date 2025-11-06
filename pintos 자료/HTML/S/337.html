@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-exit.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-exit.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Executes child-mm-wrt and verifies that the writes that should</font></i>
+<a name='L2'>   2 <i><font color='green'>   have occurred really did. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> child;
+<a name='L13'>  13 
+<a name='L14'>  14   <i><font color='green'>/* Make child write file. */</font></i>
+<a name='L15'>  15   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L16'>  16   CHECK ((child = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> ("child-mm-wrt")) != -1, "exec \"child-mm-wrt\"");
+<a name='L17'>  17   CHECK (<a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (child) == 0, "wait for child (should return 0)");
+<a name='L18'>  18   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L19'>  19 
+<a name='L20'>  20   <i><font color='green'>/* Check file contents. */</font></i>
+<a name='L21'>  21   <a href='../S/591.html#L151' title='Defined at 151 in src/tests/lib.c.'>check_file</a> ("sample.txt", sample, <b>sizeof</b> sample);
+<a name='L22'>  22 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

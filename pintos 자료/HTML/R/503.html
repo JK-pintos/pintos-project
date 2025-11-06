@@ -1,0 +1,36 @@
+<html>
+<head>
+<title>inb</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/123.html#L187'>inb</a>               187 src/devices/ide.c       present[dev_no] = (inb (reg_nsect (c)) == 0x55
+<a href='../S/123.html#L188'>inb</a>               188 src/devices/ide.c                          &amp;&amp; inb (reg_lbal (c)) == 0xaa);
+<a href='../S/123.html#L216'>inb</a>               216 src/devices/ide.c           if (inb (reg_nsect (c)) == 1 &amp;&amp; inb (reg_lbal (c)) == 1)
+<a href='../S/123.html#L237'>inb</a>               237 src/devices/ide.c   error = inb (reg_error (c));
+<a href='../S/123.html#L238'>inb</a>               238 src/devices/ide.c   lbam = inb (reg_lbam (c));
+<a href='../S/123.html#L239'>inb</a>               239 src/devices/ide.c   lbah = inb (reg_lbah (c));
+<a href='../S/123.html#L240'>inb</a>               240 src/devices/ide.c   status = inb (reg_status (c));
+<a href='../S/123.html#L447'>inb</a>               447 src/devices/ide.c       if ((inb (reg_status (d-&gt;channel)) &amp; (STA_BSY | STA_DRQ)) == 0)
+<a href='../S/123.html#L469'>inb</a>               469 src/devices/ide.c       if (!(inb (reg_alt_status (c)) &amp; STA_BSY)) 
+<a href='../S/123.html#L473'>inb</a>               473 src/devices/ide.c           return (inb (reg_alt_status (c)) &amp; STA_DRQ) != 0;
+<a href='../S/123.html#L491'>inb</a>               491 src/devices/ide.c   inb (reg_alt_status (c));
+<a href='../S/123.html#L516'>inb</a>               516 src/devices/ide.c             inb (reg_status (c));               /* Acknowledge interrupt. */
+<a href='../S/122.html#L113'>inb</a>               113 src/devices/kbd.c   code = inb (DATA_REG);
+<a href='../S/122.html#L115'>inb</a>               115 src/devices/kbd.c     code = (code &lt;&lt; 8) | inb (DATA_REG);
+<a href='../S/126.html#L111'>inb</a>               111 src/devices/rtc.c   return inb (CMOS_REG_IO);
+<a href='../S/142.html#L203'>inb</a>               203 src/devices/serial.c   while ((inb (LSR_REG) &amp; LSR_THRE) == 0)
+<a href='../S/142.html#L214'>inb</a>               214 src/devices/serial.c   inb (IIR_REG);
+<a href='../S/142.html#L218'>inb</a>               218 src/devices/serial.c   while (!input_full () &amp;&amp; (inb (LSR_REG) &amp; LSR_DR) != 0)
+<a href='../S/142.html#L219'>inb</a>               219 src/devices/serial.c     input_putc (inb (RBR_REG));
+<a href='../S/142.html#L223'>inb</a>               223 src/devices/serial.c   while (!intq_empty (&amp;txq) &amp;&amp; (inb (LSR_REG) &amp; LSR_THRE) != 0) 
+<a href='../S/136.html#L71'>inb</a>                71 src/devices/shutdown.c           if ((inb (CONTROL_REG) &amp; 0x02) == 0)
+<a href='../S/143.html#L25'>inb</a>                25 src/devices/speaker.c       outb (SPEAKER_PORT_GATE, inb (SPEAKER_PORT_GATE) | SPEAKER_GATE_ENABLE);
+<a href='../S/143.html#L42'>inb</a>                42 src/devices/speaker.c   outb (SPEAKER_PORT_GATE, inb (SPEAKER_PORT_GATE) &amp; ~SPEAKER_GATE_ENABLE);
+<a href='../S/131.html#L165'>inb</a>               165 src/devices/vga.c   cp = inb (0x3d5) &lt;&lt; 8;
+<a href='../S/131.html#L168'>inb</a>               168 src/devices/vga.c   cp |= inb (0x3d5);
+</pre>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<html>
+<head>
+<title>locks</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/548.html#L48'>locks</a>              48 src/tests/threads/priority-donate-chain.c   struct lock locks[NESTING_DEPTH - 1];
+<a href='../S/548.html#L57'>locks</a>              57 src/tests/threads/priority-donate-chain.c     lock_init (&amp;locks[i]);
+<a href='../S/548.html#L59'>locks</a>              59 src/tests/threads/priority-donate-chain.c   lock_acquire (&amp;locks[0]);
+<a href='../S/548.html#L69'>locks</a>              69 src/tests/threads/priority-donate-chain.c       lock_pairs[i].first = i &lt; NESTING_DEPTH - 1 ? locks + i: NULL;
+<a href='../S/548.html#L70'>locks</a>              70 src/tests/threads/priority-donate-chain.c       lock_pairs[i].second = locks + i - 1;
+<a href='../S/548.html#L80'>locks</a>              80 src/tests/threads/priority-donate-chain.c   lock_release (&amp;locks[0]);
+<a href='../S/548.html#L88'>locks</a>              88 src/tests/threads/priority-donate-chain.c   struct lock_pair *locks = locks_;
+<a href='../S/548.html#L90'>locks</a>              90 src/tests/threads/priority-donate-chain.c   if (locks-&gt;first)
+<a href='../S/548.html#L91'>locks</a>              91 src/tests/threads/priority-donate-chain.c     lock_acquire (locks-&gt;first);
+<a href='../S/548.html#L93'>locks</a>              93 src/tests/threads/priority-donate-chain.c   lock_acquire (locks-&gt;second);
+<a href='../S/548.html#L96'>locks</a>              96 src/tests/threads/priority-donate-chain.c   lock_release (locks-&gt;second);
+<a href='../S/548.html#L101'>locks</a>             101 src/tests/threads/priority-donate-chain.c   if (locks-&gt;first)
+<a href='../S/548.html#L102'>locks</a>             102 src/tests/threads/priority-donate-chain.c     lock_release (locks-&gt;first);
+<a href='../S/533.html#L31'>locks</a>              31 src/tests/threads/priority-donate-nest.c   struct locks locks;
+<a href='../S/533.html#L44'>locks</a>              44 src/tests/threads/priority-donate-nest.c   locks.a = &amp;a;
+<a href='../S/533.html#L45'>locks</a>              45 src/tests/threads/priority-donate-nest.c   locks.b = &amp;b;
+<a href='../S/533.html#L46'>locks</a>              46 src/tests/threads/priority-donate-nest.c   thread_create ("medium", PRI_DEFAULT + 1, medium_thread_func, &amp;locks);
+<a href='../S/533.html#L66'>locks</a>              66 src/tests/threads/priority-donate-nest.c   struct locks *locks = locks_;
+<a href='../S/533.html#L68'>locks</a>              68 src/tests/threads/priority-donate-nest.c   lock_acquire (locks-&gt;b);
+<a href='../S/533.html#L69'>locks</a>              69 src/tests/threads/priority-donate-nest.c   lock_acquire (locks-&gt;a);
+<a href='../S/533.html#L75'>locks</a>              75 src/tests/threads/priority-donate-nest.c   lock_release (locks-&gt;a);
+<a href='../S/533.html#L78'>locks</a>              78 src/tests/threads/priority-donate-nest.c   lock_release (locks-&gt;b);
+</pre>
+</body>
+</html>

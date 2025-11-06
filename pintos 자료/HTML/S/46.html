@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>src/examples/bubsort.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/bubsort.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* sort.c </font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Test program to sort a large number of integers.</font></i>
+<a name='L4'>   4 <i><font color='green'> </font></i>
+<a name='L5'>   5 <i><font color='green'>   Intention is to stress virtual memory system.</font></i>
+<a name='L6'>   6 <i><font color='green'> </font></i>
+<a name='L7'>   7 <i><font color='green'>   Ideally, we could read the unsorted array off of the file</font></i>
+<a name='L8'>   8 <i><font color='green'>   system, and store the result back to the file system! */</font></i>
+<a name='L9'>   9 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Size of array to sort. */</font></i>
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/196.html' title='Multiple refered from 5 places.'>SORT_SIZE</a> 128
+<a name='L13'>  13 
+<a name='L14'>  14 <b>int</b>
+<a name='L15'>  15 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>void</b>)
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <i><font color='green'>/* Array to sort.  Static to reduce stack usage. */</font></i>
+<a name='L18'>  18   <b>static</b> <b>int</b> array[<a href='../S/46.html#L12' title='Defined at 12 in src/examples/bubsort.c.'>SORT_SIZE</a>];
+<a name='L19'>  19 
+<a name='L20'>  20   <b>int</b> i, j, tmp;
+<a name='L21'>  21 
+<a name='L22'>  22   <i><font color='green'>/* First initialize the array in descending order. */</font></i>
+<a name='L23'>  23   <b>for</b> (i = 0; i &lt; <a href='../S/46.html#L12' title='Defined at 12 in src/examples/bubsort.c.'>SORT_SIZE</a>; i++)
+<a name='L24'>  24     array[i] = <a href='../S/46.html#L12' title='Defined at 12 in src/examples/bubsort.c.'>SORT_SIZE</a> - i - 1;
+<a name='L25'>  25 
+<a name='L26'>  26   <i><font color='green'>/* Then sort in ascending order. */</font></i>
+<a name='L27'>  27   <b>for</b> (i = 0; i &lt; <a href='../S/46.html#L12' title='Defined at 12 in src/examples/bubsort.c.'>SORT_SIZE</a> - 1; i++)
+<a name='L28'>  28     <b>for</b> (j = 0; j &lt; <a href='../S/46.html#L12' title='Defined at 12 in src/examples/bubsort.c.'>SORT_SIZE</a> - 1 - i; j++)
+<a name='L29'>  29       <b>if</b> (array[j] &gt; array[j + 1])
+<a name='L30'>  30         <font color='red'>{</font>
+<a name='L31'>  31           tmp = array[j];
+<a name='L32'>  32           array[j] = array[j + 1];
+<a name='L33'>  33           array[j + 1] = tmp;
+<a name='L34'>  34         <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("sort exiting with code %d\n", array[0]);
+<a name='L37'>  37   <b>return</b> array[0];
+<a name='L38'>  38 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L15'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<html>
+<head>
+<title>src/userprog/tss.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/tss.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L80'>[^]</a><a href='#L102'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L80' title='Defined at 80.'>tss_init</a>
+<li><a href='#L93' title='Defined at 93.'>tss_get</a>
+<li><a href='#L102' title='Defined at 102.'>tss_update</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='69.html'>userprog/tss.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='70.html'>userprog/gdt.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='165.html'>threads/palloc.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <i><font color='green'>/* The Task-State Segment (TSS).</font></i>
+<a name='L10'>  10 <i><font color='green'></font></i>
+<a name='L11'>  11 <i><font color='green'>   Instances of the TSS, an x86-specific structure, are used to</font></i>
+<a name='L12'>  12 <i><font color='green'>   define "tasks", a form of support for multitasking built right</font></i>
+<a name='L13'>  13 <i><font color='green'>   into the processor.  However, for various reasons including</font></i>
+<a name='L14'>  14 <i><font color='green'>   portability, speed, and flexibility, most x86 OSes almost</font></i>
+<a name='L15'>  15 <i><font color='green'>   completely ignore the TSS.  We are no exception.</font></i>
+<a name='L16'>  16 <i><font color='green'></font></i>
+<a name='L17'>  17 <i><font color='green'>   Unfortunately, there is one thing that can only be done using</font></i>
+<a name='L18'>  18 <i><font color='green'>   a TSS: stack switching for interrupts that occur in user mode.</font></i>
+<a name='L19'>  19 <i><font color='green'>   When an interrupt occurs in user mode (ring 3), the processor</font></i>
+<a name='L20'>  20 <i><font color='green'>   consults the ss0 and esp0 members of the current TSS to</font></i>
+<a name='L21'>  21 <i><font color='green'>   determine the stack to use for handling the interrupt.  Thus,</font></i>
+<a name='L22'>  22 <i><font color='green'>   we must create a TSS and initialize at least these fields, and</font></i>
+<a name='L23'>  23 <i><font color='green'>   this is precisely what this file does.</font></i>
+<a name='L24'>  24 <i><font color='green'></font></i>
+<a name='L25'>  25 <i><font color='green'>   When an interrupt is handled by an interrupt or trap gate</font></i>
+<a name='L26'>  26 <i><font color='green'>   (which applies to all interrupts we handle), an x86 processor</font></i>
+<a name='L27'>  27 <i><font color='green'>   works like this:</font></i>
+<a name='L28'>  28 <i><font color='green'></font></i>
+<a name='L29'>  29 <i><font color='green'>     - If the code interrupted by the interrupt is in the same</font></i>
+<a name='L30'>  30 <i><font color='green'>       ring as the interrupt handler, then no stack switch takes</font></i>
+<a name='L31'>  31 <i><font color='green'>       place.  This is the case for interrupts that happen when</font></i>
+<a name='L32'>  32 <i><font color='green'>       we're running in the kernel.  The contents of the TSS are</font></i>
+<a name='L33'>  33 <i><font color='green'>       irrelevant for this case.</font></i>
+<a name='L34'>  34 <i><font color='green'></font></i>
+<a name='L35'>  35 <i><font color='green'>     - If the interrupted code is in a different ring from the</font></i>
+<a name='L36'>  36 <i><font color='green'>       handler, then the processor switches to the stack</font></i>
+<a name='L37'>  37 <i><font color='green'>       specified in the TSS for the new ring.  This is the case</font></i>
+<a name='L38'>  38 <i><font color='green'>       for interrupts that happen when we're in user space.  It's</font></i>
+<a name='L39'>  39 <i><font color='green'>       important that we switch to a stack that's not already in</font></i>
+<a name='L40'>  40 <i><font color='green'>       use, to avoid corruption.  Because we're running in user</font></i>
+<a name='L41'>  41 <i><font color='green'>       space, we know that the current process's kernel stack is</font></i>
+<a name='L42'>  42 <i><font color='green'>       not in use, so we can always use that.  Thus, when the</font></i>
+<a name='L43'>  43 <i><font color='green'>       scheduler switches threads, it also changes the TSS's</font></i>
+<a name='L44'>  44 <i><font color='green'>       stack pointer to point to the new thread's kernel stack.</font></i>
+<a name='L45'>  45 <i><font color='green'>       (The call is in thread_schedule_tail() in thread.c.)</font></i>
+<a name='L46'>  46 <i><font color='green'></font></i>
+<a name='L47'>  47 <i><font color='green'>   See [IA32-v3a] 6.2.1 "Task-State Segment (TSS)" for a</font></i>
+<a name='L48'>  48 <i><font color='green'>   description of the TSS.  See [IA32-v3a] 5.12.1 "Exception- or</font></i>
+<a name='L49'>  49 <i><font color='green'>   Interrupt-Handler Procedures" for a description of when and</font></i>
+<a name='L50'>  50 <i><font color='green'>   how stack switching occurs during an interrupt. */</font></i>
+<a name='L51'>  51 <b>struct</b> <a href='../R/929.html' title='Multiple refered from 11 places.'>tss</a>
+<a name='L52'>  52   <font color='red'>{</font>
+<a name='L53'>  53     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> back_link, :16;
+<a name='L54'>  54     <b>void</b> *esp0;                         <i><font color='green'>/* Ring 0 stack virtual address. */</font></i>
+<a name='L55'>  55     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> ss0, :16;                  <i><font color='green'>/* Ring 0 stack segment selector. */</font></i>
+<a name='L56'>  56     <b>void</b> *esp1;
+<a name='L57'>  57     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> ss1, :16;
+<a name='L58'>  58     <b>void</b> *esp2;
+<a name='L59'>  59     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> ss2, :16;
+<a name='L60'>  60     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> cr3;
+<a name='L61'>  61     <b>void</b> (*eip) (<b>void</b>);
+<a name='L62'>  62     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> eflags;
+<a name='L63'>  63     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> eax, ecx, edx, ebx;
+<a name='L64'>  64     <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> esp, ebp, esi, edi;
+<a name='L65'>  65     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> es, :16;
+<a name='L66'>  66     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> cs, :16;
+<a name='L67'>  67     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> ss, :16;
+<a name='L68'>  68     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> ds, :16;
+<a name='L69'>  69     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> fs, :16;
+<a name='L70'>  70     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> gs, :16;
+<a name='L71'>  71     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> ldt, :16;
+<a name='L72'>  72     <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> trace, <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a>;
+<a name='L73'>  73   <font color='red'>}</font>;
+<a name='L74'>  74 
+<a name='L75'>  75 <i><font color='green'>/* Kernel TSS. */</font></i>
+<a name='L76'>  76 <b>static</b> <b>struct</b> <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a> *<a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a>;
+<a name='L77'>  77 
+<a name='L78'>  78 <i><font color='green'>/* Initializes the kernel TSS. */</font></i>
+<a name='L79'>  79 <b>void</b>
+<a name='L80'>  80 <a href='../R/931.html' title='Multiple refered from 2 places.'>tss_init</a> (<b>void</b>) 
+<a name='L81'>  81 <font color='red'>{</font>
+<a name='L82'>  82   <i><font color='green'>/* Our TSS is never used in a call gate or task gate, so only a</font></i>
+<a name='L83'>  83 <i><font color='green'>     few fields of it are ever referenced, and those are the only</font></i>
+<a name='L84'>  84 <i><font color='green'>     ones we initialize. */</font></i>
+<a name='L85'>  85   <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a> = <a href='../S/160.html#L111' title='Defined at 111 in src/threads/palloc.c.'>palloc_get_page</a> (PAL_ASSERT | PAL_ZERO);
+<a name='L86'>  86   <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a>-&gt;ss0 = <a href='../S/152.html#L31' title='Defined at 31 in src/threads/loader.h.'>SEL_KDSEG</a>;
+<a name='L87'>  87   <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a>-&gt;<a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> = 0xdfff;
+<a name='L88'>  88   <a href='../S/72.html#L102' title='Defined at 102 in src/userprog/tss.c.'>tss_update</a> ();
+<a name='L89'>  89 <font color='red'>}</font>
+<a name='L90'>  90 
+<a name='L91'>  91 <i><font color='green'>/* Returns the kernel TSS. */</font></i>
+<a name='L92'>  92 <b>struct</b> <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a> *
+<a name='L93'>  93 <a href='../R/930.html' title='Multiple refered from 2 places.'>tss_get</a> (<b>void</b>) 
+<a name='L94'>  94 <font color='red'>{</font>
+<a name='L95'>  95   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L96'>  96   <b>return</b> <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a>;
+<a name='L97'>  97 <font color='red'>}</font>
+<a name='L98'>  98 
+<a name='L99'>  99 <i><font color='green'>/* Sets the ring 0 stack pointer in the TSS to point to the end</font></i>
+<a name='L100'> 100 <i><font color='green'>   of the thread stack. */</font></i>
+<a name='L101'> 101 <b>void</b>
+<a name='L102'> 102 <a href='../R/932.html' title='Multiple refered from 3 places.'>tss_update</a> (<b>void</b>) 
+<a name='L103'> 103 <font color='red'>{</font>
+<a name='L104'> 104   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L105'> 105   <a href='../S/72.html#L51' title='Defined at 51 in src/userprog/tss.c.'>tss</a>-&gt;esp0 = (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *) <a href='../S/163.html#L264' title='Defined at 264 in src/threads/thread.c.'>thread_current</a> () + <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>;
+<a name='L106'> 106 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L80'>[^]</a><a href='#L102'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

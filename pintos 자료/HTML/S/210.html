@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>src/tests/filesys/base/syn-read.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/604.html'>base</a>/syn-read.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L17'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L17' title='Defined at 17.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Spawns 10 child processes, all of which read from the same</font></i>
+<a name='L2'>   2 <i><font color='green'>   file and make sure that the contents are what they should</font></i>
+<a name='L3'>   3 <i><font color='green'>   be. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='187.html'>tests/filesys/base/syn-read.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <b>static</b> <b>char</b> buf[<a href='../D/9.html' title='Multiple defined in 3 places.'>BUF_SIZE</a>];
+<a name='L13'>  13 
+<a name='L14'>  14 <font color='darkred'>#define</font> <a href='../R/11.html' title='Multiple refered from 13 places.'>CHILD_CNT</a> 10
+<a name='L15'>  15 
+<a name='L16'>  16 <b>void</b>
+<a name='L17'>  17 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L18'>  18 <font color='red'>{</font>
+<a name='L19'>  19   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> children[<a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>];
+<a name='L20'>  20   <b>int</b> fd;
+<a name='L21'>  21 
+<a name='L22'>  22   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (file_name, <b>sizeof</b> buf), "create \"%s\"", file_name);
+<a name='L23'>  23   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a name='L24'>  24   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (buf, <b>sizeof</b> buf);
+<a name='L25'>  25   CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, buf, <b>sizeof</b> buf) &gt; 0, "write \"%s\"", file_name);
+<a name='L26'>  26   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"%s\"", file_name);
+<a name='L27'>  27   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L28'>  28 
+<a name='L29'>  29   <a href='../S/591.html#L80' title='Defined at 80 in src/tests/lib.c.'>exec_children</a> ("child-syn-read", children, <a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>);
+<a name='L30'>  30   <a href='../S/591.html#L94' title='Defined at 94 in src/tests/lib.c.'>wait_children</a> (children, <a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>);
+<a name='L31'>  31 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L17'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

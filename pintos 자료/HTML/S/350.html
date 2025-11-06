@@ -1,0 +1,164 @@
+<html>
+<head>
+<title>src/tests/vm/page-merge-seq.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/page-merge-seq.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L24'>[^]</a><a href='#L131'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L24' title='Defined at 24.'>init</a>
+<li><a href='#L39' title='Defined at 39.'>sort_chunks</a>
+<li><a href='#L73' title='Defined at 73.'>merge</a>
+<li><a href='#L108' title='Defined at 108.'>verify</a>
+<li><a href='#L131' title='Defined at 131.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Generates about 1 MB of random data that is then divided into</font></i>
+<a name='L2'>   2 <i><font color='green'>   16 chunks.  A separate subprocess sorts each chunk in</font></i>
+<a name='L3'>   3 <i><font color='green'>   sequence.  Then we merge the chunks and verify that the result</font></i>
+<a name='L4'>   4 <i><font color='green'>   is what it should be. */</font></i>
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* This is the max file size for an older version of the Pintos</font></i>
+<a name='L12'>  12 <i><font color='green'>   file system that had 126 direct blocks each pointing to a</font></i>
+<a name='L13'>  13 <i><font color='green'>   single disk sector.  We could raise it now. */</font></i>
+<a name='L14'>  14 <font color='darkred'>#define</font> <a href='../R/13.html' title='Multiple refered from 19 places.'>CHUNK_SIZE</a> (126 * 512)
+<a name='L15'>  15 <font color='darkred'>#define</font> <a href='../R/12.html' title='Multiple refered from 13 places.'>CHUNK_CNT</a> 16                            <i><font color='green'>/* Number of chunks. */</font></i>
+<a name='L16'>  16 <font color='darkred'>#define</font> <a href='../R/24.html' title='Multiple refered from 2 places.'>DATA_SIZE</a> (<a href='../D/15.html' title='Multiple defined in 3 places.'>CHUNK_CNT</a> * <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>)      <i><font color='green'>/* Buffer size. */</font></i>
+<a name='L17'>  17 
+<a name='L18'>  18 <b>unsigned</b> <b>char</b> buf1[<a href='../D/31.html' title='Multiple defined in 2 places.'>DATA_SIZE</a>], buf2[<a href='../D/31.html' title='Multiple defined in 2 places.'>DATA_SIZE</a>];
+<a name='L19'>  19 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> histogram[256];
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Initialize buf1 with random data,</font></i>
+<a name='L22'>  22 <i><font color='green'>   then count the number of instances of each value within it. */</font></i>
+<a name='L23'>  23 <b>static</b> <b>void</b>
+<a name='L24'>  24 <a href='../R/504.html' title='Multiple refered from 3 places.'>init</a> (<b>void</b>) 
+<a name='L25'>  25 <font color='red'>{</font>
+<a name='L26'>  26   <b>struct</b> <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a> <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>;
+<a name='L27'>  27   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L28'>  28 
+<a name='L29'>  29   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("init");
+<a name='L30'>  30 
+<a name='L31'>  31   <a href='../S/389.html#L14' title='Defined at 14 in src/tests/arc4.c.'>arc4_init</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, "foobar", 6);
+<a name='L32'>  32   <a href='../S/389.html#L35' title='Defined at 35 in src/tests/arc4.c.'>arc4_crypt</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, buf1, <b>sizeof</b> buf1);
+<a name='L33'>  33   <b>for</b> (i = 0; i &lt; <b>sizeof</b> buf1; i++)
+<a name='L34'>  34     histogram[buf1[i]]++;
+<a name='L35'>  35 <font color='red'>}</font>
+<a name='L36'>  36 
+<a name='L37'>  37 <i><font color='green'>/* Sort each chunk of buf1 using a subprocess. */</font></i>
+<a name='L38'>  38 <b>static</b> <b>void</b>
+<a name='L39'>  39 <a href='../R/822.html' title='Multiple refered from 2 places.'>sort_chunks</a> (<b>void</b>)
+<a name='L40'>  40 <font color='red'>{</font>
+<a name='L41'>  41   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L42'>  42 
+<a name='L43'>  43   <a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("buffer", <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>);
+<a name='L44'>  44   <b>for</b> (i = 0; i &lt; <a href='../D/15.html' title='Multiple defined in 3 places.'>CHUNK_CNT</a>; i++) 
+<a name='L45'>  45     <font color='red'>{</font>
+<a name='L46'>  46       <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> child;
+<a name='L47'>  47       <b>int</b> handle;
+<a name='L48'>  48 
+<a name='L49'>  49       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("sort chunk %zu", i);
+<a name='L50'>  50 
+<a name='L51'>  51       <i><font color='green'>/* Write this chunk to a file. */</font></i>
+<a name='L52'>  52       quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L53'>  53       CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("buffer")) &gt; 1, "open \"buffer\"");
+<a name='L54'>  54       <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, buf1 + <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a> * i, <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>);
+<a name='L55'>  55       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L56'>  56 
+<a name='L57'>  57       <i><font color='green'>/* Sort with subprocess. */</font></i>
+<a name='L58'>  58       CHECK ((child = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> ("child-sort buffer")) != -1,
+<a name='L59'>  59              "exec \"child-sort buffer\"");
+<a name='L60'>  60       CHECK (<a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (child) == 123, "wait for child-sort");
+<a name='L61'>  61 
+<a name='L62'>  62       <i><font color='green'>/* Read chunk back from file. */</font></i>
+<a name='L63'>  63       CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("buffer")) &gt; 1, "open \"buffer\"");
+<a name='L64'>  64       <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (handle, buf1 + <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a> * i, <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>);
+<a name='L65'>  65       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L66'>  66 
+<a name='L67'>  67       quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L68'>  68     <font color='red'>}</font>
+<a name='L69'>  69 <font color='red'>}</font>
+<a name='L70'>  70 
+<a name='L71'>  71 <i><font color='green'>/* Merge the sorted chunks in buf1 into a fully sorted buf2. */</font></i>
+<a name='L72'>  72 <b>static</b> <b>void</b>
+<a name='L73'>  73 <a href='../R/662.html' title='Multiple refered from 2 places.'>merge</a> (<b>void</b>) 
+<a name='L74'>  74 <font color='red'>{</font>
+<a name='L75'>  75   <b>unsigned</b> <b>char</b> *mp[<a href='../D/15.html' title='Multiple defined in 3 places.'>CHUNK_CNT</a>];
+<a name='L76'>  76   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> mp_left;
+<a name='L77'>  77   <b>unsigned</b> <b>char</b> *op;
+<a name='L78'>  78   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L79'>  79 
+<a name='L80'>  80   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("merge");
+<a name='L81'>  81 
+<a name='L82'>  82   <i><font color='green'>/* Initialize merge pointers. */</font></i>
+<a name='L83'>  83   mp_left = <a href='../D/15.html' title='Multiple defined in 3 places.'>CHUNK_CNT</a>;
+<a name='L84'>  84   <b>for</b> (i = 0; i &lt; <a href='../D/15.html' title='Multiple defined in 3 places.'>CHUNK_CNT</a>; i++)
+<a name='L85'>  85     mp[i] = buf1 + <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a> * i;
+<a name='L86'>  86 
+<a name='L87'>  87   <i><font color='green'>/* Merge. */</font></i>
+<a name='L88'>  88   op = buf2;
+<a name='L89'>  89   <b>while</b> (mp_left &gt; 0) 
+<a name='L90'>  90     <font color='red'>{</font>
+<a name='L91'>  91       <i><font color='green'>/* Find smallest value. */</font></i>
+<a name='L92'>  92       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> min = 0;
+<a name='L93'>  93       <b>for</b> (i = 1; i &lt; mp_left; i++)
+<a name='L94'>  94         <b>if</b> (*mp[i] &lt; *mp[min])
+<a name='L95'>  95           min = i;
+<a name='L96'>  96 
+<a name='L97'>  97       <i><font color='green'>/* Append value to buf2. */</font></i>
+<a name='L98'>  98       *op++ = *mp[min];
+<a name='L99'>  99 
+<a name='L100'> 100       <i><font color='green'>/* Advance merge pointer.</font></i>
+<a name='L101'> 101 <i><font color='green'>         Delete this chunk from the set if it's emptied. */</font></i> 
+<a name='L102'> 102       <b>if</b> ((++mp[min] - buf1) % <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a> == 0)
+<a name='L103'> 103         mp[min] = mp[--mp_left]; 
+<a name='L104'> 104     <font color='red'>}</font>
+<a name='L105'> 105 <font color='red'>}</font>
+<a name='L106'> 106 
+<a name='L107'> 107 <b>static</b> <b>void</b>
+<a name='L108'> 108 <a href='../R/955.html' title='Multiple refered from 2 places.'>verify</a> (<b>void</b>) 
+<a name='L109'> 109 <font color='red'>{</font>
+<a name='L110'> 110   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> buf_idx;
+<a name='L111'> 111   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> hist_idx;
+<a name='L112'> 112 
+<a name='L113'> 113   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("verify");
+<a name='L114'> 114 
+<a name='L115'> 115   buf_idx = 0;
+<a name='L116'> 116   <b>for</b> (hist_idx = 0; hist_idx &lt; <b>sizeof</b> histogram / <b>sizeof</b> *histogram;
+<a name='L117'> 117        hist_idx++)
+<a name='L118'> 118     <font color='red'>{</font>
+<a name='L119'> 119       <b>while</b> (histogram[hist_idx]-- &gt; 0) 
+<a name='L120'> 120         <font color='red'>{</font>
+<a name='L121'> 121           <b>if</b> (buf2[buf_idx] != hist_idx)
+<a name='L122'> 122             <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("bad value %d in byte %zu", buf2[buf_idx], buf_idx);
+<a name='L123'> 123           buf_idx++;
+<a name='L124'> 124         <font color='red'>}</font> 
+<a name='L125'> 125     <font color='red'>}</font>
+<a name='L126'> 126 
+<a name='L127'> 127   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("success, buf_idx=%'zu", buf_idx);
+<a name='L128'> 128 <font color='red'>}</font>
+<a name='L129'> 129 
+<a name='L130'> 130 <b>void</b>
+<a name='L131'> 131 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L132'> 132 <font color='red'>{</font>
+<a name='L133'> 133   <a href='../D/593.html' title='Multiple defined in 3 places.'>init</a> ();
+<a name='L134'> 134   <a href='../D/932.html' title='Multiple defined in 2 places.'>sort_chunks</a> ();
+<a name='L135'> 135   <a href='../D/764.html' title='Multiple defined in 2 places.'>merge</a> ();
+<a name='L136'> 136   <a href='../D/1070.html' title='Multiple defined in 2 places.'>verify</a> ();
+<a name='L137'> 137 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L24'>[^]</a><a href='#L131'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

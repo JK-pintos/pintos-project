@@ -1,0 +1,164 @@
+<html>
+<head>
+<title>src/tests/vm/qsort.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/qsort.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L8'>[^]</a><a href='#L114'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L8' title='Defined at 8.'>pick_pivot</a>
+<li><a href='#L19' title='Defined at 19.'>is_partitioned</a>
+<li><a href='#L37' title='Defined at 37.'>swap</a>
+<li><a href='#L48' title='Defined at 48.'>partition</a>
+<li><a href='#L100' title='Defined at 100.'>is_sorted</a>
+<li><a href='#L114' title='Defined at 114.'>qsort_bytes</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='374.html'>tests/vm/qsort.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* Picks a pivot for the quicksort from the SIZE bytes in BUF. */</font></i>
+<a name='L7'>   7 <b>static</b> <b>unsigned</b> <b>char</b>
+<a name='L8'>   8 <a href='../S/360.html#L118' title='Refered from 118 in src/tests/vm/qsort.c.'>pick_pivot</a> (<b>unsigned</b> <b>char</b> *buf, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L9'>   9 <font color='red'>{</font>
+<a name='L10'>  10   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (size &gt;= 1);
+<a name='L11'>  11   <b>return</b> buf[<a href='../S/85.html#L78' title='Defined at 78 in src/lib/random.c.'>random_ulong</a> () % size];
+<a name='L12'>  12 <font color='red'>}</font>
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Checks whether the SIZE bytes in ARRAY are divided into an</font></i>
+<a name='L15'>  15 <i><font color='green'>   initial LEFT_SIZE elements all less than PIVOT followed by</font></i>
+<a name='L16'>  16 <i><font color='green'>   SIZE - LEFT_SIZE elements all greater than or equal to</font></i>
+<a name='L17'>  17 <i><font color='green'>   PIVOT. */</font></i>
+<a name='L18'>  18 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L19'>  19 <a href='../R/565.html' title='Multiple refered from 2 places.'>is_partitioned</a> (<b>const</b> <b>unsigned</b> <b>char</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L20'>  20                 <b>unsigned</b> <b>char</b> pivot, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> left_size) 
+<a name='L21'>  21 <font color='red'>{</font>
+<a name='L22'>  22   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L23'>  23   
+<a name='L24'>  24   <b>for</b> (i = 0; i &lt; left_size; i++)
+<a name='L25'>  25     <b>if</b> (array[i] &gt;= pivot)
+<a name='L26'>  26       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L27'>  27 
+<a name='L28'>  28   <b>for</b> (; i &lt; size; i++)
+<a name='L29'>  29     <b>if</b> (array[i] &lt; pivot)
+<a name='L30'>  30       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L31'>  31 
+<a name='L32'>  32   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L33'>  33 <font color='red'>}</font>
+<a name='L34'>  34 
+<a name='L35'>  35 <i><font color='green'>/* Swaps the bytes at *A and *B. */</font></i>
+<a name='L36'>  36 <b>static</b> <b>void</b>
+<a name='L37'>  37 <a href='../R/844.html' title='Multiple refered from 5 places.'>swap</a> (<b>unsigned</b> <b>char</b> *a, <b>unsigned</b> <b>char</b> *b) 
+<a name='L38'>  38 <font color='red'>{</font>
+<a name='L39'>  39   <b>unsigned</b> <b>char</b> t = *a;
+<a name='L40'>  40   *a = *b;
+<a name='L41'>  41   *b = t;
+<a name='L42'>  42 <font color='red'>}</font>
+<a name='L43'>  43 
+<a name='L44'>  44 <i><font color='green'>/* Partitions ARRAY in-place in an initial run of bytes all less</font></i>
+<a name='L45'>  45 <i><font color='green'>   than PIVOT, followed by a run of bytes all greater than or</font></i>
+<a name='L46'>  46 <i><font color='green'>   equal to PIVOT.  Returns the length of the initial run. */</font></i>
+<a name='L47'>  47 <b>static</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L48'>  48 <a href='../R/702.html' title='Multiple refered from 4 places.'>partition</a> (<b>unsigned</b> <b>char</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, <b>int</b> pivot) 
+<a name='L49'>  49 <font color='red'>{</font>
+<a name='L50'>  50   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> left_size = size;
+<a name='L51'>  51   <b>unsigned</b> <b>char</b> *first = array;
+<a name='L52'>  52   <b>unsigned</b> <b>char</b> *last = first + left_size;
+<a name='L53'>  53 
+<a name='L54'>  54   <b>for</b> (;;)
+<a name='L55'>  55     <font color='red'>{</font>
+<a name='L56'>  56       <i><font color='green'>/* Move FIRST forward to point to first element greater than</font></i>
+<a name='L57'>  57 <i><font color='green'>         PIVOT. */</font></i>
+<a name='L58'>  58       <b>for</b> (;;)
+<a name='L59'>  59         <font color='red'>{</font>
+<a name='L60'>  60           <b>if</b> (first == last)
+<a name='L61'>  61             <font color='red'>{</font>
+<a name='L62'>  62               <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/360.html#L19' title='Defined at 19 in src/tests/vm/qsort.c.'>is_partitioned</a> (array, size, pivot, left_size));
+<a name='L63'>  63               <b>return</b> left_size;
+<a name='L64'>  64             <font color='red'>}</font>
+<a name='L65'>  65           <b>else</b> <b>if</b> (*first &gt;= pivot)
+<a name='L66'>  66             <b>break</b>;
+<a name='L67'>  67 
+<a name='L68'>  68           first++;
+<a name='L69'>  69         <font color='red'>}</font>
+<a name='L70'>  70       left_size--;
+<a name='L71'>  71 
+<a name='L72'>  72       <i><font color='green'>/* Move LAST backward to point to last element no bigger</font></i>
+<a name='L73'>  73 <i><font color='green'>         than PIVOT. */</font></i>
+<a name='L74'>  74       <b>for</b> (;;)
+<a name='L75'>  75         <font color='red'>{</font>
+<a name='L76'>  76           last--;
+<a name='L77'>  77 
+<a name='L78'>  78           <b>if</b> (first == last)
+<a name='L79'>  79             <font color='red'>{</font>
+<a name='L80'>  80               <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/360.html#L19' title='Defined at 19 in src/tests/vm/qsort.c.'>is_partitioned</a> (array, size, pivot, left_size));
+<a name='L81'>  81               <b>return</b> left_size;
+<a name='L82'>  82             <font color='red'>}</font>
+<a name='L83'>  83           <b>else</b> <b>if</b> (*last &lt; pivot)
+<a name='L84'>  84             <b>break</b>;
+<a name='L85'>  85           <b>else</b>
+<a name='L86'>  86             left_size--;
+<a name='L87'>  87         <font color='red'>}</font>
+<a name='L88'>  88 
+<a name='L89'>  89       <i><font color='green'>/* By swapping FIRST and LAST we extend the starting and</font></i>
+<a name='L90'>  90 <i><font color='green'>         ending sequences that pass and fail, respectively,</font></i>
+<a name='L91'>  91 <i><font color='green'>         PREDICATE. */</font></i>
+<a name='L92'>  92       <a href='../D/957.html' title='Multiple defined in 3 places.'>swap</a> (first, last);
+<a name='L93'>  93       first++;
+<a name='L94'>  94     <font color='red'>}</font>
+<a name='L95'>  95 <font color='red'>}</font>
+<a name='L96'>  96 
+<a name='L97'>  97 <i><font color='green'>/* Returns true if the SIZE bytes in BUF are in nondecreasing</font></i>
+<a name='L98'>  98 <i><font color='green'>   order, false otherwise. */</font></i>
+<a name='L99'>  99 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L100'> 100 <a href='../R/567.html' title='Multiple refered from 4 places.'>is_sorted</a> (<b>const</b> <b>unsigned</b> <b>char</b> *buf, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L101'> 101 <font color='red'>{</font>
+<a name='L102'> 102   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L103'> 103 
+<a name='L104'> 104   <b>for</b> (i = 1; i &lt; size; i++)
+<a name='L105'> 105     <b>if</b> (buf[i - 1] &gt; buf[i])
+<a name='L106'> 106       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L107'> 107 
+<a name='L108'> 108   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L109'> 109 <font color='red'>}</font>
+<a name='L110'> 110 
+<a name='L111'> 111 <i><font color='green'>/* Sorts the SIZE bytes in BUF into nondecreasing order, using</font></i>
+<a name='L112'> 112 <i><font color='green'>   the quick-sort algorithm. */</font></i>
+<a name='L113'> 113 <b>void</b>
+<a name='L114'> 114 <a href='../R/746.html' title='Multiple refered from 7 places.'>qsort_bytes</a> (<b>unsigned</b> <b>char</b> *buf, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L115'> 115 <font color='red'>{</font>
+<a name='L116'> 116   <b>if</b> (!<a href='../D/663.html' title='Multiple defined in 3 places.'>is_sorted</a> (buf, size)) 
+<a name='L117'> 117     <font color='red'>{</font>
+<a name='L118'> 118       <b>int</b> pivot = <a href='../S/360.html#L8' title='Defined at 8 in src/tests/vm/qsort.c.'>pick_pivot</a> (buf, size);
+<a name='L119'> 119 
+<a name='L120'> 120       <b>unsigned</b> <b>char</b> *left_half = buf;
+<a name='L121'> 121       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> left_size = <a href='../D/808.html' title='Multiple defined in 2 places.'>partition</a> (buf, size, pivot);
+<a name='L122'> 122       <b>unsigned</b> <b>char</b> *right_half = left_half + left_size;
+<a name='L123'> 123       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> right_size = size - left_size;
+<a name='L124'> 124   
+<a name='L125'> 125       <b>if</b> (left_size &lt;= right_size) 
+<a name='L126'> 126         <font color='red'>{</font>
+<a name='L127'> 127           <a href='../S/360.html#L114' title='Defined at 114 in src/tests/vm/qsort.c.'>qsort_bytes</a> (left_half, left_size);
+<a name='L128'> 128           <a href='../S/360.html#L114' title='Defined at 114 in src/tests/vm/qsort.c.'>qsort_bytes</a> (right_half, right_size); 
+<a name='L129'> 129         <font color='red'>}</font>
+<a name='L130'> 130       <b>else</b>
+<a name='L131'> 131         <font color='red'>{</font>
+<a name='L132'> 132           <a href='../S/360.html#L114' title='Defined at 114 in src/tests/vm/qsort.c.'>qsort_bytes</a> (right_half, right_size); 
+<a name='L133'> 133           <a href='../S/360.html#L114' title='Defined at 114 in src/tests/vm/qsort.c.'>qsort_bytes</a> (left_half, left_size);
+<a name='L134'> 134         <font color='red'>}</font>
+<a name='L135'> 135     <font color='red'>}</font> 
+<a name='L136'> 136 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L8'>[^]</a><a href='#L114'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

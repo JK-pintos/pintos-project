@@ -1,0 +1,260 @@
+<html>
+<head>
+<title>src/devices/block.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/block.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L35'>[^]</a><a href='#L217'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L35' title='Defined at 35.'>block_type_name</a>
+<li><a href='#L54' title='Defined at 54.'>block_get_role</a>
+<li><a href='#L62' title='Defined at 62.'>block_set_role</a>
+<li><a href='#L71' title='Defined at 71.'>block_first</a>
+<li><a href='#L79' title='Defined at 79.'>block_next</a>
+<li><a href='#L87' title='Defined at 87.'>block_get_by_name</a>
+<li><a href='#L105' title='Defined at 105.'>check_sector</a>
+<li><a href='#L121' title='Defined at 121.'>block_read</a>
+<li><a href='#L134' title='Defined at 134.'>block_write</a>
+<li><a href='#L144' title='Defined at 144.'>block_size</a>
+<li><a href='#L151' title='Defined at 151.'>block_name</a>
+<li><a href='#L158' title='Defined at 158.'>block_type</a>
+<li><a href='#L165' title='Defined at 165.'>block_print_stats</a>
+<li><a href='#L187' title='Defined at 187.'>block_register</a>
+<li><a href='#L217' title='Defined at 217.'>list_elem_to_block</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='128.html'>devices/block.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='107.html'>list.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='140.html'>devices/ide.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <i><font color='green'>/* A block device. */</font></i>
+<a name='L9'>   9 <b>struct</b> <a href='../R/331.html' title='Multiple refered from 107 places.'>block</a>
+<a name='L10'>  10   <font color='red'>{</font>
+<a name='L11'>  11     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>;         <i><font color='green'>/* Element in all_blocks. */</font></i>
+<a name='L12'>  12 
+<a name='L13'>  13     <b>char</b> name[16];                      <i><font color='green'>/* Block device name. */</font></i>
+<a name='L14'>  14     <b>enum</b> <a href='../D/430.html' title='Multiple defined in 2 places.'>block_type</a> type;                <i><font color='green'>/* Type of block device. */</font></i>
+<a name='L15'>  15     <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> size;                 <i><font color='green'>/* Size in sectors. */</font></i>
+<a name='L16'>  16 
+<a name='L17'>  17     <b>const</b> <b>struct</b> <a href='../S/128.html#L64' title='Defined at 64 in src/devices/block.h.'>block_operations</a> *ops;  <i><font color='green'>/* Driver operations. */</font></i>
+<a name='L18'>  18     <b>void</b> *aux;                          <i><font color='green'>/* Extra data owned by driver. */</font></i>
+<a name='L19'>  19 
+<a name='L20'>  20     <b>unsigned</b> <b>long</b> <b>long</b> read_cnt;        <i><font color='green'>/* Number of sectors read. */</font></i>
+<a name='L21'>  21     <b>unsigned</b> <b>long</b> <b>long</b> write_cnt;       <i><font color='green'>/* Number of sectors written. */</font></i>
+<a name='L22'>  22   <font color='red'>}</font>;
+<a name='L23'>  23 
+<a name='L24'>  24 <i><font color='green'>/* List of all block devices. */</font></i>
+<a name='L25'>  25 <b>static</b> <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> all_blocks = <a href='../S/107.html#L122' title='Defined at 122 in src/lib/kernel/list.h.'>LIST_INITIALIZER</a> (all_blocks);
+<a name='L26'>  26 
+<a name='L27'>  27 <i><font color='green'>/* The block block assigned to each Pintos role. */</font></i>
+<a name='L28'>  28 <b>static</b> <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *block_by_role[BLOCK_ROLE_CNT];
+<a name='L29'>  29 
+<a name='L30'>  30 <b>static</b> <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/132.html#L217' title='Defined at 217 in src/devices/block.c.'>list_elem_to_block</a> (<b>struct</b> list_elem *);
+<a name='L31'>  31 
+<a name='L32'>  32 <i><font color='green'>/* Returns a human-readable name for the given block device</font></i>
+<a name='L33'>  33 <i><font color='green'>   TYPE. */</font></i>
+<a name='L34'>  34 <b>const</b> <b>char</b> *
+<a name='L35'>  35 <a href='../R/347.html' title='Multiple refered from 3 places.'>block_type_name</a> (<b>enum</b> block_type type)
+<a name='L36'>  36 <font color='red'>{</font>
+<a name='L37'>  37   <b>static</b> <b>const</b> <b>char</b> *block_type_names[BLOCK_CNT] =
+<a name='L38'>  38     <font color='red'>{</font>
+<a name='L39'>  39       "kernel",
+<a name='L40'>  40       "filesys",
+<a name='L41'>  41       "scratch",
+<a name='L42'>  42       "swap",
+<a name='L43'>  43       "raw",
+<a name='L44'>  44       "foreign",
+<a name='L45'>  45     <font color='red'>}</font>;
+<a name='L46'>  46 
+<a name='L47'>  47   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (type &lt; BLOCK_CNT);
+<a name='L48'>  48   <b>return</b> block_type_names[type];
+<a name='L49'>  49 <font color='red'>}</font>
+<a name='L50'>  50 
+<a name='L51'>  51 <i><font color='green'>/* Returns the block device fulfilling the given ROLE, or a null</font></i>
+<a name='L52'>  52 <i><font color='green'>   pointer if no block device has been assigned that role. */</font></i>
+<a name='L53'>  53 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L54'>  54 <a href='../R/334.html' title='Multiple refered from 4 places.'>block_get_role</a> (<b>enum</b> block_type role)
+<a name='L55'>  55 <font color='red'>{</font>
+<a name='L56'>  56   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (role &lt; BLOCK_ROLE_CNT);
+<a name='L57'>  57   <b>return</b> block_by_role[role];
+<a name='L58'>  58 <font color='red'>}</font>
+<a name='L59'>  59 
+<a name='L60'>  60 <i><font color='green'>/* Assigns BLOCK the given ROLE. */</font></i>
+<a name='L61'>  61 <b>void</b>
+<a name='L62'>  62 <a href='../R/342.html' title='Multiple refered from 2 places.'>block_set_role</a> (<b>enum</b> block_type role, <b>struct</b> block *block)
+<a name='L63'>  63 <font color='red'>{</font>
+<a name='L64'>  64   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (role &lt; BLOCK_ROLE_CNT);
+<a name='L65'>  65   block_by_role[role] = <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L66'>  66 <font color='red'>}</font>
+<a name='L67'>  67 
+<a name='L68'>  68 <i><font color='green'>/* Returns the first block device in kernel probe order, or a</font></i>
+<a name='L69'>  69 <i><font color='green'>   null pointer if no block devices are registered. */</font></i>
+<a name='L70'>  70 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L71'>  71 <a href='../R/332.html' title='Multiple refered from 2 places.'>block_first</a> (<b>void</b>)
+<a name='L72'>  72 <font color='red'>{</font>
+<a name='L73'>  73   <b>return</b> <a href='../S/132.html#L217' title='Defined at 217 in src/devices/block.c.'>list_elem_to_block</a> (<a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (&amp;all_blocks));
+<a name='L74'>  74 <font color='red'>}</font>
+<a name='L75'>  75 
+<a name='L76'>  76 <i><font color='green'>/* Returns the block device following BLOCK in kernel probe</font></i>
+<a name='L77'>  77 <i><font color='green'>   order, or a null pointer if BLOCK is the last block device. */</font></i>
+<a name='L78'>  78 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L79'>  79 <a href='../R/336.html' title='Multiple refered from 2 places.'>block_next</a> (<b>struct</b> block *block)
+<a name='L80'>  80 <font color='red'>{</font>
+<a name='L81'>  81   <b>return</b> <a href='../S/132.html#L217' title='Defined at 217 in src/devices/block.c.'>list_elem_to_block</a> (<a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (&amp;<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;<a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>));
+<a name='L82'>  82 <font color='red'>}</font>
+<a name='L83'>  83 
+<a name='L84'>  84 <i><font color='green'>/* Returns the block device with the given NAME, or a null</font></i>
+<a name='L85'>  85 <i><font color='green'>   pointer if no block device has that name. */</font></i>
+<a name='L86'>  86 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L87'>  87 <a href='../R/333.html' title='Multiple refered from 2 places.'>block_get_by_name</a> (<b>const</b> <b>char</b> *name)
+<a name='L88'>  88 <font color='red'>{</font>
+<a name='L89'>  89   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L90'>  90 
+<a name='L91'>  91   <b>for</b> (e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (&amp;all_blocks); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (&amp;all_blocks);
+<a name='L92'>  92        e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e))
+<a name='L93'>  93     <font color='red'>{</font>
+<a name='L94'>  94       <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>);
+<a name='L95'>  95       <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;name))
+<a name='L96'>  96         <b>return</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L97'>  97     <font color='red'>}</font>
+<a name='L98'>  98 
+<a name='L99'>  99   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L100'> 100 <font color='red'>}</font>
+<a name='L101'> 101 
+<a name='L102'> 102 <i><font color='green'>/* Verifies that SECTOR is a valid offset within BLOCK.</font></i>
+<a name='L103'> 103 <i><font color='green'>   Panics if not. */</font></i>
+<a name='L104'> 104 <b>static</b> <b>void</b>
+<a name='L105'> 105 <a href='../R/366.html' title='Multiple refered from 2 places.'>check_sector</a> (<b>struct</b> block *block, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector)
+<a name='L106'> 106 <font color='red'>{</font>
+<a name='L107'> 107   <b>if</b> (sector &gt;= <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;size)
+<a name='L108'> 108     <font color='red'>{</font>
+<a name='L109'> 109       <i><font color='green'>/* We do not use ASSERT because we want to panic here</font></i>
+<a name='L110'> 110 <i><font color='green'>         regardless of whether NDEBUG is defined. */</font></i>
+<a name='L111'> 111       <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("Access past end of device %s (sector=%"<a href='../S/128.html#L19' title='Defined at 19 in src/devices/block.h.'>PRDSNu</a>", "
+<a name='L112'> 112              "size=%"<a href='../S/128.html#L19' title='Defined at 19 in src/devices/block.h.'>PRDSNu</a>")\n", <a href='../S/132.html#L151' title='Defined at 151 in src/devices/block.c.'>block_name</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>), sector, <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;size);
+<a name='L113'> 113     <font color='red'>}</font>
+<a name='L114'> 114 <font color='red'>}</font>
+<a name='L115'> 115 
+<a name='L116'> 116 <i><font color='green'>/* Reads sector SECTOR from BLOCK into BUFFER, which must</font></i>
+<a name='L117'> 117 <i><font color='green'>   have room for BLOCK_SECTOR_SIZE bytes.</font></i>
+<a name='L118'> 118 <i><font color='green'>   Internally synchronizes accesses to block devices, so external</font></i>
+<a name='L119'> 119 <i><font color='green'>   per-block device locking is unneeded. */</font></i>
+<a name='L120'> 120 <b>void</b>
+<a name='L121'> 121 <a href='../R/339.html' title='Multiple refered from 9 places.'>block_read</a> (<b>struct</b> block *block, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector, <b>void</b> *buffer)
+<a name='L122'> 122 <font color='red'>{</font>
+<a name='L123'> 123   <a href='../S/132.html#L105' title='Defined at 105 in src/devices/block.c.'>check_sector</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, sector);
+<a name='L124'> 124   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;ops-&gt;<a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;aux, sector, buffer);
+<a name='L125'> 125   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;read_cnt++;
+<a name='L126'> 126 <font color='red'>}</font>
+<a name='L127'> 127 
+<a name='L128'> 128 <i><font color='green'>/* Write sector SECTOR to BLOCK from BUFFER, which must contain</font></i>
+<a name='L129'> 129 <i><font color='green'>   BLOCK_SECTOR_SIZE bytes.  Returns after the block device has</font></i>
+<a name='L130'> 130 <i><font color='green'>   acknowledged receiving the data.</font></i>
+<a name='L131'> 131 <i><font color='green'>   Internally synchronizes accesses to block devices, so external</font></i>
+<a name='L132'> 132 <i><font color='green'>   per-block device locking is unneeded. */</font></i>
+<a name='L133'> 133 <b>void</b>
+<a name='L134'> 134 <a href='../R/348.html' title='Multiple refered from 12 places.'>block_write</a> (<b>struct</b> block *block, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector, <b>const</b> <b>void</b> *buffer)
+<a name='L135'> 135 <font color='red'>{</font>
+<a name='L136'> 136   <a href='../S/132.html#L105' title='Defined at 105 in src/devices/block.c.'>check_sector</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, sector);
+<a name='L137'> 137   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;type != BLOCK_FOREIGN);
+<a name='L138'> 138   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;ops-&gt;<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;aux, sector, buffer);
+<a name='L139'> 139   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;write_cnt++;
+<a name='L140'> 140 <font color='red'>}</font>
+<a name='L141'> 141 
+<a name='L142'> 142 <i><font color='green'>/* Returns the number of sectors in BLOCK. */</font></i>
+<a name='L143'> 143 <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>
+<a name='L144'> 144 <a href='../R/343.html' title='Multiple refered from 41 places.'>block_size</a> (<b>struct</b> block *block)
+<a name='L145'> 145 <font color='red'>{</font>
+<a name='L146'> 146   <b>return</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;size;
+<a name='L147'> 147 <font color='red'>}</font>
+<a name='L148'> 148 
+<a name='L149'> 149 <i><font color='green'>/* Returns BLOCK's name (e.g. "hda"). */</font></i>
+<a name='L150'> 150 <b>const</b> <b>char</b> *
+<a name='L151'> 151 <a href='../R/335.html' title='Multiple refered from 11 places.'>block_name</a> (<b>struct</b> block *block)
+<a name='L152'> 152 <font color='red'>{</font>
+<a name='L153'> 153   <b>return</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;name;
+<a name='L154'> 154 <font color='red'>}</font>
+<a name='L155'> 155 
+<a name='L156'> 156 <i><font color='green'>/* Returns BLOCK's type. */</font></i>
+<a name='L157'> 157 <b>enum</b> <a href='../D/430.html' title='Multiple defined in 2 places.'>block_type</a>
+<a name='L158'> 158 <a href='../R/346.html' title='Multiple refered from 5 places.'>block_type</a> (<b>struct</b> block *block)
+<a name='L159'> 159 <font color='red'>{</font>
+<a name='L160'> 160   <b>return</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;type;
+<a name='L161'> 161 <font color='red'>}</font>
+<a name='L162'> 162 
+<a name='L163'> 163 <i><font color='green'>/* Prints statistics for each block device used for a Pintos role. */</font></i>
+<a name='L164'> 164 <b>void</b>
+<a name='L165'> 165 <a href='../R/338.html' title='Multiple refered from 2 places.'>block_print_stats</a> (<b>void</b>)
+<a name='L166'> 166 <font color='red'>{</font>
+<a name='L167'> 167   <b>int</b> i;
+<a name='L168'> 168 
+<a name='L169'> 169   <b>for</b> (i = 0; i &lt; BLOCK_ROLE_CNT; i++)
+<a name='L170'> 170     <font color='red'>{</font>
+<a name='L171'> 171       <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = block_by_role[i];
+<a name='L172'> 172       <b>if</b> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L173'> 173         <font color='red'>{</font>
+<a name='L174'> 174           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s (%s): %llu reads, %llu writes\n",
+<a name='L175'> 175                   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;name, <a href='../S/132.html#L35' title='Defined at 35 in src/devices/block.c.'>block_type_name</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;type),
+<a name='L176'> 176                   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;read_cnt, <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;write_cnt);
+<a name='L177'> 177         <font color='red'>}</font>
+<a name='L178'> 178     <font color='red'>}</font>
+<a name='L179'> 179 <font color='red'>}</font>
+<a name='L180'> 180 
+<a name='L181'> 181 <i><font color='green'>/* Registers a new block device with the given NAME.  If</font></i>
+<a name='L182'> 182 <i><font color='green'>   EXTRA_INFO is non-null, it is printed as part of a user</font></i>
+<a name='L183'> 183 <i><font color='green'>   message.  The block device's SIZE in sectors and its TYPE must</font></i>
+<a name='L184'> 184 <i><font color='green'>   be provided, as well as the it operation functions OPS, which</font></i>
+<a name='L185'> 185 <i><font color='green'>   will be passed AUX in each function call. */</font></i>
+<a name='L186'> 186 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L187'> 187 <a href='../R/340.html' title='Multiple refered from 3 places.'>block_register</a> (<b>const</b> <b>char</b> *name, <b>enum</b> block_type type,
+<a name='L188'> 188                 <b>const</b> <b>char</b> *extra_info, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> size,
+<a name='L189'> 189                 <b>const</b> <b>struct</b> block_operations *ops, <b>void</b> *aux)
+<a name='L190'> 190 <font color='red'>{</font>
+<a name='L191'> 191   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<b>sizeof</b> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>);
+<a name='L192'> 192   <b>if</b> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L193'> 193     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("Failed to allocate memory for block device descriptor");
+<a name='L194'> 194 
+<a name='L195'> 195   <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (&amp;all_blocks, &amp;<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;<a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>);
+<a name='L196'> 196   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;name, name, <b>sizeof</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;name);
+<a name='L197'> 197   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;type = type;
+<a name='L198'> 198   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;size = size;
+<a name='L199'> 199   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;ops = ops;
+<a name='L200'> 200   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;aux = aux;
+<a name='L201'> 201   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;read_cnt = 0;
+<a name='L202'> 202   <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;write_cnt = 0;
+<a name='L203'> 203 
+<a name='L204'> 204   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: %'"<a href='../S/128.html#L19' title='Defined at 19 in src/devices/block.h.'>PRDSNu</a>" sectors (", <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;name, <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;size);
+<a name='L205'> 205   <a href='../S/115.html#L642' title='Defined at 642 in src/lib/stdio.c.'>print_human_readable_size</a> ((<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>-&gt;size * <a href='../S/128.html#L11' title='Defined at 11 in src/devices/block.h.'>BLOCK_SECTOR_SIZE</a>);
+<a name='L206'> 206   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (")");
+<a name='L207'> 207   <b>if</b> (extra_info != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L208'> 208     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (", %s", extra_info);
+<a name='L209'> 209   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\n");
+<a name='L210'> 210 
+<a name='L211'> 211   <b>return</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L212'> 212 <font color='red'>}</font>
+<a name='L213'> 213 
+<a name='L214'> 214 <i><font color='green'>/* Returns the block device corresponding to LIST_ELEM, or a null</font></i>
+<a name='L215'> 215 <i><font color='green'>   pointer if LIST_ELEM is the list end of all_blocks. */</font></i>
+<a name='L216'> 216 <b>static</b> <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L217'> 217 <a href='../R/595.html' title='Multiple refered from 3 places.'>list_elem_to_block</a> (<b>struct</b> list_elem *list_elem)
+<a name='L218'> 218 <font color='red'>{</font>
+<a name='L219'> 219   <b>return</b> (<a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (&amp;all_blocks)
+<a name='L220'> 220           ? <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (<a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>, <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a>)
+<a name='L221'> 221           : <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L222'> 222 <font color='red'>}</font>
+<a name='L223'> 223 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L35'>[^]</a><a href='#L217'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

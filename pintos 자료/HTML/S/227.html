@@ -1,0 +1,92 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/mk-tree.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/mk-tree.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L8'>[^]</a><a href='#L57'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L8' title='Defined at 8.'>do_mkdir</a>
+<li><a href='#L44' title='Defined at 44.'>do_mkdir</a>
+<li><a href='#L57' title='Defined at 57.'>do_touch</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Library function for creating a tree of directories. */</font></i>
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='249.html'>tests/filesys/extended/mk-tree.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>static</b> <b>void</b> <a href='../R/409.html' title='Multiple refered from 3 places.'>do_mkdir</a> (<b>const</b> <b>char</b> *format, ...) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (1, 2);
+<a name='L9'>   9 <b>static</b> <b>void</b> do_touch (<b>const</b> <b>char</b> *format, ...) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (1, 2);
+<a name='L10'>  10 
+<a name='L11'>  11 <b>void</b>
+<a name='L12'>  12 make_tree (<b>int</b> at, <b>int</b> bt, <b>int</b> ct, <b>int</b> dt) 
+<a name='L13'>  13 <font color='red'>{</font>
+<a name='L14'>  14   <b>char</b> try[128];
+<a name='L15'>  15   <b>int</b> a, b, c, d;
+<a name='L16'>  16   <b>int</b> fd;
+<a name='L17'>  17 
+<a name='L18'>  18   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("creating /0/0/0/0 through /%d/%d/%d/%d...",
+<a name='L19'>  19        at - 1, bt - 1, ct - 1, dt - 1);
+<a name='L20'>  20   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L21'>  21   <b>for</b> (a = 0; a &lt; at; a++) 
+<a name='L22'>  22     <font color='red'>{</font>
+<a name='L23'>  23       <a href='../D/495.html' title='Multiple defined in 2 places.'>do_mkdir</a> ("/%d", a);
+<a name='L24'>  24       <b>for</b> (b = 0; b &lt; bt; b++) 
+<a name='L25'>  25         <font color='red'>{</font>
+<a name='L26'>  26           <a href='../D/495.html' title='Multiple defined in 2 places.'>do_mkdir</a> ("/%d/%d", a, b);
+<a name='L27'>  27           <b>for</b> (c = 0; c &lt; ct; c++) 
+<a name='L28'>  28             <font color='red'>{</font>
+<a name='L29'>  29               <a href='../D/495.html' title='Multiple defined in 2 places.'>do_mkdir</a> ("/%d/%d/%d", a, b, c);
+<a name='L30'>  30               <b>for</b> (d = 0; d &lt; dt; d++)
+<a name='L31'>  31                 <a href='../S/227.html#L57' title='Defined at 57 in src/tests/filesys/extended/mk-tree.c.'>do_touch</a> ("/%d/%d/%d/%d", a, b, c, d);
+<a name='L32'>  32             <font color='red'>}</font>
+<a name='L33'>  33         <font color='red'>}</font>
+<a name='L34'>  34     <font color='red'>}</font>
+<a name='L35'>  35   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L36'>  36 
+<a name='L37'>  37   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (try, <b>sizeof</b> try, "/%d/%d/%d/%d", 0, bt - 1, 0, dt - 1);
+<a name='L38'>  38   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (try)) &gt; 1, "open \"%s\"", try);
+<a name='L39'>  39   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"%s\"", try);
+<a name='L40'>  40   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L41'>  41 <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43 <b>static</b> <b>void</b>
+<a name='L44'>  44 <a href='../R/409.html' title='Multiple refered from 3 places.'>do_mkdir</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L45'>  45 <font color='red'>{</font>
+<a name='L46'>  46   <b>char</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>[128];
+<a name='L47'>  47   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L48'>  48 
+<a name='L49'>  49   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L50'>  50   <a href='../S/115.html#L26' title='Defined at 26 in src/lib/stdio.c.'>vsnprintf</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, <b>sizeof</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, format, args);
+<a name='L51'>  51   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L52'>  52 
+<a name='L53'>  53   CHECK (<a href='../S/97.html#L163' title='Defined at 163 in src/lib/user/syscall.c.'>mkdir</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>), "mkdir \"%s\"", <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L54'>  54 <font color='red'>}</font>
+<a name='L55'>  55 
+<a name='L56'>  56 <b>static</b> <b>void</b>
+<a name='L57'>  57 <a href='../S/227.html#L31' title='Refered from 31 in src/tests/filesys/extended/mk-tree.c.'>do_touch</a> (<b>const</b> <b>char</b> *format, ...)
+<a name='L58'>  58 <font color='red'>{</font>
+<a name='L59'>  59   <b>char</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>[128];
+<a name='L60'>  60   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L61'>  61 
+<a name='L62'>  62   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L63'>  63   <a href='../S/115.html#L26' title='Defined at 26 in src/lib/stdio.c.'>vsnprintf</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, <b>sizeof</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, format, args);
+<a name='L64'>  64   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L65'>  65 
+<a name='L66'>  66   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, 0), "create \"%s\"", <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>);
+<a name='L67'>  67 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L8'>[^]</a><a href='#L57'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

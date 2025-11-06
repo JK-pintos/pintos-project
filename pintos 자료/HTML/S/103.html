@@ -1,0 +1,239 @@
+<html>
+<head>
+<title>src/lib/stdlib.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/stdlib.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L185'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>atoi</a>
+<li><a href='#L45' title='Defined at 45.'>compare_thunk</a>
+<li><a href='#L58' title='Defined at 58.'>qsort</a>
+<li><a href='#L67' title='Defined at 67.'>do_swap</a>
+<li><a href='#L86' title='Defined at 86.'>do_compare</a>
+<li><a href='#L97' title='Defined at 97.'>heapify</a>
+<li><a href='#L132' title='Defined at 132.'>sort</a>
+<li><a href='#L166' title='Defined at 166.'>bsearch</a>
+<li><a href='#L185' title='Defined at 185.'>binary_search</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Converts a string representation of a signed decimal integer</font></i>
+<a name='L8'>   8 <i><font color='green'>   in S into an `int', which is returned. */</font></i>
+<a name='L9'>   9 <b>int</b>
+<a name='L10'>  10 <a href='../R/300.html' title='Multiple refered from 17 places.'>atoi</a> (<b>const</b> <b>char</b> *s) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> negative;
+<a name='L13'>  13   <b>int</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L14'>  14 
+<a name='L15'>  15   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (s != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L16'>  16 
+<a name='L17'>  17   <i><font color='green'>/* Skip white space. */</font></i>
+<a name='L18'>  18   <b>while</b> (<a href='../S/93.html#L12' title='Defined at 12 in src/lib/ctype.h.'>isspace</a> ((<b>unsigned</b> <b>char</b>) *s))
+<a name='L19'>  19     s++;
+<a name='L20'>  20 
+<a name='L21'>  21   <i><font color='green'>/* Parse sign. */</font></i>
+<a name='L22'>  22   negative = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L23'>  23   <b>if</b> (*s == '+')
+<a name='L24'>  24     s++;
+<a name='L25'>  25   <b>else</b> <b>if</b> (*s == '-')
+<a name='L26'>  26     <font color='red'>{</font>
+<a name='L27'>  27       negative = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L28'>  28       s++;
+<a name='L29'>  29     <font color='red'>}</font>
+<a name='L30'>  30 
+<a name='L31'>  31   <i><font color='green'>/* Parse digits.  We always initially parse the value as</font></i>
+<a name='L32'>  32 <i><font color='green'>     negative, and then make it positive later, because the</font></i>
+<a name='L33'>  33 <i><font color='green'>     negative range of an int is bigger than the positive range</font></i>
+<a name='L34'>  34 <i><font color='green'>     on a 2's complement system. */</font></i>
+<a name='L35'>  35   <b>for</b> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = 0; <a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (*s); s++)
+<a name='L36'>  36     <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> * 10 - (*s - '0');
+<a name='L37'>  37   <b>if</b> (!negative)
+<a name='L38'>  38     <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = -<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L39'>  39 
+<a name='L40'>  40   <b>return</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L41'>  41 <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Compares A and B by calling the AUX function. */</font></i>
+<a name='L44'>  44 <b>static</b> <b>int</b>
+<a name='L45'>  45 <a href='../R/376.html' title='Multiple refered from 2 places.'>compare_thunk</a> (<b>const</b> <b>void</b> *a, <b>const</b> <b>void</b> *b, <b>void</b> *aux) 
+<a name='L46'>  46 <font color='red'>{</font>
+<a name='L47'>  47   <b>int</b> (**compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *) = aux;
+<a name='L48'>  48   <b>return</b> (*compare) (a, b);
+<a name='L49'>  49 <font color='red'>}</font>
+<a name='L50'>  50 
+<a name='L51'>  51 <i><font color='green'>/* Sorts ARRAY, which contains CNT elements of SIZE bytes each,</font></i>
+<a name='L52'>  52 <i><font color='green'>   using COMPARE.  When COMPARE is passed a pair of elements A</font></i>
+<a name='L53'>  53 <i><font color='green'>   and B, respectively, it must return a strcmp()-type result,</font></i>
+<a name='L54'>  54 <i><font color='green'>   i.e. less than zero if A &lt; B, zero if A == B, greater than</font></i>
+<a name='L55'>  55 <i><font color='green'>   zero if A &gt; B.  Runs in O(n lg n) time and O(1) space in</font></i>
+<a name='L56'>  56 <i><font color='green'>   CNT. */</font></i>
+<a name='L57'>  57 <b>void</b>
+<a name='L58'>  58 <a href='../R/745.html' title='Multiple refered from 2 places.'>qsort</a> (<b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L59'>  59        <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *)) 
+<a name='L60'>  60 <font color='red'>{</font>
+<a name='L61'>  61   <a href='../S/103.html#L132' title='Defined at 132 in src/lib/stdlib.c.'>sort</a> (array, cnt, size, <a href='../S/103.html#L45' title='Defined at 45 in src/lib/stdlib.c.'>compare_thunk</a>, &amp;compare);
+<a name='L62'>  62 <font color='red'>}</font>
+<a name='L63'>  63 
+<a name='L64'>  64 <i><font color='green'>/* Swaps elements with 1-based indexes A_IDX and B_IDX in ARRAY</font></i>
+<a name='L65'>  65 <i><font color='green'>   with elements of SIZE bytes each. */</font></i>
+<a name='L66'>  66 <b>static</b> <b>void</b>
+<a name='L67'>  67 <a href='../R/411.html' title='Multiple refered from 2 places.'>do_swap</a> (<b>unsigned</b> <b>char</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> a_idx, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> b_idx, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size)
+<a name='L68'>  68 <font color='red'>{</font>
+<a name='L69'>  69   <b>unsigned</b> <b>char</b> *a = array + (a_idx - 1) * size;
+<a name='L70'>  70   <b>unsigned</b> <b>char</b> *b = array + (b_idx - 1) * size;
+<a name='L71'>  71   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L72'>  72 
+<a name='L73'>  73   <b>for</b> (i = 0; i &lt; size; i++)
+<a name='L74'>  74     <font color='red'>{</font>
+<a name='L75'>  75       <b>unsigned</b> <b>char</b> t = a[i];
+<a name='L76'>  76       a[i] = b[i];
+<a name='L77'>  77       b[i] = t;
+<a name='L78'>  78     <font color='red'>}</font>
+<a name='L79'>  79 <font color='red'>}</font>
+<a name='L80'>  80 
+<a name='L81'>  81 <i><font color='green'>/* Compares elements with 1-based indexes A_IDX and B_IDX in</font></i>
+<a name='L82'>  82 <i><font color='green'>   ARRAY with elements of SIZE bytes each, using COMPARE to</font></i>
+<a name='L83'>  83 <i><font color='green'>   compare elements, passing AUX as auxiliary data, and returns a</font></i>
+<a name='L84'>  84 <i><font color='green'>   strcmp()-type result. */</font></i>
+<a name='L85'>  85 <b>static</b> <b>int</b>
+<a name='L86'>  86 <a href='../R/407.html' title='Multiple refered from 2 places.'>do_compare</a> (<b>unsigned</b> <b>char</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> a_idx, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> b_idx, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L87'>  87             <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <b>void</b> *aux),
+<a name='L88'>  88             <b>void</b> *aux) 
+<a name='L89'>  89 <font color='red'>{</font>
+<a name='L90'>  90   <b>return</b> compare (array + (a_idx - 1) * size, array + (b_idx - 1) * size, aux);
+<a name='L91'>  91 <font color='red'>}</font>
+<a name='L92'>  92 
+<a name='L93'>  93 <i><font color='green'>/* "Float down" the element with 1-based index I in ARRAY of CNT</font></i>
+<a name='L94'>  94 <i><font color='green'>   elements of SIZE bytes each, using COMPARE to compare</font></i>
+<a name='L95'>  95 <i><font color='green'>   elements, passing AUX as auxiliary data. */</font></i>
+<a name='L96'>  96 <b>static</b> <b>void</b>
+<a name='L97'>  97 <a href='../R/494.html' title='Multiple refered from 2 places.'>heapify</a> (<b>unsigned</b> <b>char</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L98'>  98          <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <b>void</b> *aux),
+<a name='L99'>  99          <b>void</b> *aux) 
+<a name='L100'> 100 <font color='red'>{</font>
+<a name='L101'> 101   <b>for</b> (;;) 
+<a name='L102'> 102     <font color='red'>{</font>
+<a name='L103'> 103       <i><font color='green'>/* Set `max' to the index of the largest element among I</font></i>
+<a name='L104'> 104 <i><font color='green'>         and its children (if any). */</font></i>
+<a name='L105'> 105       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> left = 2 * i;
+<a name='L106'> 106       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> right = 2 * i + 1;
+<a name='L107'> 107       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> max = i;
+<a name='L108'> 108       <b>if</b> (left &lt;= cnt &amp;&amp; <a href='../S/103.html#L86' title='Defined at 86 in src/lib/stdlib.c.'>do_compare</a> (array, left, max, size, compare, aux) &gt; 0)
+<a name='L109'> 109         max = left;
+<a name='L110'> 110       <b>if</b> (right &lt;= cnt
+<a name='L111'> 111           &amp;&amp; <a href='../S/103.html#L86' title='Defined at 86 in src/lib/stdlib.c.'>do_compare</a> (array, right, max, size, compare, aux) &gt; 0) 
+<a name='L112'> 112         max = right;
+<a name='L113'> 113 
+<a name='L114'> 114       <i><font color='green'>/* If the maximum value is already in element I, we're</font></i>
+<a name='L115'> 115 <i><font color='green'>         done. */</font></i>
+<a name='L116'> 116       <b>if</b> (max == i)
+<a name='L117'> 117         <b>break</b>;
+<a name='L118'> 118 
+<a name='L119'> 119       <i><font color='green'>/* Swap and continue down the heap. */</font></i>
+<a name='L120'> 120       <a href='../S/103.html#L67' title='Defined at 67 in src/lib/stdlib.c.'>do_swap</a> (array, i, max, size);
+<a name='L121'> 121       i = max;
+<a name='L122'> 122     <font color='red'>}</font>
+<a name='L123'> 123 <font color='red'>}</font>
+<a name='L124'> 124 
+<a name='L125'> 125 <i><font color='green'>/* Sorts ARRAY, which contains CNT elements of SIZE bytes each,</font></i>
+<a name='L126'> 126 <i><font color='green'>   using COMPARE to compare elements, passing AUX as auxiliary</font></i>
+<a name='L127'> 127 <i><font color='green'>   data.  When COMPARE is passed a pair of elements A and B,</font></i>
+<a name='L128'> 128 <i><font color='green'>   respectively, it must return a strcmp()-type result, i.e. less</font></i>
+<a name='L129'> 129 <i><font color='green'>   than zero if A &lt; B, zero if A == B, greater than zero if A &gt;</font></i>
+<a name='L130'> 130 <i><font color='green'>   B.  Runs in O(n lg n) time and O(1) space in CNT. */</font></i>
+<a name='L131'> 131 <b>void</b>
+<a name='L132'> 132 <a href='../R/821.html' title='Multiple refered from 2 places.'>sort</a> (<b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L133'> 133       <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <b>void</b> *aux),
+<a name='L134'> 134       <b>void</b> *aux) 
+<a name='L135'> 135 <font color='red'>{</font>
+<a name='L136'> 136   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L137'> 137 
+<a name='L138'> 138   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (array != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || cnt == 0);
+<a name='L139'> 139   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (compare != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L140'> 140   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (size &gt; 0);
+<a name='L141'> 141 
+<a name='L142'> 142   <i><font color='green'>/* Build a heap. */</font></i>
+<a name='L143'> 143   <b>for</b> (i = cnt / 2; i &gt; 0; i--)
+<a name='L144'> 144     <a href='../S/103.html#L97' title='Defined at 97 in src/lib/stdlib.c.'>heapify</a> (array, i, cnt, size, compare, aux);
+<a name='L145'> 145 
+<a name='L146'> 146   <i><font color='green'>/* Sort the heap. */</font></i>
+<a name='L147'> 147   <b>for</b> (i = cnt; i &gt; 1; i--) 
+<a name='L148'> 148     <font color='red'>{</font>
+<a name='L149'> 149       <a href='../S/103.html#L67' title='Defined at 67 in src/lib/stdlib.c.'>do_swap</a> (array, 1, i, size);
+<a name='L150'> 150       <a href='../S/103.html#L97' title='Defined at 97 in src/lib/stdlib.c.'>heapify</a> (array, 1, i - 1, size, compare, aux); 
+<a name='L151'> 151     <font color='red'>}</font>
+<a name='L152'> 152 <font color='red'>}</font>
+<a name='L153'> 153 
+<a name='L154'> 154 <i><font color='green'>/* Searches ARRAY, which contains CNT elements of SIZE bytes</font></i>
+<a name='L155'> 155 <i><font color='green'>   each, for the given KEY.  Returns a match is found, otherwise</font></i>
+<a name='L156'> 156 <i><font color='green'>   a null pointer.  If there are multiple matches, returns an</font></i>
+<a name='L157'> 157 <i><font color='green'>   arbitrary one of them.</font></i>
+<a name='L158'> 158 <i><font color='green'></font></i>
+<a name='L159'> 159 <i><font color='green'>   ARRAY must be sorted in order according to COMPARE.</font></i>
+<a name='L160'> 160 <i><font color='green'></font></i>
+<a name='L161'> 161 <i><font color='green'>   Uses COMPARE to compare elements.  When COMPARE is passed a</font></i>
+<a name='L162'> 162 <i><font color='green'>   pair of elements A and B, respectively, it must return a</font></i>
+<a name='L163'> 163 <i><font color='green'>   strcmp()-type result, i.e. less than zero if A &lt; B, zero if A</font></i>
+<a name='L164'> 164 <i><font color='green'>   == B, greater than zero if A &gt; B. */</font></i>
+<a name='L165'> 165 <b>void</b> *
+<a name='L166'> 166 <a href='../R/350.html' title='Multiple refered from 3 places.'>bsearch</a> (<b>const</b> <b>void</b> *key, <b>const</b> <b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt,
+<a name='L167'> 167          <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *)) 
+<a name='L168'> 168 <font color='red'>{</font>
+<a name='L169'> 169   <b>return</b> <a href='../S/103.html#L185' title='Defined at 185 in src/lib/stdlib.c.'>binary_search</a> (key, array, cnt, size, <a href='../S/103.html#L45' title='Defined at 45 in src/lib/stdlib.c.'>compare_thunk</a>, &amp;compare);
+<a name='L170'> 170 <font color='red'>}</font>
+<a name='L171'> 171 
+<a name='L172'> 172 <i><font color='green'>/* Searches ARRAY, which contains CNT elements of SIZE bytes</font></i>
+<a name='L173'> 173 <i><font color='green'>   each, for the given KEY.  Returns a match is found, otherwise</font></i>
+<a name='L174'> 174 <i><font color='green'>   a null pointer.  If there are multiple matches, returns an</font></i>
+<a name='L175'> 175 <i><font color='green'>   arbitrary one of them.</font></i>
+<a name='L176'> 176 <i><font color='green'></font></i>
+<a name='L177'> 177 <i><font color='green'>   ARRAY must be sorted in order according to COMPARE.</font></i>
+<a name='L178'> 178 <i><font color='green'></font></i>
+<a name='L179'> 179 <i><font color='green'>   Uses COMPARE to compare elements, passing AUX as auxiliary</font></i>
+<a name='L180'> 180 <i><font color='green'>   data.  When COMPARE is passed a pair of elements A and B,</font></i>
+<a name='L181'> 181 <i><font color='green'>   respectively, it must return a strcmp()-type result, i.e. less</font></i>
+<a name='L182'> 182 <i><font color='green'>   than zero if A &lt; B, zero if A == B, greater than zero if A &gt;</font></i>
+<a name='L183'> 183 <i><font color='green'>   B. */</font></i>
+<a name='L184'> 184 <b>void</b> *
+<a name='L185'> 185 <a href='../R/305.html' title='Multiple refered from 2 places.'>binary_search</a> (<b>const</b> <b>void</b> *key, <b>const</b> <b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L186'> 186                <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <b>void</b> *aux),
+<a name='L187'> 187                <b>void</b> *aux) 
+<a name='L188'> 188 <font color='red'>{</font>
+<a name='L189'> 189   <b>const</b> <b>unsigned</b> <b>char</b> *first = array;
+<a name='L190'> 190   <b>const</b> <b>unsigned</b> <b>char</b> *last = array + size * cnt;
+<a name='L191'> 191 
+<a name='L192'> 192   <b>while</b> (first &lt; last) 
+<a name='L193'> 193     <font color='red'>{</font>
+<a name='L194'> 194       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> range = (last - first) / size;
+<a name='L195'> 195       <b>const</b> <b>unsigned</b> <b>char</b> *middle = first + (range / 2) * size;
+<a name='L196'> 196       <b>int</b> cmp = compare (key, middle, aux);
+<a name='L197'> 197 
+<a name='L198'> 198       <b>if</b> (cmp &lt; 0) 
+<a name='L199'> 199         last = middle;
+<a name='L200'> 200       <b>else</b> <b>if</b> (cmp &gt; 0) 
+<a name='L201'> 201         first = middle + size;
+<a name='L202'> 202       <b>else</b>
+<a name='L203'> 203         <b>return</b> (<b>void</b> *) middle;
+<a name='L204'> 204     <font color='red'>}</font>
+<a name='L205'> 205   
+<a name='L206'> 206   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L207'> 207 <font color='red'>}</font>
+<a name='L208'> 208 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L185'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

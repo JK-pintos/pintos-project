@@ -1,0 +1,187 @@
+<html>
+<head>
+<title>src/userprog/exception.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/exception.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L30'>[^]</a><a href='#L123'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L30' title='Defined at 30.'>exception_init</a>
+<li><a href='#L65' title='Defined at 65.'>exception_print_stats</a>
+<li><a href='#L72' title='Defined at 72.'>kill</a>
+<li><a href='#L123' title='Defined at 123.'>page_fault</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='71.html'>userprog/exception.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='70.html'>userprog/gdt.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <i><font color='green'>/* Number of page faults processed. */</font></i>
+<a name='L9'>   9 <b>static</b> <b>long</b> <b>long</b> page_fault_cnt;
+<a name='L10'>  10 
+<a name='L11'>  11 <b>static</b> <b>void</b> <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a> (<b>struct</b> intr_frame *);
+<a name='L12'>  12 <b>static</b> <b>void</b> <a href='../S/64.html#L123' title='Defined at 123 in src/userprog/exception.c.'>page_fault</a> (<b>struct</b> intr_frame *);
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Registers handlers for interrupts that can be caused by user</font></i>
+<a name='L15'>  15 <i><font color='green'>   programs.</font></i>
+<a name='L16'>  16 <i><font color='green'></font></i>
+<a name='L17'>  17 <i><font color='green'>   In a real Unix-like OS, most of these interrupts would be</font></i>
+<a name='L18'>  18 <i><font color='green'>   passed along to the user process in the form of signals, as</font></i>
+<a name='L19'>  19 <i><font color='green'>   described in [SV-386] 3-24 and 3-25, but we don't implement</font></i>
+<a name='L20'>  20 <i><font color='green'>   signals.  Instead, we'll make them simply kill the user</font></i>
+<a name='L21'>  21 <i><font color='green'>   process.</font></i>
+<a name='L22'>  22 <i><font color='green'></font></i>
+<a name='L23'>  23 <i><font color='green'>   Page faults are an exception.  Here they are treated the same</font></i>
+<a name='L24'>  24 <i><font color='green'>   way as other exceptions, but this will need to change to</font></i>
+<a name='L25'>  25 <i><font color='green'>   implement virtual memory.</font></i>
+<a name='L26'>  26 <i><font color='green'></font></i>
+<a name='L27'>  27 <i><font color='green'>   Refer to [IA32-v3a] section 5.15 "Exception and Interrupt</font></i>
+<a name='L28'>  28 <i><font color='green'>   Reference" for a description of each of these exceptions. */</font></i>
+<a name='L29'>  29 <b>void</b>
+<a name='L30'>  30 <a href='../R/418.html' title='Multiple refered from 2 places.'>exception_init</a> (<b>void</b>) 
+<a name='L31'>  31 <font color='red'>{</font>
+<a name='L32'>  32   <i><font color='green'>/* These exceptions can be raised explicitly by a user program,</font></i>
+<a name='L33'>  33 <i><font color='green'>     e.g. via the INT, INT3, INTO, and BOUND instructions.  Thus,</font></i>
+<a name='L34'>  34 <i><font color='green'>     we set DPL==3, meaning that user programs are allowed to</font></i>
+<a name='L35'>  35 <i><font color='green'>     invoke them via these instructions. */</font></i>
+<a name='L36'>  36   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (3, 3, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#BP Breakpoint Exception");
+<a name='L37'>  37   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (4, 3, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#OF Overflow Exception");
+<a name='L38'>  38   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (5, 3, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>,
+<a name='L39'>  39                      "#BR BOUND Range Exceeded Exception");
+<a name='L40'>  40 
+<a name='L41'>  41   <i><font color='green'>/* These exceptions have DPL==0, preventing user processes from</font></i>
+<a name='L42'>  42 <i><font color='green'>     invoking them via the INT instruction.  They can still be</font></i>
+<a name='L43'>  43 <i><font color='green'>     caused indirectly, e.g. #DE can be caused by dividing by</font></i>
+<a name='L44'>  44 <i><font color='green'>     0.  */</font></i>
+<a name='L45'>  45   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (0, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#DE Divide Error");
+<a name='L46'>  46   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (1, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#DB Debug Exception");
+<a name='L47'>  47   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (6, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#UD Invalid Opcode Exception");
+<a name='L48'>  48   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (7, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>,
+<a name='L49'>  49                      "#NM Device Not Available Exception");
+<a name='L50'>  50   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (11, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#NP Segment Not Present");
+<a name='L51'>  51   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (12, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#SS Stack Fault Exception");
+<a name='L52'>  52   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (13, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#GP General Protection Exception");
+<a name='L53'>  53   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (16, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>, "#MF x87 FPU Floating-Point Error");
+<a name='L54'>  54   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (19, 0, INTR_ON, <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a>,
+<a name='L55'>  55                      "#XF SIMD Floating-Point Exception");
+<a name='L56'>  56 
+<a name='L57'>  57   <i><font color='green'>/* Most exceptions can be handled with interrupts turned on.</font></i>
+<a name='L58'>  58 <i><font color='green'>     We need to disable interrupts for page faults because the</font></i>
+<a name='L59'>  59 <i><font color='green'>     fault address is stored in CR2 and needs to be preserved. */</font></i>
+<a name='L60'>  60   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (14, 0, INTR_OFF, <a href='../S/64.html#L123' title='Defined at 123 in src/userprog/exception.c.'>page_fault</a>, "#PF Page-Fault Exception");
+<a name='L61'>  61 <font color='red'>}</font>
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Prints exception statistics. */</font></i>
+<a name='L64'>  64 <b>void</b>
+<a name='L65'>  65 <a href='../R/419.html' title='Multiple refered from 2 places.'>exception_print_stats</a> (<b>void</b>) 
+<a name='L66'>  66 <font color='red'>{</font>
+<a name='L67'>  67   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Exception: %lld page faults\n", page_fault_cnt);
+<a name='L68'>  68 <font color='red'>}</font>
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Handler for an exception (probably) caused by a user process. */</font></i>
+<a name='L71'>  71 <b>static</b> <b>void</b>
+<a name='L72'>  72 <a href='../R/587.html' title='Multiple refered from 14 places.'>kill</a> (<b>struct</b> intr_frame *f) 
+<a name='L73'>  73 <font color='red'>{</font>
+<a name='L74'>  74   <i><font color='green'>/* This interrupt is one (probably) caused by a user process.</font></i>
+<a name='L75'>  75 <i><font color='green'>     For example, the process might have tried to access unmapped</font></i>
+<a name='L76'>  76 <i><font color='green'>     virtual memory (a page fault).  For now, we simply kill the</font></i>
+<a name='L77'>  77 <i><font color='green'>     user process.  Later, we'll want to handle page faults in</font></i>
+<a name='L78'>  78 <i><font color='green'>     the kernel.  Real Unix-like operating systems pass most</font></i>
+<a name='L79'>  79 <i><font color='green'>     exceptions back to the process via signals, but we don't</font></i>
+<a name='L80'>  80 <i><font color='green'>     implement them. */</font></i>
+<a name='L81'>  81      
+<a name='L82'>  82   <i><font color='green'>/* The interrupt frame's code segment value tells us where the</font></i>
+<a name='L83'>  83 <i><font color='green'>     exception originated. */</font></i>
+<a name='L84'>  84   <b>switch</b> (f-&gt;cs)
+<a name='L85'>  85     <font color='red'>{</font>
+<a name='L86'>  86     <b>case</b> <a href='../S/70.html#L8' title='Defined at 8 in src/userprog/gdt.h.'>SEL_UCSEG</a>:
+<a name='L87'>  87       <i><font color='green'>/* User's code segment, so it's a user exception, as we</font></i>
+<a name='L88'>  88 <i><font color='green'>         expected.  Kill the user process.  */</font></i>
+<a name='L89'>  89       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: dying due to interrupt %#04x (%s).\n",
+<a name='L90'>  90               <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> (), f-&gt;vec_no, <a href='../S/168.html#L435' title='Defined at 435 in src/threads/interrupt.c.'>intr_name</a> (f-&gt;vec_no));
+<a name='L91'>  91       <a href='../S/168.html#L411' title='Defined at 411 in src/threads/interrupt.c.'>intr_dump_frame</a> (f);
+<a name='L92'>  92       <a href='../S/163.html#L289' title='Defined at 289 in src/threads/thread.c.'>thread_exit</a> (); 
+<a name='L93'>  93 
+<a name='L94'>  94     <b>case</b> <a href='../S/152.html#L30' title='Defined at 30 in src/threads/loader.h.'>SEL_KCSEG</a>:
+<a name='L95'>  95       <i><font color='green'>/* Kernel's code segment, which indicates a kernel bug.</font></i>
+<a name='L96'>  96 <i><font color='green'>         Kernel code shouldn't throw exceptions.  (Page faults</font></i>
+<a name='L97'>  97 <i><font color='green'>         may cause kernel exceptions--but they shouldn't arrive</font></i>
+<a name='L98'>  98 <i><font color='green'>         here.)  Panic the kernel to make the point.  */</font></i>
+<a name='L99'>  99       <a href='../S/168.html#L411' title='Defined at 411 in src/threads/interrupt.c.'>intr_dump_frame</a> (f);
+<a name='L100'> 100       <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("Kernel bug - unexpected interrupt in kernel"); 
+<a name='L101'> 101 
+<a name='L102'> 102     <b>default</b>:
+<a name='L103'> 103       <i><font color='green'>/* Some other code segment?  Shouldn't happen.  Panic the</font></i>
+<a name='L104'> 104 <i><font color='green'>         kernel. */</font></i>
+<a name='L105'> 105       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Interrupt %#04x (%s) in unknown segment %04x\n",
+<a name='L106'> 106              f-&gt;vec_no, <a href='../S/168.html#L435' title='Defined at 435 in src/threads/interrupt.c.'>intr_name</a> (f-&gt;vec_no), f-&gt;cs);
+<a name='L107'> 107       <a href='../S/163.html#L289' title='Defined at 289 in src/threads/thread.c.'>thread_exit</a> ();
+<a name='L108'> 108     <font color='red'>}</font>
+<a name='L109'> 109 <font color='red'>}</font>
+<a name='L110'> 110 
+<a name='L111'> 111 <i><font color='green'>/* Page fault handler.  This is a skeleton that must be filled in</font></i>
+<a name='L112'> 112 <i><font color='green'>   to implement virtual memory.  Some solutions to project 2 may</font></i>
+<a name='L113'> 113 <i><font color='green'>   also require modifying this code.</font></i>
+<a name='L114'> 114 <i><font color='green'></font></i>
+<a name='L115'> 115 <i><font color='green'>   At entry, the address that faulted is in CR2 (Control Register</font></i>
+<a name='L116'> 116 <i><font color='green'>   2) and information about the fault, formatted as described in</font></i>
+<a name='L117'> 117 <i><font color='green'>   the PF_* macros in exception.h, is in F's error_code member.  The</font></i>
+<a name='L118'> 118 <i><font color='green'>   example code here shows how to parse that information.  You</font></i>
+<a name='L119'> 119 <i><font color='green'>   can find more information about both of these in the</font></i>
+<a name='L120'> 120 <i><font color='green'>   description of "Interrupt 14--Page Fault Exception (#PF)" in</font></i>
+<a name='L121'> 121 <i><font color='green'>   [IA32-v3a] section 5.15 "Exception and Interrupt Reference". */</font></i>
+<a name='L122'> 122 <b>static</b> <b>void</b>
+<a name='L123'> 123 <a href='../R/680.html' title='Multiple refered from 2 places.'>page_fault</a> (<b>struct</b> intr_frame *f) 
+<a name='L124'> 124 <font color='red'>{</font>
+<a name='L125'> 125   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> not_present;  <i><font color='green'>/* True: not-present page, false: writing r/o page. */</font></i>
+<a name='L126'> 126   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a>;        <i><font color='green'>/* True: access was write, false: access was read. */</font></i>
+<a name='L127'> 127   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> user;         <i><font color='green'>/* True: access by user, false: access by kernel. */</font></i>
+<a name='L128'> 128   <b>void</b> *fault_addr;  <i><font color='green'>/* Fault address. */</font></i>
+<a name='L129'> 129 
+<a name='L130'> 130   <i><font color='green'>/* Obtain faulting address, the virtual address that was</font></i>
+<a name='L131'> 131 <i><font color='green'>     accessed to cause the fault.  It may point to code or to</font></i>
+<a name='L132'> 132 <i><font color='green'>     data.  It is not necessarily the address of the instruction</font></i>
+<a name='L133'> 133 <i><font color='green'>     that caused the fault (that's f-&gt;eip).</font></i>
+<a name='L134'> 134 <i><font color='green'>     See [IA32-v2a] "MOV--Move to/from Control Registers" and</font></i>
+<a name='L135'> 135 <i><font color='green'>     [IA32-v3a] 5.15 "Interrupt 14--Page Fault Exception</font></i>
+<a name='L136'> 136 <i><font color='green'>     (#PF)". */</font></i>
+<a name='L137'> 137   <b>asm</b> ("movl %%cr2, %0" : "=r" (fault_addr));
+<a name='L138'> 138 
+<a name='L139'> 139   <i><font color='green'>/* Turn interrupts back on (they were only off so that we could</font></i>
+<a name='L140'> 140 <i><font color='green'>     be assured of reading CR2 before it changed). */</font></i>
+<a name='L141'> 141   <a href='../S/168.html#L88' title='Defined at 88 in src/threads/interrupt.c.'>intr_enable</a> ();
+<a name='L142'> 142 
+<a name='L143'> 143   <i><font color='green'>/* Count page faults. */</font></i>
+<a name='L144'> 144   page_fault_cnt++;
+<a name='L145'> 145 
+<a name='L146'> 146   <i><font color='green'>/* Determine cause. */</font></i>
+<a name='L147'> 147   not_present = (f-&gt;error_code &amp; <a href='../S/71.html#L5' title='Defined at 5 in src/userprog/exception.h.'>PF_P</a>) == 0;
+<a name='L148'> 148   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> = (f-&gt;error_code &amp; <a href='../D/151.html' title='Multiple defined in 2 places.'>PF_W</a>) != 0;
+<a name='L149'> 149   user = (f-&gt;error_code &amp; <a href='../S/71.html#L7' title='Defined at 7 in src/userprog/exception.h.'>PF_U</a>) != 0;
+<a name='L150'> 150 
+<a name='L151'> 151   <i><font color='green'>/* To implement virtual memory, delete the rest of the function</font></i>
+<a name='L152'> 152 <i><font color='green'>     body, and replace it with code that brings in the page to</font></i>
+<a name='L153'> 153 <i><font color='green'>     which fault_addr refers. */</font></i>
+<a name='L154'> 154   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Page fault at %p: %s error %s page in %s context.\n",
+<a name='L155'> 155           fault_addr,
+<a name='L156'> 156           not_present ? "not present" : "rights violation",
+<a name='L157'> 157           <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> ? "writing" : "reading",
+<a name='L158'> 158           user ? "user" : "kernel");
+<a name='L159'> 159   <a href='../S/64.html#L72' title='Defined at 72 in src/userprog/exception.c.'>kill</a> (f);
+<a name='L160'> 160 <font color='red'>}</font>
+<a name='L161'> 161 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L30'>[^]</a><a href='#L123'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

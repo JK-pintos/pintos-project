@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>src/threads/loader.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/loader.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/299.html' title='Multiple included from 8 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/152.html#L2' title='Defined at 2 in src/threads/loader.h.'>THREADS_LOADER_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/152.html#L1' title='Refered from 1 in src/threads/loader.h.'>THREADS_LOADER_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Constants fixed by the PC BIOS. */</font></i>
+<a name='L5'>   5 <font color='darkred'>#define</font> LOADER_BASE 0x7c00      <i><font color='green'>/* Physical address of loader's base. */</font></i>
+<a name='L6'>   6 <font color='darkred'>#define</font> <a href='../S/152.html#L16' title='Refered from 16 in src/threads/loader.h.'>LOADER_END</a>  0x7e00      <i><font color='green'>/* Physical address of end of loader. */</font></i>
+<a name='L7'>   7 
+<a name='L8'>   8 <i><font color='green'>/* Physical address of kernel base. */</font></i>
+<a name='L9'>   9 <font color='darkred'>#define</font> LOADER_KERN_BASE 0x20000       <i><font color='green'>/* 128 kB. */</font></i>
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Kernel virtual address at which all physical memory is mapped.</font></i>
+<a name='L12'>  12 <i><font color='green'>   Must be aligned on a 4 MB boundary. */</font></i>
+<a name='L13'>  13 <font color='darkred'>#define</font> <a href='../S/153.html#L53' title='Refered from 53 in src/threads/vaddr.h.'>LOADER_PHYS_BASE</a> 0xc0000000     <i><font color='green'>/* 3 GB. */</font></i>
+<a name='L14'>  14 
+<a name='L15'>  15 <i><font color='green'>/* Important loader physical addresses. */</font></i>
+<a name='L16'>  16 <font color='darkred'>#define</font> <a href='../S/152.html#L17' title='Refered from 17 in src/threads/loader.h.'>LOADER_SIG</a> (<a href='../S/152.html#L6' title='Defined at 6 in src/threads/loader.h.'>LOADER_END</a> - <a href='../S/152.html#L22' title='Defined at 22 in src/threads/loader.h.'>LOADER_SIG_LEN</a>)   <i><font color='green'>/* 0xaa55 BIOS signature. */</font></i>
+<a name='L17'>  17 <font color='darkred'>#define</font> <a href='../S/152.html#L18' title='Refered from 18 in src/threads/loader.h.'>LOADER_PARTS</a> (<a href='../S/152.html#L16' title='Defined at 16 in src/threads/loader.h.'>LOADER_SIG</a> - <a href='../S/152.html#L23' title='Defined at 23 in src/threads/loader.h.'>LOADER_PARTS_LEN</a>)     <i><font color='green'>/* Partition table. */</font></i>
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../R/88.html' title='Multiple refered from 2 places.'>LOADER_ARGS</a> (<a href='../S/152.html#L17' title='Defined at 17 in src/threads/loader.h.'>LOADER_PARTS</a> - <a href='../S/152.html#L24' title='Defined at 24 in src/threads/loader.h.'>LOADER_ARGS_LEN</a>)   <i><font color='green'>/* Command-line args. */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../S/156.html#L201' title='Refered from 201 in src/threads/init.c.'>LOADER_ARG_CNT</a> (<a href='../S/152.html#L18' title='Defined at 18 in src/threads/loader.h.'>LOADER_ARGS</a> - <a href='../S/152.html#L25' title='Defined at 25 in src/threads/loader.h.'>LOADER_ARG_CNT_LEN</a>) <i><font color='green'>/* Number of args. */</font></i>
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Sizes of loader data structures. */</font></i>
+<a name='L22'>  22 <font color='darkred'>#define</font> <a href='../S/152.html#L16' title='Refered from 16 in src/threads/loader.h.'>LOADER_SIG_LEN</a> 2
+<a name='L23'>  23 <font color='darkred'>#define</font> <a href='../S/152.html#L17' title='Refered from 17 in src/threads/loader.h.'>LOADER_PARTS_LEN</a> 64
+<a name='L24'>  24 <font color='darkred'>#define</font> <a href='../R/89.html' title='Multiple refered from 3 places.'>LOADER_ARGS_LEN</a> 128
+<a name='L25'>  25 <font color='darkred'>#define</font> <a href='../S/152.html#L19' title='Refered from 19 in src/threads/loader.h.'>LOADER_ARG_CNT_LEN</a> 4
+<a name='L26'>  26 
+<a name='L27'>  27 <i><font color='green'>/* GDT selectors defined by loader.</font></i>
+<a name='L28'>  28 <i><font color='green'>   More selectors are defined by userprog/gdt.h. */</font></i>
+<a name='L29'>  29 <font color='darkred'>#define</font> <a href='../S/65.html#L41' title='Refered from 41 in src/userprog/gdt.c.'>SEL_NULL</a>        0x00    <i><font color='green'>/* Null selector. */</font></i>
+<a name='L30'>  30 <font color='darkred'>#define</font> <a href='../R/187.html' title='Multiple refered from 3 places.'>SEL_KCSEG</a>       0x08    <i><font color='green'>/* Kernel code selector. */</font></i>
+<a name='L31'>  31 <font color='darkred'>#define</font> <a href='../R/188.html' title='Multiple refered from 2 places.'>SEL_KDSEG</a>       0x10    <i><font color='green'>/* Kernel data selector. */</font></i>
+<a name='L32'>  32 
+<a name='L33'>  33 <font color='darkred'>#ifndef</font> __ASSEMBLER__
+<a name='L34'>  34 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Amount of physical memory, in 4 kB pages. */</font></i>
+<a name='L37'>  37 <b>extern</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> init_ram_pages;
+<a name='L38'>  38 <font color='darkred'>#endif</font>
+<a name='L39'>  39 
+<a name='L40'>  40 <font color='darkred'>#endif</font> <i><font color='green'>/* threads/loader.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

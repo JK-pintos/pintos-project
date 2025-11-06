@@ -1,0 +1,131 @@
+<html>
+<head>
+<title>src/filesys/filesys.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/filesys.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L18'>[^]</a><a href='#L95'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L18' title='Defined at 18.'>filesys_init</a>
+<li><a href='#L36' title='Defined at 36.'>filesys_done</a>
+<li><a href='#L46' title='Defined at 46.'>filesys_create</a>
+<li><a href='#L67' title='Defined at 67.'>filesys_open</a>
+<li><a href='#L84' title='Defined at 84.'>filesys_remove</a>
+<li><a href='#L95' title='Defined at 95.'>do_format</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='36.html'>filesys/file.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='27.html'>filesys/free-map.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='34.html'>filesys/inode.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='28.html'>filesys/directory.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Partition that contains the file system. */</font></i>
+<a name='L11'>  11 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *fs_device;
+<a name='L12'>  12 
+<a name='L13'>  13 <b>static</b> <b>void</b> <a href='../S/38.html#L95' title='Defined at 95 in src/filesys/filesys.c.'>do_format</a> (<b>void</b>);
+<a name='L14'>  14 
+<a name='L15'>  15 <i><font color='green'>/* Initializes the file system module.</font></i>
+<a name='L16'>  16 <i><font color='green'>   If FORMAT is true, reformats the file system. */</font></i>
+<a name='L17'>  17 <b>void</b>
+<a name='L18'>  18 <a href='../R/444.html' title='Multiple refered from 2 places.'>filesys_init</a> (bool format) 
+<a name='L19'>  19 <font color='red'>{</font>
+<a name='L20'>  20   fs_device = <a href='../S/132.html#L54' title='Defined at 54 in src/devices/block.c.'>block_get_role</a> (BLOCK_FILESYS);
+<a name='L21'>  21   <b>if</b> (fs_device == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L22'>  22     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("No file system device found, can't initialize file system.");
+<a name='L23'>  23 
+<a name='L24'>  24   <a href='../S/35.html#L62' title='Defined at 62 in src/filesys/inode.c.'>inode_init</a> ();
+<a name='L25'>  25   <a href='../S/25.html#L13' title='Defined at 13 in src/filesys/free-map.c.'>free_map_init</a> ();
+<a name='L26'>  26 
+<a name='L27'>  27   <b>if</b> (format) 
+<a name='L28'>  28     <a href='../S/38.html#L95' title='Defined at 95 in src/filesys/filesys.c.'>do_format</a> ();
+<a name='L29'>  29 
+<a name='L30'>  30   <a href='../S/25.html#L54' title='Defined at 54 in src/filesys/free-map.c.'>free_map_open</a> ();
+<a name='L31'>  31 <font color='red'>}</font>
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Shuts down the file system module, writing any unwritten data</font></i>
+<a name='L34'>  34 <i><font color='green'>   to disk. */</font></i>
+<a name='L35'>  35 <b>void</b>
+<a name='L36'>  36 <a href='../R/443.html' title='Multiple refered from 2 places.'>filesys_done</a> (<b>void</b>) 
+<a name='L37'>  37 <font color='red'>{</font>
+<a name='L38'>  38   <a href='../S/25.html#L65' title='Defined at 65 in src/filesys/free-map.c.'>free_map_close</a> ();
+<a name='L39'>  39 <font color='red'>}</font>
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Creates a file named NAME with the given INITIAL_SIZE.</font></i>
+<a name='L42'>  42 <i><font color='green'>   Returns true if successful, false otherwise.</font></i>
+<a name='L43'>  43 <i><font color='green'>   Fails if a file named NAME already exists,</font></i>
+<a name='L44'>  44 <i><font color='green'>   or if internal memory allocation fails. */</font></i>
+<a name='L45'>  45 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L46'>  46 <a href='../R/442.html' title='Multiple refered from 2 places.'>filesys_create</a> (<b>const</b> <b>char</b> *name, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> initial_size) 
+<a name='L47'>  47 <font color='red'>{</font>
+<a name='L48'>  48   <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> inode_sector = 0;
+<a name='L49'>  49   <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> = <a href='../S/32.html#L55' title='Defined at 55 in src/filesys/directory.c.'>dir_open_root</a> ();
+<a name='L50'>  50   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>
+<a name='L51'>  51                   &amp;&amp; <a href='../S/25.html#L28' title='Defined at 28 in src/filesys/free-map.c.'>free_map_allocate</a> (1, &amp;inode_sector)
+<a name='L52'>  52                   &amp;&amp; <a href='../S/35.html#L73' title='Defined at 73 in src/filesys/inode.c.'>inode_create</a> (inode_sector, initial_size)
+<a name='L53'>  53                   &amp;&amp; <a href='../S/32.html#L142' title='Defined at 142 in src/filesys/directory.c.'>dir_add</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name, inode_sector));
+<a name='L54'>  54   <b>if</b> (!success &amp;&amp; inode_sector != 0) 
+<a name='L55'>  55     <a href='../S/25.html#L45' title='Defined at 45 in src/filesys/free-map.c.'>free_map_release</a> (inode_sector, 1);
+<a name='L56'>  56   <a href='../S/32.html#L70' title='Defined at 70 in src/filesys/directory.c.'>dir_close</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L57'>  57 
+<a name='L58'>  58   <b>return</b> success;
+<a name='L59'>  59 <font color='red'>}</font>
+<a name='L60'>  60 
+<a name='L61'>  61 <i><font color='green'>/* Opens the file with the given NAME.</font></i>
+<a name='L62'>  62 <i><font color='green'>   Returns the new file if successful or a null pointer</font></i>
+<a name='L63'>  63 <i><font color='green'>   otherwise.</font></i>
+<a name='L64'>  64 <i><font color='green'>   Fails if no file named NAME exists,</font></i>
+<a name='L65'>  65 <i><font color='green'>   or if an internal memory allocation fails. */</font></i>
+<a name='L66'>  66 <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *
+<a name='L67'>  67 <a href='../R/445.html' title='Multiple refered from 5 places.'>filesys_open</a> (<b>const</b> <b>char</b> *name)
+<a name='L68'>  68 <font color='red'>{</font>
+<a name='L69'>  69   <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> = <a href='../S/32.html#L55' title='Defined at 55 in src/filesys/directory.c.'>dir_open_root</a> ();
+<a name='L70'>  70   <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L71'>  71 
+<a name='L72'>  72   <b>if</b> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L73'>  73     <a href='../S/32.html#L119' title='Defined at 119 in src/filesys/directory.c.'>dir_lookup</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name, &amp;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L74'>  74   <a href='../S/32.html#L70' title='Defined at 70 in src/filesys/directory.c.'>dir_close</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L75'>  75 
+<a name='L76'>  76   <b>return</b> <a href='../S/29.html#L18' title='Defined at 18 in src/filesys/file.c.'>file_open</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L77'>  77 <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79 <i><font color='green'>/* Deletes the file named NAME.</font></i>
+<a name='L80'>  80 <i><font color='green'>   Returns true if successful, false on failure.</font></i>
+<a name='L81'>  81 <i><font color='green'>   Fails if no file named NAME exists,</font></i>
+<a name='L82'>  82 <i><font color='green'>   or if an internal memory allocation fails. */</font></i>
+<a name='L83'>  83 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L84'>  84 <a href='../R/446.html' title='Multiple refered from 2 places.'>filesys_remove</a> (<b>const</b> <b>char</b> *name) 
+<a name='L85'>  85 <font color='red'>{</font>
+<a name='L86'>  86   <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> = <a href='../S/32.html#L55' title='Defined at 55 in src/filesys/directory.c.'>dir_open_root</a> ();
+<a name='L87'>  87   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; <a href='../S/32.html#L185' title='Defined at 185 in src/filesys/directory.c.'>dir_remove</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name);
+<a name='L88'>  88   <a href='../S/32.html#L70' title='Defined at 70 in src/filesys/directory.c.'>dir_close</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>); 
+<a name='L89'>  89 
+<a name='L90'>  90   <b>return</b> success;
+<a name='L91'>  91 <font color='red'>}</font>
+<a name='L92'>  92 
+<a name='L93'>  93 <i><font color='green'>/* Formats the file system. */</font></i>
+<a name='L94'>  94 <b>static</b> <b>void</b>
+<a name='L95'>  95 <a href='../R/408.html' title='Multiple refered from 2 places.'>do_format</a> (<b>void</b>)
+<a name='L96'>  96 <font color='red'>{</font>
+<a name='L97'>  97   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Formatting file system...");
+<a name='L98'>  98   <a href='../S/25.html#L73' title='Defined at 73 in src/filesys/free-map.c.'>free_map_create</a> ();
+<a name='L99'>  99   <b>if</b> (!<a href='../S/32.html#L27' title='Defined at 27 in src/filesys/directory.c.'>dir_create</a> (<a href='../S/33.html#L9' title='Defined at 9 in src/filesys/filesys.h.'>ROOT_DIR_SECTOR</a>, 16))
+<a name='L100'> 100     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("root directory creation failed");
+<a name='L101'> 101   <a href='../S/25.html#L65' title='Defined at 65 in src/filesys/free-map.c.'>free_map_close</a> ();
+<a name='L102'> 102   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("done.\n");
+<a name='L103'> 103 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L18'>[^]</a><a href='#L95'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

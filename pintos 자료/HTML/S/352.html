@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>src/tests/vm/pt-grow-pusha.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/pt-grow-pusha.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L12'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L12' title='Defined at 12.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Expand the stack by 32 bytes all at once using the PUSHA</font></i>
+<a name='L2'>   2 <i><font color='green'>   instruction.</font></i>
+<a name='L3'>   3 <i><font color='green'>   This must succeed. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='300.html'>tests/cksum.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L10'>  10 
+<a name='L11'>  11 <b>void</b>
+<a name='L12'>  12 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L13'>  13 <font color='red'>{</font>
+<a name='L14'>  14   <b>asm</b> <b>volatile</b>
+<a name='L15'>  15     ("movl %%esp, %%eax;"        <i><font color='green'>/* Save a copy of the stack pointer. */</font></i>
+<a name='L16'>  16      "andl $0xfffff000, %%esp;"  <i><font color='green'>/* Move stack pointer to bottom of page. */</font></i>
+<a name='L17'>  17      "pushal;"                   <i><font color='green'>/* Push 32 bytes on stack at once. */</font></i>
+<a name='L18'>  18      "movl %%eax, %%esp"         <i><font color='green'>/* Restore copied stack pointer. */</font></i>
+<a name='L19'>  19      : : : "eax");               <i><font color='green'>/* Tell GCC we destroyed eax. */</font></i>
+<a name='L20'>  20 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L12'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

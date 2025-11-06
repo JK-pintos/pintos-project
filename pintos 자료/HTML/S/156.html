@@ -1,0 +1,461 @@
+<html>
+<head>
+<title>src/threads/init.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/init.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L73'>[^]</a><a href='#L406'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L73' title='Defined at 73.'>main</a>
+<li><a href='#L147' title='Defined at 147.'>bss_init</a>
+<li><a href='#L158' title='Defined at 158.'>paging_init</a>
+<li><a href='#L194' title='Defined at 194.'>read_command_line</a>
+<li><a href='#L229' title='Defined at 229.'>parse_options</a>
+<li><a href='#L282' title='Defined at 282.'>run_task</a>
+<li><a href='#L298' title='Defined at 298.'>run_actions</a>
+<li><a href='#L349' title='Defined at 349.'>usage</a>
+<li><a href='#L392' title='Defined at 392.'>locate_block_devices</a>
+<li><a href='#L406' title='Defined at 406.'>locate_block_device</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='110.html'>console.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='90.html'>limits.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L9'>   9 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L10'>  10 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='119.html'>devices/kbd.h</a>"
+<a name='L12'>  12 <font color='darkred'>#include</font> "<a href='120.html'>devices/input.h</a>"
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='137.html'>devices/serial.h</a>"
+<a name='L14'>  14 <font color='darkred'>#include</font> "<a href='141.html'>devices/shutdown.h</a>"
+<a name='L15'>  15 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L16'>  16 <font color='darkred'>#include</font> "<a href='127.html'>devices/vga.h</a>"
+<a name='L17'>  17 <font color='darkred'>#include</font> "<a href='138.html'>devices/rtc.h</a>"
+<a name='L18'>  18 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L19'>  19 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L20'>  20 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L21'>  21 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L22'>  22 <font color='darkred'>#include</font> "<a href='165.html'>threads/palloc.h</a>"
+<a name='L23'>  23 <font color='darkred'>#include</font> "<a href='162.html'>threads/pte.h</a>"
+<a name='L24'>  24 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L25'>  25 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L26'>  26 <font color='darkred'>#include</font> "<a href='63.html'>userprog/process.h</a>"
+<a name='L27'>  27 <font color='darkred'>#include</font> "<a href='71.html'>userprog/exception.h</a>"
+<a name='L28'>  28 <font color='darkred'>#include</font> "<a href='70.html'>userprog/gdt.h</a>"
+<a name='L29'>  29 <font color='darkred'>#include</font> "<a href='../I/94.html'>userprog/syscall.h</a>"
+<a name='L30'>  30 <font color='darkred'>#include</font> "<a href='69.html'>userprog/tss.h</a>"
+<a name='L31'>  31 <font color='darkred'>#else</font>
+<a name='L32'>  32 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L33'>  33 <font color='darkred'>#endif</font>
+<a name='L34'>  34 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L35'>  35 <font color='darkred'>#include</font> "<a href='128.html'>devices/block.h</a>"
+<a name='L36'>  36 <font color='darkred'>#include</font> "<a href='140.html'>devices/ide.h</a>"
+<a name='L37'>  37 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L38'>  38 <font color='darkred'>#include</font> "<a href='37.html'>filesys/fsutil.h</a>"
+<a name='L39'>  39 <font color='darkred'>#endif</font>
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Page directory with kernel mappings only. */</font></i>
+<a name='L42'>  42 <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *init_page_dir;
+<a name='L43'>  43 
+<a name='L44'>  44 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L45'>  45 <i><font color='green'>/* -f: Format the file system? */</font></i>
+<a name='L46'>  46 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> format_filesys;
+<a name='L47'>  47 
+<a name='L48'>  48 <i><font color='green'>/* -filesys, -scratch, -swap: Names of block devices to use,</font></i>
+<a name='L49'>  49 <i><font color='green'>   overriding the defaults. */</font></i>
+<a name='L50'>  50 <b>static</b> <b>const</b> <b>char</b> *filesys_bdev_name;
+<a name='L51'>  51 <b>static</b> <b>const</b> <b>char</b> *scratch_bdev_name;
+<a name='L52'>  52 <font color='darkred'>#ifdef</font> VM
+<a name='L53'>  53 <b>static</b> <b>const</b> <b>char</b> *swap_bdev_name;
+<a name='L54'>  54 <font color='darkred'>#endif</font>
+<a name='L55'>  55 <font color='darkred'>#endif</font> <i><font color='green'>/* FILESYS */</font></i>
+<a name='L56'>  56 
+<a name='L57'>  57 <i><font color='green'>/* -ul: Maximum number of pages to put into palloc's user pool. */</font></i>
+<a name='L58'>  58 <b>static</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> user_page_limit = <a href='../S/87.html#L49' title='Defined at 49 in src/lib/stdint.h.'>SIZE_MAX</a>;
+<a name='L59'>  59 
+<a name='L60'>  60 <b>static</b> <b>void</b> <a href='../S/156.html#L147' title='Defined at 147 in src/threads/init.c.'>bss_init</a> (<b>void</b>);
+<a name='L61'>  61 <b>static</b> <b>void</b> <a href='../S/156.html#L158' title='Defined at 158 in src/threads/init.c.'>paging_init</a> (<b>void</b>);
+<a name='L62'>  62 
+<a name='L63'>  63 <b>static</b> <b>char</b> **<a href='../S/156.html#L194' title='Defined at 194 in src/threads/init.c.'>read_command_line</a> (<b>void</b>);
+<a name='L64'>  64 <b>static</b> <b>char</b> **<a href='../S/156.html#L229' title='Defined at 229 in src/threads/init.c.'>parse_options</a> (<b>char</b> **argv);
+<a name='L65'>  65 <b>static</b> <b>void</b> <a href='../S/156.html#L298' title='Defined at 298 in src/threads/init.c.'>run_actions</a> (<b>char</b> **argv);
+<a name='L66'>  66 <b>static</b> <b>void</b> <a href='../D/1057.html' title='Multiple defined in 3 places.'>usage</a> (<b>void</b>);
+<a name='L67'>  67 
+<a name='L68'>  68 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L69'>  69 <b>static</b> <b>void</b> <a href='../S/156.html#L392' title='Defined at 392 in src/threads/init.c.'>locate_block_devices</a> (<b>void</b>);
+<a name='L70'>  70 <b>static</b> <b>void</b> <a href='../S/156.html#L406' title='Defined at 406 in src/threads/init.c.'>locate_block_device</a> (<b>enum</b> block_type, <b>const</b> <b>char</b> *name);
+<a name='L71'>  71 <font color='darkred'>#endif</font>
+<a name='L72'>  72 
+<a name='L73'>  73 <b>int</b> <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>void</b>) <a href='../S/104.html#L8' title='Defined at 8 in src/lib/debug.h.'>NO_RETURN</a>;
+<a name='L74'>  74 
+<a name='L75'>  75 <i><font color='green'>/* Pintos main program. */</font></i>
+<a name='L76'>  76 <b>int</b>
+<a name='L77'>  77 main (<b>void</b>)
+<a name='L78'>  78 <font color='red'>{</font>
+<a name='L79'>  79   <b>char</b> **argv;
+<a name='L80'>  80 
+<a name='L81'>  81   <i><font color='green'>/* Clear BSS. */</font></i>  
+<a name='L82'>  82   <a href='../S/156.html#L147' title='Defined at 147 in src/threads/init.c.'>bss_init</a> ();
+<a name='L83'>  83 
+<a name='L84'>  84   <i><font color='green'>/* Break command line into arguments and parse options. */</font></i>
+<a name='L85'>  85   argv = <a href='../S/156.html#L194' title='Defined at 194 in src/threads/init.c.'>read_command_line</a> ();
+<a name='L86'>  86   argv = <a href='../S/156.html#L229' title='Defined at 229 in src/threads/init.c.'>parse_options</a> (argv);
+<a name='L87'>  87 
+<a name='L88'>  88   <i><font color='green'>/* Initialize ourselves as a thread so we can use locks,</font></i>
+<a name='L89'>  89 <i><font color='green'>     then enable console locking. */</font></i>
+<a name='L90'>  90   thread_init ();
+<a name='L91'>  91   <a href='../S/105.html#L64' title='Defined at 64 in src/lib/kernel/console.c.'>console_init</a> ();  
+<a name='L92'>  92 
+<a name='L93'>  93   <i><font color='green'>/* Greet user. */</font></i>
+<a name='L94'>  94   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Pintos booting with %'"<a href='../S/81.html#L23' title='Defined at 23 in src/lib/inttypes.h.'>PRIu32</a>" kB RAM...\n",
+<a name='L95'>  95           init_ram_pages * <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> / 1024);
+<a name='L96'>  96 
+<a name='L97'>  97   <i><font color='green'>/* Initialize memory system. */</font></i>
+<a name='L98'>  98   <a href='../S/160.html#L46' title='Defined at 46 in src/threads/palloc.c.'>palloc_init</a> (user_page_limit);
+<a name='L99'>  99   <a href='../S/161.html#L72' title='Defined at 72 in src/threads/malloc.c.'>malloc_init</a> ();
+<a name='L100'> 100   <a href='../S/156.html#L158' title='Defined at 158 in src/threads/init.c.'>paging_init</a> ();
+<a name='L101'> 101 
+<a name='L102'> 102   <i><font color='green'>/* Segmentation. */</font></i>
+<a name='L103'> 103 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L104'> 104   <a href='../S/72.html#L80' title='Defined at 80 in src/userprog/tss.c.'>tss_init</a> ();
+<a name='L105'> 105   <a href='../S/65.html#L36' title='Defined at 36 in src/userprog/gdt.c.'>gdt_init</a> ();
+<a name='L106'> 106 <font color='darkred'>#endif</font>
+<a name='L107'> 107 
+<a name='L108'> 108   <i><font color='green'>/* Initialize interrupt handlers. */</font></i>
+<a name='L109'> 109   <a href='../S/168.html#L118' title='Defined at 118 in src/threads/interrupt.c.'>intr_init</a> ();
+<a name='L110'> 110   <a href='../S/125.html#L36' title='Defined at 36 in src/devices/timer.c.'>timer_init</a> ();
+<a name='L111'> 111   <a href='../S/122.html#L31' title='Defined at 31 in src/devices/kbd.c.'>kbd_init</a> ();
+<a name='L112'> 112   <a href='../S/133.html#L11' title='Defined at 11 in src/devices/input.c.'>input_init</a> ();
+<a name='L113'> 113 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L114'> 114   <a href='../S/64.html#L30' title='Defined at 30 in src/userprog/exception.c.'>exception_init</a> ();
+<a name='L115'> 115   <a href='../S/68.html#L10' title='Defined at 10 in src/userprog/syscall.c.'>syscall_init</a> ();
+<a name='L116'> 116 <font color='darkred'>#endif</font>
+<a name='L117'> 117 
+<a name='L118'> 118   <i><font color='green'>/* Start thread scheduler and enable interrupts. */</font></i>
+<a name='L119'> 119   <a href='../S/163.html#L106' title='Defined at 106 in src/threads/thread.c.'>thread_start</a> ();
+<a name='L120'> 120   <a href='../S/142.html#L82' title='Defined at 82 in src/devices/serial.c.'>serial_init_queue</a> ();
+<a name='L121'> 121   <a href='../S/125.html#L44' title='Defined at 44 in src/devices/timer.c.'>timer_calibrate</a> ();
+<a name='L122'> 122 
+<a name='L123'> 123 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L124'> 124   <i><font color='green'>/* Initialize file system. */</font></i>
+<a name='L125'> 125   <a href='../S/123.html#L102' title='Defined at 102 in src/devices/ide.c.'>ide_init</a> ();
+<a name='L126'> 126   <a href='../S/156.html#L392' title='Defined at 392 in src/threads/init.c.'>locate_block_devices</a> ();
+<a name='L127'> 127   <a href='../S/38.html#L18' title='Defined at 18 in src/filesys/filesys.c.'>filesys_init</a> (format_filesys);
+<a name='L128'> 128 <font color='darkred'>#endif</font>
+<a name='L129'> 129 
+<a name='L130'> 130   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Boot complete.\n");
+<a name='L131'> 131   
+<a name='L132'> 132   <i><font color='green'>/* Run actions specified on kernel command line. */</font></i>
+<a name='L133'> 133   <a href='../S/156.html#L298' title='Defined at 298 in src/threads/init.c.'>run_actions</a> (argv);
+<a name='L134'> 134 
+<a name='L135'> 135   <i><font color='green'>/* Finish up. */</font></i>
+<a name='L136'> 136   <a href='../S/136.html#L29' title='Defined at 29 in src/devices/shutdown.c.'>shutdown</a> ();
+<a name='L137'> 137   <a href='../S/163.html#L289' title='Defined at 289 in src/threads/thread.c.'>thread_exit</a> ();
+<a name='L138'> 138 <font color='red'>}</font>
+<a name='L139'> 139 
+<a name='L140'> 140 <i><font color='green'>/* Clear the "BSS", a segment that should be initialized to</font></i>
+<a name='L141'> 141 <i><font color='green'>   zeros.  It isn't actually stored on disk or zeroed by the</font></i>
+<a name='L142'> 142 <i><font color='green'>   kernel loader, so we have to zero it ourselves.</font></i>
+<a name='L143'> 143 <i><font color='green'></font></i>
+<a name='L144'> 144 <i><font color='green'>   The start and end of the BSS segment is recorded by the</font></i>
+<a name='L145'> 145 <i><font color='green'>   linker as _start_bss and _end_bss.  See kernel.lds. */</font></i>
+<a name='L146'> 146 <b>static</b> <b>void</b>
+<a name='L147'> 147 <a href='../R/351.html' title='Multiple refered from 2 places.'>bss_init</a> (<b>void</b>) 
+<a name='L148'> 148 <font color='red'>{</font>
+<a name='L149'> 149   <b>extern</b> <b>char</b> _start_bss, _end_bss;
+<a name='L150'> 150   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (&amp;_start_bss, 0, &amp;_end_bss - &amp;_start_bss);
+<a name='L151'> 151 <font color='red'>}</font>
+<a name='L152'> 152 
+<a name='L153'> 153 <i><font color='green'>/* Populates the base page directory and page table with the</font></i>
+<a name='L154'> 154 <i><font color='green'>   kernel virtual mapping, and then sets up the CPU to use the</font></i>
+<a name='L155'> 155 <i><font color='green'>   new page directory.  Points init_page_dir to the page</font></i>
+<a name='L156'> 156 <i><font color='green'>   directory it creates. */</font></i>
+<a name='L157'> 157 <b>static</b> <b>void</b>
+<a name='L158'> 158 <a href='../R/692.html' title='Multiple refered from 2 places.'>paging_init</a> (<b>void</b>)
+<a name='L159'> 159 <font color='red'>{</font>
+<a name='L160'> 160   <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, *pt;
+<a name='L161'> 161   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page;
+<a name='L162'> 162   <b>extern</b> <b>char</b> <a href='../S/95.html#L7' title='Defined at 7 in src/lib/user/entry.c.'>_start</a>, _end_kernel_text;
+<a name='L163'> 163 
+<a name='L164'> 164   pd = init_page_dir = <a href='../S/160.html#L111' title='Defined at 111 in src/threads/palloc.c.'>palloc_get_page</a> (PAL_ASSERT | PAL_ZERO);
+<a name='L165'> 165   pt = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L166'> 166   <b>for</b> (page = 0; page &lt; init_ram_pages; page++)
+<a name='L167'> 167     <font color='red'>{</font>
+<a name='L168'> 168       <a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> paddr = page * <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>;
+<a name='L169'> 169       <b>char</b> *vaddr = <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (paddr);
+<a name='L170'> 170       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> pde_idx = <a href='../S/162.html#L37' title='Defined at 37 in src/threads/pte.h.'>pd_no</a> (vaddr);
+<a name='L171'> 171       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> pte_idx = <a href='../S/162.html#L32' title='Defined at 32 in src/threads/pte.h.'>pt_no</a> (vaddr);
+<a name='L172'> 172       <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> in_kernel_text = &amp;<a href='../S/95.html#L7' title='Defined at 7 in src/lib/user/entry.c.'>_start</a> &lt;= vaddr &amp;&amp; vaddr &lt; &amp;_end_kernel_text;
+<a name='L173'> 173 
+<a name='L174'> 174       <b>if</b> (pd[pde_idx] == 0)
+<a name='L175'> 175         <font color='red'>{</font>
+<a name='L176'> 176           pt = <a href='../S/160.html#L111' title='Defined at 111 in src/threads/palloc.c.'>palloc_get_page</a> (PAL_ASSERT | PAL_ZERO);
+<a name='L177'> 177           pd[pde_idx] = <a href='../S/162.html#L71' title='Defined at 71 in src/threads/pte.h.'>pde_create</a> (pt);
+<a name='L178'> 178         <font color='red'>}</font>
+<a name='L179'> 179 
+<a name='L180'> 180       pt[pte_idx] = <a href='../S/162.html#L87' title='Defined at 87 in src/threads/pte.h.'>pte_create_kernel</a> (vaddr, !in_kernel_text);
+<a name='L181'> 181     <font color='red'>}</font>
+<a name='L182'> 182 
+<a name='L183'> 183   <i><font color='green'>/* Store the physical address of the page directory into CR3</font></i>
+<a name='L184'> 184 <i><font color='green'>     aka PDBR (page directory base register).  This activates our</font></i>
+<a name='L185'> 185 <i><font color='green'>     new page tables immediately.  See [IA32-v2a] "MOV--Move</font></i>
+<a name='L186'> 186 <i><font color='green'>     to/from Control Registers" and [IA32-v3a] 3.7.5 "Base Address</font></i>
+<a name='L187'> 187 <i><font color='green'>     of the Page Directory". */</font></i>
+<a name='L188'> 188   <b>asm</b> <b>volatile</b> ("movl %0, %%cr3" : : "r" (<a href='../S/153.html#L82' title='Defined at 82 in src/threads/vaddr.h.'>vtop</a> (init_page_dir)));
+<a name='L189'> 189 <font color='red'>}</font>
+<a name='L190'> 190 
+<a name='L191'> 191 <i><font color='green'>/* Breaks the kernel command line into words and returns them as</font></i>
+<a name='L192'> 192 <i><font color='green'>   an argv-like array. */</font></i>
+<a name='L193'> 193 <b>static</b> <b>char</b> **
+<a name='L194'> 194 <a href='../R/751.html' title='Multiple refered from 2 places.'>read_command_line</a> (<b>void</b>) 
+<a name='L195'> 195 <font color='red'>{</font>
+<a name='L196'> 196   <b>static</b> <b>char</b> *argv[<a href='../S/152.html#L24' title='Defined at 24 in src/threads/loader.h.'>LOADER_ARGS_LEN</a> / 2 + 1];
+<a name='L197'> 197   <b>char</b> *p, *end;
+<a name='L198'> 198   <b>int</b> argc;
+<a name='L199'> 199   <b>int</b> i;
+<a name='L200'> 200 
+<a name='L201'> 201   argc = *(<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *) <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (<a href='../S/152.html#L19' title='Defined at 19 in src/threads/loader.h.'>LOADER_ARG_CNT</a>);
+<a name='L202'> 202   p = <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (<a href='../S/152.html#L18' title='Defined at 18 in src/threads/loader.h.'>LOADER_ARGS</a>);
+<a name='L203'> 203   end = p + <a href='../S/152.html#L24' title='Defined at 24 in src/threads/loader.h.'>LOADER_ARGS_LEN</a>;
+<a name='L204'> 204   <b>for</b> (i = 0; i &lt; argc; i++) 
+<a name='L205'> 205     <font color='red'>{</font>
+<a name='L206'> 206       <b>if</b> (p &gt;= end)
+<a name='L207'> 207         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("command line arguments overflow");
+<a name='L208'> 208 
+<a name='L209'> 209       argv[i] = p;
+<a name='L210'> 210       p += <a href='../S/83.html#L307' title='Defined at 307 in src/lib/string.c.'>strnlen</a> (p, end - p) + 1;
+<a name='L211'> 211     <font color='red'>}</font>
+<a name='L212'> 212   argv[argc] = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L213'> 213 
+<a name='L214'> 214   <i><font color='green'>/* Print kernel command line. */</font></i>
+<a name='L215'> 215   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Kernel command line:");
+<a name='L216'> 216   <b>for</b> (i = 0; i &lt; argc; i++)
+<a name='L217'> 217     <b>if</b> (<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (argv[i], ' ') == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L218'> 218       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" %s", argv[i]);
+<a name='L219'> 219     <b>else</b>
+<a name='L220'> 220       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" '%s'", argv[i]);
+<a name='L221'> 221   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\n");
+<a name='L222'> 222 
+<a name='L223'> 223   <b>return</b> argv;
+<a name='L224'> 224 <font color='red'>}</font>
+<a name='L225'> 225 
+<a name='L226'> 226 <i><font color='green'>/* Parses options in ARGV[]</font></i>
+<a name='L227'> 227 <i><font color='green'>   and returns the first non-option argument. */</font></i>
+<a name='L228'> 228 <b>static</b> <b>char</b> **
+<a name='L229'> 229 <a href='../R/701.html' title='Multiple refered from 2 places.'>parse_options</a> (<b>char</b> **argv) 
+<a name='L230'> 230 <font color='red'>{</font>
+<a name='L231'> 231   <b>for</b> (; *argv != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; **argv == '-'; argv++)
+<a name='L232'> 232     <font color='red'>{</font>
+<a name='L233'> 233       <b>char</b> *save_ptr;
+<a name='L234'> 234       <b>char</b> *name = <a href='../S/83.html#L235' title='Defined at 235 in src/lib/string.c.'>strtok_r</a> (*argv, "=", &amp;save_ptr);
+<a name='L235'> 235       <b>char</b> *<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/83.html#L235' title='Defined at 235 in src/lib/string.c.'>strtok_r</a> (<a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, "", &amp;save_ptr);
+<a name='L236'> 236       
+<a name='L237'> 237       <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-h"))
+<a name='L238'> 238         <a href='../D/1057.html' title='Multiple defined in 3 places.'>usage</a> ();
+<a name='L239'> 239       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-q"))
+<a name='L240'> 240         <a href='../S/136.html#L50' title='Defined at 50 in src/devices/shutdown.c.'>shutdown_configure</a> (SHUTDOWN_POWER_OFF);
+<a name='L241'> 241       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-r"))
+<a name='L242'> 242         <a href='../S/136.html#L50' title='Defined at 50 in src/devices/shutdown.c.'>shutdown_configure</a> (SHUTDOWN_REBOOT);
+<a name='L243'> 243 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L244'> 244       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-f"))
+<a name='L245'> 245         format_filesys = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L246'> 246       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-filesys"))
+<a name='L247'> 247         filesys_bdev_name = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L248'> 248       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-scratch"))
+<a name='L249'> 249         scratch_bdev_name = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L250'> 250 <font color='darkred'>#ifdef</font> VM
+<a name='L251'> 251       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-swap"))
+<a name='L252'> 252         swap_bdev_name = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L253'> 253 <font color='darkred'>#endif</font>
+<a name='L254'> 254 <font color='darkred'>#endif</font>
+<a name='L255'> 255       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-rs"))
+<a name='L256'> 256         <a href='../S/85.html#L34' title='Defined at 34 in src/lib/random.c.'>random_init</a> (<a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>));
+<a name='L257'> 257       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-mlfqs"))
+<a name='L258'> 258         thread_mlfqs = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L259'> 259 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L260'> 260       <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, "-ul"))
+<a name='L261'> 261         user_page_limit = <a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L262'> 262 <font color='darkred'>#endif</font>
+<a name='L263'> 263       <b>else</b>
+<a name='L264'> 264         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("unknown option `%s' (use -h for help)", name);
+<a name='L265'> 265     <font color='red'>}</font>
+<a name='L266'> 266 
+<a name='L267'> 267   <i><font color='green'>/* Initialize the random number generator based on the system</font></i>
+<a name='L268'> 268 <i><font color='green'>     time.  This has no effect if an "-rs" option was specified.</font></i>
+<a name='L269'> 269 <i><font color='green'></font></i>
+<a name='L270'> 270 <i><font color='green'>     When running under Bochs, this is not enough by itself to</font></i>
+<a name='L271'> 271 <i><font color='green'>     get a good seed value, because the pintos script sets the</font></i>
+<a name='L272'> 272 <i><font color='green'>     initial time to a predictable value, not to the local time,</font></i>
+<a name='L273'> 273 <i><font color='green'>     for reproducibility.  To fix this, give the "-r" option to</font></i>
+<a name='L274'> 274 <i><font color='green'>     the pintos script to request real-time execution. */</font></i>
+<a name='L275'> 275   <a href='../S/85.html#L34' title='Defined at 34 in src/lib/random.c.'>random_init</a> (<a href='../S/126.html#L43' title='Defined at 43 in src/devices/rtc.c.'>rtc_get_time</a> ());
+<a name='L276'> 276   
+<a name='L277'> 277   <b>return</b> argv;
+<a name='L278'> 278 <font color='red'>}</font>
+<a name='L279'> 279 
+<a name='L280'> 280 <i><font color='green'>/* Runs the task specified in ARGV[1]. */</font></i>
+<a name='L281'> 281 <b>static</b> <b>void</b>
+<a name='L282'> 282 <a href='../S/156.html#L311' title='Refered from 311 in src/threads/init.c.'>run_task</a> (<b>char</b> **argv)
+<a name='L283'> 283 <font color='red'>{</font>
+<a name='L284'> 284   <b>const</b> <b>char</b> *task = argv[1];
+<a name='L285'> 285   
+<a name='L286'> 286   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Executing '%s':\n", task);
+<a name='L287'> 287 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L288'> 288   <a href='../S/66.html#L89' title='Defined at 89 in src/userprog/process.c.'>process_wait</a> (<a href='../S/66.html#L29' title='Defined at 29 in src/userprog/process.c.'>process_execute</a> (task));
+<a name='L289'> 289 <font color='darkred'>#else</font>
+<a name='L290'> 290   <a href='../S/568.html#L47' title='Defined at 47 in src/tests/threads/tests.c.'>run_test</a> (task);
+<a name='L291'> 291 <font color='darkred'>#endif</font>
+<a name='L292'> 292   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Execution of '%s' complete.\n", task);
+<a name='L293'> 293 <font color='red'>}</font>
+<a name='L294'> 294 
+<a name='L295'> 295 <i><font color='green'>/* Executes all of the actions specified in ARGV[]</font></i>
+<a name='L296'> 296 <i><font color='green'>   up to the null pointer sentinel. */</font></i>
+<a name='L297'> 297 <b>static</b> <b>void</b>
+<a name='L298'> 298 <a href='../R/778.html' title='Multiple refered from 2 places.'>run_actions</a> (<b>char</b> **argv) 
+<a name='L299'> 299 <font color='red'>{</font>
+<a name='L300'> 300   <i><font color='green'>/* An action. */</font></i>
+<a name='L301'> 301   <b>struct</b> <a href='../R/285.html' title='Multiple refered from 4 places.'>action</a> 
+<a name='L302'> 302     <font color='red'>{</font>
+<a name='L303'> 303       <b>char</b> *name;                       <i><font color='green'>/* Action name. */</font></i>
+<a name='L304'> 304       <b>int</b> argc;                         <i><font color='green'>/* # of args, including action name. */</font></i>
+<a name='L305'> 305       <b>void</b> (*function) (<b>char</b> **argv);   <i><font color='green'>/* Function to execute action. */</font></i>
+<a name='L306'> 306     <font color='red'>}</font>;
+<a name='L307'> 307 
+<a name='L308'> 308   <i><font color='green'>/* Table of supported actions. */</font></i>
+<a name='L309'> 309   <b>static</b> <b>const</b> <b>struct</b> <a href='../S/156.html#L301' title='Defined at 301 in src/threads/init.c.'>action</a> actions[] = 
+<a name='L310'> 310     <font color='red'>{</font>
+<a name='L311'> 311       <font color='red'>{</font>"run", 2, <a href='../S/156.html#L282' title='Defined at 282 in src/threads/init.c.'>run_task</a><font color='red'>}</font>,
+<a name='L312'> 312 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L313'> 313       <font color='red'>{</font>"ls", 1, <a href='../S/26.html#L16' title='Defined at 16 in src/filesys/fsutil.c.'>fsutil_ls</a><font color='red'>}</font>,
+<a name='L314'> 314       <font color='red'>{</font>"cat", 2, <a href='../S/26.html#L34' title='Defined at 34 in src/filesys/fsutil.c.'>fsutil_cat</a><font color='red'>}</font>,
+<a name='L315'> 315       <font color='red'>{</font>"rm", 2, <a href='../S/26.html#L61' title='Defined at 61 in src/filesys/fsutil.c.'>fsutil_rm</a><font color='red'>}</font>,
+<a name='L316'> 316       <font color='red'>{</font>"extract", 1, <a href='../S/26.html#L73' title='Defined at 73 in src/filesys/fsutil.c.'>fsutil_extract</a><font color='red'>}</font>,
+<a name='L317'> 317       <font color='red'>{</font>"append", 2, <a href='../S/26.html#L167' title='Defined at 167 in src/filesys/fsutil.c.'>fsutil_append</a><font color='red'>}</font>,
+<a name='L318'> 318 <font color='darkred'>#endif</font>
+<a name='L319'> 319       <font color='red'>{</font><a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, 0, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a><font color='red'>}</font>,
+<a name='L320'> 320     <font color='red'>}</font>;
+<a name='L321'> 321 
+<a name='L322'> 322   <b>while</b> (*argv != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L323'> 323     <font color='red'>{</font>
+<a name='L324'> 324       <b>const</b> <b>struct</b> <a href='../S/156.html#L301' title='Defined at 301 in src/threads/init.c.'>action</a> *a;
+<a name='L325'> 325       <b>int</b> i;
+<a name='L326'> 326 
+<a name='L327'> 327       <i><font color='green'>/* Find action name. */</font></i>
+<a name='L328'> 328       <b>for</b> (a = actions; ; a++)
+<a name='L329'> 329         <b>if</b> (a-&gt;name == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L330'> 330           <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("unknown action `%s' (use -h for help)", *argv);
+<a name='L331'> 331         <b>else</b> <b>if</b> (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (*argv, a-&gt;name))
+<a name='L332'> 332           <b>break</b>;
+<a name='L333'> 333 
+<a name='L334'> 334       <i><font color='green'>/* Check for required arguments. */</font></i>
+<a name='L335'> 335       <b>for</b> (i = 1; i &lt; a-&gt;argc; i++)
+<a name='L336'> 336         <b>if</b> (argv[i] == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L337'> 337           <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("action `%s' requires %d argument(s)", *argv, a-&gt;argc - 1);
+<a name='L338'> 338 
+<a name='L339'> 339       <i><font color='green'>/* Invoke action and advance. */</font></i>
+<a name='L340'> 340       a-&gt;function (argv);
+<a name='L341'> 341       argv += a-&gt;argc;
+<a name='L342'> 342     <font color='red'>}</font>
+<a name='L343'> 343   
+<a name='L344'> 344 <font color='red'>}</font>
+<a name='L345'> 345 
+<a name='L346'> 346 <i><font color='green'>/* Prints a kernel command line help message and powers off the</font></i>
+<a name='L347'> 347 <i><font color='green'>   machine. */</font></i>
+<a name='L348'> 348 <b>static</b> <b>void</b>
+<a name='L349'> 349 <a href='../R/943.html' title='Multiple refered from 13 places.'>usage</a> (<b>void</b>)
+<a name='L350'> 350 <font color='red'>{</font>
+<a name='L351'> 351   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\nCommand line syntax: [OPTION...] [ACTION...]\n"
+<a name='L352'> 352           "Options must precede actions.\n"
+<a name='L353'> 353           "Actions are executed in the order specified.\n"
+<a name='L354'> 354           "\nAvailable actions:\n"
+<a name='L355'> 355 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L356'> 356           "  run 'PROG [ARG...]' Run PROG and wait for it to complete.\n"
+<a name='L357'> 357 <font color='darkred'>#else</font>
+<a name='L358'> 358           "  run TEST           Run TEST.\n"
+<a name='L359'> 359 <font color='darkred'>#endif</font>
+<a name='L360'> 360 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L361'> 361           "  ls                 List files in the root directory.\n"
+<a name='L362'> 362           "  cat FILE           Print FILE to the console.\n"
+<a name='L363'> 363           "  rm FILE            Delete FILE.\n"
+<a name='L364'> 364           "Use these actions indirectly via `pintos' -g and -p options:\n"
+<a name='L365'> 365           "  extract            Untar from scratch device into file system.\n"
+<a name='L366'> 366           "  append FILE        Append FILE to tar file on scratch device.\n"
+<a name='L367'> 367 <font color='darkred'>#endif</font>
+<a name='L368'> 368           "\nOptions:\n"
+<a name='L369'> 369           "  -h                 Print this help message and power off.\n"
+<a name='L370'> 370           "  -q                 Power off VM after actions or on panic.\n"
+<a name='L371'> 371           "  -r                 Reboot after actions.\n"
+<a name='L372'> 372 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L373'> 373           "  -f                 Format file system device during startup.\n"
+<a name='L374'> 374           "  -filesys=BDEV      Use BDEV for file system instead of default.\n"
+<a name='L375'> 375           "  -scratch=BDEV      Use BDEV for scratch instead of default.\n"
+<a name='L376'> 376 <font color='darkred'>#ifdef</font> VM
+<a name='L377'> 377           "  -swap=BDEV         Use BDEV for swap instead of default.\n"
+<a name='L378'> 378 <font color='darkred'>#endif</font>
+<a name='L379'> 379 <font color='darkred'>#endif</font>
+<a name='L380'> 380           "  -rs=SEED           Set random number seed to SEED.\n"
+<a name='L381'> 381           "  -mlfqs             Use multi-level feedback queue scheduler.\n"
+<a name='L382'> 382 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L383'> 383           "  -ul=COUNT          Limit user memory to COUNT pages.\n"
+<a name='L384'> 384 <font color='darkred'>#endif</font>
+<a name='L385'> 385           );
+<a name='L386'> 386   <a href='../S/136.html#L88' title='Defined at 88 in src/devices/shutdown.c.'>shutdown_power_off</a> ();
+<a name='L387'> 387 <font color='red'>}</font>
+<a name='L388'> 388 
+<a name='L389'> 389 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L390'> 390 <i><font color='green'>/* Figure out what block devices to cast in the various Pintos roles. */</font></i>
+<a name='L391'> 391 <b>static</b> <b>void</b>
+<a name='L392'> 392 <a href='../R/626.html' title='Multiple refered from 2 places.'>locate_block_devices</a> (<b>void</b>)
+<a name='L393'> 393 <font color='red'>{</font>
+<a name='L394'> 394   <a href='../S/156.html#L406' title='Defined at 406 in src/threads/init.c.'>locate_block_device</a> (BLOCK_FILESYS, filesys_bdev_name);
+<a name='L395'> 395   <a href='../S/156.html#L406' title='Defined at 406 in src/threads/init.c.'>locate_block_device</a> (BLOCK_SCRATCH, scratch_bdev_name);
+<a name='L396'> 396 <font color='darkred'>#ifdef</font> VM
+<a name='L397'> 397   <a href='../S/156.html#L406' title='Defined at 406 in src/threads/init.c.'>locate_block_device</a> (BLOCK_SWAP, swap_bdev_name);
+<a name='L398'> 398 <font color='darkred'>#endif</font>
+<a name='L399'> 399 <font color='red'>}</font>
+<a name='L400'> 400 
+<a name='L401'> 401 <i><font color='green'>/* Figures out what block device to use for the given ROLE: the</font></i>
+<a name='L402'> 402 <i><font color='green'>   block device with the given NAME, if NAME is non-null,</font></i>
+<a name='L403'> 403 <i><font color='green'>   otherwise the first block device in probe order of type</font></i>
+<a name='L404'> 404 <i><font color='green'>   ROLE. */</font></i>
+<a name='L405'> 405 <b>static</b> <b>void</b>
+<a name='L406'> 406 <a href='../R/625.html' title='Multiple refered from 4 places.'>locate_block_device</a> (<b>enum</b> block_type role, <b>const</b> <b>char</b> *name)
+<a name='L407'> 407 <font color='red'>{</font>
+<a name='L408'> 408   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L409'> 409 
+<a name='L410'> 410   <b>if</b> (name != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L411'> 411     <font color='red'>{</font>
+<a name='L412'> 412       <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/132.html#L87' title='Defined at 87 in src/devices/block.c.'>block_get_by_name</a> (name);
+<a name='L413'> 413       <b>if</b> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L414'> 414         <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("No such block device \"%s\"", name);
+<a name='L415'> 415     <font color='red'>}</font>
+<a name='L416'> 416   <b>else</b>
+<a name='L417'> 417     <font color='red'>{</font>
+<a name='L418'> 418       <b>for</b> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/132.html#L71' title='Defined at 71 in src/devices/block.c.'>block_first</a> (); <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>; <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = <a href='../S/132.html#L79' title='Defined at 79 in src/devices/block.c.'>block_next</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>))
+<a name='L419'> 419         <b>if</b> (<a href='../D/430.html' title='Multiple defined in 2 places.'>block_type</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>) == role)
+<a name='L420'> 420           <b>break</b>;
+<a name='L421'> 421     <font color='red'>}</font>
+<a name='L422'> 422 
+<a name='L423'> 423   <b>if</b> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L424'> 424     <font color='red'>{</font>
+<a name='L425'> 425       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: using %s\n", <a href='../S/132.html#L35' title='Defined at 35 in src/devices/block.c.'>block_type_name</a> (role), <a href='../S/132.html#L151' title='Defined at 151 in src/devices/block.c.'>block_name</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>));
+<a name='L426'> 426       <a href='../S/132.html#L62' title='Defined at 62 in src/devices/block.c.'>block_set_role</a> (role, <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>);
+<a name='L427'> 427     <font color='red'>}</font>
+<a name='L428'> 428 <font color='red'>}</font>
+<a name='L429'> 429 <font color='darkred'>#endif</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L73'>[^]</a><a href='#L406'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

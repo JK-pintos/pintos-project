@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>src/tests/userprog/read-stdout.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/read-stdout.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Try reading from fd 1 (stdout), </font></i>
+<a name='L2'>   2 <i><font color='green'>   which may just fail or terminate the process with -1 exit</font></i>
+<a name='L3'>   3 <i><font color='green'>   code. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <b>char</b> buf;
+<a name='L13'>  13   <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, &amp;buf, 1);
+<a name='L14'>  14 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

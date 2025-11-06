@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-overlap.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-overlap.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L9' title='Defined at 9.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Verifies that overlapping memory mappings are disallowed. */</font></i>
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>void</b>
+<a name='L9'>   9 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   <b>char</b> *<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> = (<b>char</b> *) 0x10000000;
+<a name='L12'>  12   <b>int</b> fd[2];
+<a name='L13'>  13 
+<a name='L14'>  14   CHECK ((fd[0] = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("zeros")) &gt; 1, "open \"zeros\" once");
+<a name='L15'>  15   CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (fd[0], <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>) != <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>, "mmap \"zeros\"");
+<a name='L16'>  16   CHECK ((fd[1] = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("zeros")) &gt; 1 &amp;&amp; fd[0] != fd[1],
+<a name='L17'>  17          "open \"zeros\" again");
+<a name='L18'>  18   CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (fd[1], <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + 4096) == <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>,
+<a name='L19'>  19          "try to mmap \"zeros\" again");
+<a name='L20'>  20 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L9'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

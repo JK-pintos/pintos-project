@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>src/tests/filesys/base/syn-remove.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/604.html'>base</a>/syn-remove.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L14' title='Defined at 14.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Verifies that a deleted file may still be written to and read</font></i>
+<a name='L2'>   2 <i><font color='green'>   from. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>char</b> buf1[1234];
+<a name='L11'>  11 <b>char</b> buf2[1234];
+<a name='L12'>  12 
+<a name='L13'>  13 <b>void</b>
+<a name='L14'>  14 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L15'>  15 <font color='red'>{</font>
+<a name='L16'>  16   <b>const</b> <b>char</b> *file_name = "deleteme";
+<a name='L17'>  17   <b>int</b> fd;
+<a name='L18'>  18   
+<a name='L19'>  19   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (file_name, <b>sizeof</b> buf1), "create \"%s\"", file_name);
+<a name='L20'>  20   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a name='L21'>  21   CHECK (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (file_name), "remove \"%s\"", file_name);
+<a name='L22'>  22   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (buf1, <b>sizeof</b> buf1);
+<a name='L23'>  23   CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, buf1, <b>sizeof</b> buf1) &gt; 0, "write \"%s\"", file_name);
+<a name='L24'>  24   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("seek \"%s\" to 0", file_name);
+<a name='L25'>  25   <a href='../S/97.html#L127' title='Defined at 127 in src/lib/user/syscall.c.'>seek</a> (fd, 0);
+<a name='L26'>  26   CHECK (<a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (fd, buf2, <b>sizeof</b> buf2) &gt; 0, "read \"%s\"", file_name);
+<a name='L27'>  27   <a href='../S/591.html#L163' title='Defined at 163 in src/tests/lib.c.'>compare_bytes</a> (buf2, buf1, <b>sizeof</b> buf1, 0, file_name);
+<a name='L28'>  28   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"%s\"", file_name);
+<a name='L29'>  29   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L30'>  30 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L14'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

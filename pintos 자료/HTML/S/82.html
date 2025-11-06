@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>src/lib/string.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/string.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/87.html' title='Multiple included from 58 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/82.html#L2' title='Defined at 2 in src/lib/string.h.'>__LIB_STRING_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/82.html#L1' title='Refered from 1 in src/lib/string.h.'>__LIB_STRING_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* Standard. */</font></i>
+<a name='L7'>   7 <b>void</b> *<a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (<b>void</b> *, <b>const</b> <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L8'>   8 <b>void</b> *<a href='../S/83.html#L24' title='Defined at 24 in src/lib/string.c.'>memmove</a> (<b>void</b> *, <b>const</b> <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L9'>   9 <b>char</b> *<a href='../S/82.html#L32' title='Defined at 32 in src/lib/string.h.'>strncat</a> (<b>char</b> *, <b>const</b> <b>char</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L10'>  10 <b>int</b> <a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L11'>  11 <b>int</b> <a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (<b>const</b> <b>char</b> *, <b>const</b> <b>char</b> *);
+<a name='L12'>  12 <b>void</b> *<a href='../S/83.html#L94' title='Defined at 94 in src/lib/string.c.'>memchr</a> (<b>const</b> <b>void</b> *, <b>int</b>, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L13'>  13 <b>char</b> *<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (<b>const</b> <b>char</b> *, <b>int</b>);
+<a name='L14'>  14 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/83.html#L131' title='Defined at 131 in src/lib/string.c.'>strcspn</a> (<b>const</b> <b>char</b> *, <b>const</b> <b>char</b> *);
+<a name='L15'>  15 <b>char</b> *<a href='../S/83.html#L145' title='Defined at 145 in src/lib/string.c.'>strpbrk</a> (<b>const</b> <b>char</b> *, <b>const</b> <b>char</b> *);
+<a name='L16'>  16 <b>char</b> *<a href='../S/83.html#L156' title='Defined at 156 in src/lib/string.c.'>strrchr</a> (<b>const</b> <b>char</b> *, <b>int</b>);
+<a name='L17'>  17 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/83.html#L170' title='Defined at 170 in src/lib/string.c.'>strspn</a> (<b>const</b> <b>char</b> *, <b>const</b> <b>char</b> *);
+<a name='L18'>  18 <b>char</b> *<a href='../S/83.html#L184' title='Defined at 184 in src/lib/string.c.'>strstr</a> (<b>const</b> <b>char</b> *, <b>const</b> <b>char</b> *);
+<a name='L19'>  19 <b>void</b> *<a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (<b>void</b> *, <b>int</b>, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L20'>  20 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (<b>const</b> <b>char</b> *);
+<a name='L21'>  21 
+<a name='L22'>  22 <i><font color='green'>/* Extensions. */</font></i>
+<a name='L23'>  23 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (<b>char</b> *, <b>const</b> <b>char</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L24'>  24 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/83.html#L356' title='Defined at 356 in src/lib/string.c.'>strlcat</a> (<b>char</b> *, <b>const</b> <b>char</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L25'>  25 <b>char</b> *<a href='../S/83.html#L235' title='Defined at 235 in src/lib/string.c.'>strtok_r</a> (<b>char</b> *, <b>const</b> <b>char</b> *, <b>char</b> **);
+<a name='L26'>  26 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/83.html#L307' title='Defined at 307 in src/lib/string.c.'>strnlen</a> (<b>const</b> <b>char</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L27'>  27 
+<a name='L28'>  28 <i><font color='green'>/* Try to be helpful. */</font></i>
+<a name='L29'>  29 <font color='darkred'>#define</font> strcpy dont_use_strcpy_use_strlcpy
+<a name='L30'>  30 <font color='darkred'>#define</font> <a href='../S/1.html#L265' title='Refered from 265 in src/utils/squish-unix.c.'>strncpy</a> dont_use_strncpy_use_strlcpy
+<a name='L31'>  31 <font color='darkred'>#define</font> strcat dont_use_strcat_use_strlcat
+<a name='L32'>  32 <font color='darkred'>#define</font> <a href='../S/82.html#L9' title='Refered from 9 in src/lib/string.h.'>strncat</a> dont_use_strncat_use_strlcat
+<a name='L33'>  33 <font color='darkred'>#define</font> strtok dont_use_strtok_use_strtok_r
+<a name='L34'>  34 
+<a name='L35'>  35 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/string.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

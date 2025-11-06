@@ -1,0 +1,137 @@
+<html>
+<head>
+<title>src/devices/rtc.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/rtc.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L43'>[^]</a><a href='#L108'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L43' title='Defined at 43.'>rtc_get_time</a>
+<li><a href='#L100' title='Defined at 100.'>bcd_to_bin</a>
+<li><a href='#L108' title='Defined at 108.'>cmos_read</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='138.html'>devices/rtc.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L4'>   4 
+<a name='L5'>   5 <i><font color='green'>/* This code is an interface to the MC146818A-compatible real</font></i>
+<a name='L6'>   6 <i><font color='green'>   time clock found on PC motherboards.  See [MC146818A] for</font></i>
+<a name='L7'>   7 <i><font color='green'>   hardware details. */</font></i>
+<a name='L8'>   8 
+<a name='L9'>   9 <i><font color='green'>/* I/O register addresses. */</font></i>
+<a name='L10'>  10 <font color='darkred'>#define</font> <a href='../S/126.html#L110' title='Refered from 110 in src/devices/rtc.c.'>CMOS_REG_SET</a>    0x70    <i><font color='green'>/* Selects CMOS register exposed by REG_IO. */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> <a href='../S/126.html#L111' title='Refered from 111 in src/devices/rtc.c.'>CMOS_REG_IO</a>     0x71    <i><font color='green'>/* Contains the selected data byte. */</font></i>
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* Indexes of CMOS registers with real-time clock functions.</font></i>
+<a name='L14'>  14 <i><font color='green'>   Note that all of these registers are in BCD format,</font></i>
+<a name='L15'>  15 <i><font color='green'>   so that 0x59 means 59, not 89. */</font></i>
+<a name='L16'>  16 <font color='darkred'>#define</font> <a href='../R/182.html' title='Multiple refered from 2 places.'>RTC_REG_SEC</a>     0       <i><font color='green'>/* Second: 0x00...0x59. */</font></i>
+<a name='L17'>  17 <font color='darkred'>#define</font> <a href='../S/126.html#L68' title='Refered from 68 in src/devices/rtc.c.'>RTC_REG_MIN</a>     2       <i><font color='green'>/* Minute: 0x00...0x59. */</font></i>
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../S/126.html#L69' title='Refered from 69 in src/devices/rtc.c.'>RTC_REG_HOUR</a>    4       <i><font color='green'>/* Hour: 0x00...0x23. */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../S/126.html#L70' title='Refered from 70 in src/devices/rtc.c.'>RTC_REG_MDAY</a>    7       <i><font color='green'>/* Day of the month: 0x01...0x31. */</font></i>
+<a name='L20'>  20 <font color='darkred'>#define</font> <a href='../S/126.html#L71' title='Refered from 71 in src/devices/rtc.c.'>RTC_REG_MON</a>     8       <i><font color='green'>/* Month: 0x01...0x12. */</font></i>
+<a name='L21'>  21 <font color='darkred'>#define</font> <a href='../S/126.html#L72' title='Refered from 72 in src/devices/rtc.c.'>RTC_REG_YEAR</a>    9       <i><font color='green'>/* Year: 0x00...0x99. */</font></i>
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* Indexes of CMOS control registers. */</font></i>
+<a name='L24'>  24 <font color='darkred'>#define</font> RTC_REG_A       0x0a    <i><font color='green'>/* Register A: update-in-progress. */</font></i>
+<a name='L25'>  25 <font color='darkred'>#define</font> RTC_REG_B       0x0b    <i><font color='green'>/* Register B: 24/12 hour time, irq enables. */</font></i>
+<a name='L26'>  26 <font color='darkred'>#define</font> RTC_REG_C       0x0c    <i><font color='green'>/* Register C: pending interrupts. */</font></i>
+<a name='L27'>  27 <font color='darkred'>#define</font> RTC_REG_D       0x0d    <i><font color='green'>/* Register D: valid time? */</font></i>
+<a name='L28'>  28 
+<a name='L29'>  29 <i><font color='green'>/* Register A. */</font></i>
+<a name='L30'>  30 <font color='darkred'>#define</font> RTCSA_UIP       0x80    <i><font color='green'>/* Set while time update in progress. */</font></i>
+<a name='L31'>  31 
+<a name='L32'>  32 <i><font color='green'>/* Register B. */</font></i>
+<a name='L33'>  33 <font color='darkred'>#define</font> RTCSB_SET       0x80    <i><font color='green'>/* Disables update to let time be set. */</font></i>
+<a name='L34'>  34 <font color='darkred'>#define</font> RTCSB_DM        0x04    <i><font color='green'>/* 0 = BCD time format, 1 = binary format. */</font></i>
+<a name='L35'>  35 <font color='darkred'>#define</font> RTCSB_24HR      0x02    <i><font color='green'>/* 0 = 12-hour format, 1 = 24-hour format. */</font></i>
+<a name='L36'>  36 
+<a name='L37'>  37 <b>static</b> <b>int</b> <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a>);
+<a name='L38'>  38 <b>static</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> <a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> index);
+<a name='L39'>  39 
+<a name='L40'>  40 <i><font color='green'>/* Returns number of seconds since Unix epoch of January 1,</font></i>
+<a name='L41'>  41 <i><font color='green'>   1970. */</font></i>
+<a name='L42'>  42 <a href='../S/138.html#L4' title='Defined at 4 in src/devices/rtc.h.'>time_t</a>
+<a name='L43'>  43 <a href='../R/777.html' title='Multiple refered from 2 places.'>rtc_get_time</a> (<b>void</b>)
+<a name='L44'>  44 <font color='red'>{</font>
+<a name='L45'>  45   <b>static</b> <b>const</b> <b>int</b> days_per_month[12] =
+<a name='L46'>  46     <font color='red'>{</font>
+<a name='L47'>  47       31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+<a name='L48'>  48     <font color='red'>}</font>;
+<a name='L49'>  49   <b>int</b> sec, min, hour, mday, mon, year;
+<a name='L50'>  50   <a href='../S/138.html#L4' title='Defined at 4 in src/devices/rtc.h.'>time_t</a> time;
+<a name='L51'>  51   <b>int</b> i;
+<a name='L52'>  52 
+<a name='L53'>  53   <i><font color='green'>/* Get time components.</font></i>
+<a name='L54'>  54 <i><font color='green'></font></i>
+<a name='L55'>  55 <i><font color='green'>     We repeatedly read the time until it is stable from one read</font></i>
+<a name='L56'>  56 <i><font color='green'>     to another, in case we start our initial read in the middle</font></i>
+<a name='L57'>  57 <i><font color='green'>     of an update.  This strategy is not recommended by the</font></i>
+<a name='L58'>  58 <i><font color='green'>     MC146818A datasheet, but it is simpler than any of their</font></i>
+<a name='L59'>  59 <i><font color='green'>     suggestions and, furthermore, it is also used by Linux.</font></i>
+<a name='L60'>  60 <i><font color='green'></font></i>
+<a name='L61'>  61 <i><font color='green'>     The MC146818A can be configured for BCD or binary format,</font></i>
+<a name='L62'>  62 <i><font color='green'>     but for historical reasons everyone always uses BCD format</font></i>
+<a name='L63'>  63 <i><font color='green'>     except on obscure non-PC platforms, so we don't bother</font></i>
+<a name='L64'>  64 <i><font color='green'>     trying to detect the format in use. */</font></i>
+<a name='L65'>  65   <b>do</b>
+<a name='L66'>  66     <font color='red'>{</font>
+<a name='L67'>  67       sec = <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L16' title='Defined at 16 in src/devices/rtc.c.'>RTC_REG_SEC</a>));
+<a name='L68'>  68       min = <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L17' title='Defined at 17 in src/devices/rtc.c.'>RTC_REG_MIN</a>));
+<a name='L69'>  69       hour = <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L18' title='Defined at 18 in src/devices/rtc.c.'>RTC_REG_HOUR</a>));
+<a name='L70'>  70       mday = <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L19' title='Defined at 19 in src/devices/rtc.c.'>RTC_REG_MDAY</a>));
+<a name='L71'>  71       mon = <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L20' title='Defined at 20 in src/devices/rtc.c.'>RTC_REG_MON</a>));
+<a name='L72'>  72       year = <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L21' title='Defined at 21 in src/devices/rtc.c.'>RTC_REG_YEAR</a>));
+<a name='L73'>  73     <font color='red'>}</font>
+<a name='L74'>  74   <b>while</b> (sec != <a href='../S/126.html#L100' title='Defined at 100 in src/devices/rtc.c.'>bcd_to_bin</a> (<a href='../S/126.html#L108' title='Defined at 108 in src/devices/rtc.c.'>cmos_read</a> (<a href='../S/126.html#L16' title='Defined at 16 in src/devices/rtc.c.'>RTC_REG_SEC</a>)));
+<a name='L75'>  75 
+<a name='L76'>  76   <i><font color='green'>/* Translate years-since-1900 into years-since-1970.</font></i>
+<a name='L77'>  77 <i><font color='green'>     If it's before the epoch, assume that it has passed 2000.</font></i>
+<a name='L78'>  78 <i><font color='green'>     This will break at 2070, but that's long after our 31-bit</font></i>
+<a name='L79'>  79 <i><font color='green'>     time_t breaks in 2038. */</font></i>
+<a name='L80'>  80   <b>if</b> (year &lt; 70)
+<a name='L81'>  81     year += 100;
+<a name='L82'>  82   year -= 70;
+<a name='L83'>  83 
+<a name='L84'>  84   <i><font color='green'>/* Break down all components into seconds. */</font></i>
+<a name='L85'>  85   time = (year * 365 + (year - 1) / 4) * 24 * 60 * 60;
+<a name='L86'>  86   <b>for</b> (i = 1; i &lt;= mon; i++)
+<a name='L87'>  87     time += days_per_month[i - 1] * 24 * 60 * 60;
+<a name='L88'>  88   <b>if</b> (mon &gt; 2 &amp;&amp; year % 4 == 0)
+<a name='L89'>  89     time += 24 * 60 * 60;
+<a name='L90'>  90   time += (mday - 1) * 24 * 60 * 60;
+<a name='L91'>  91   time += hour * 60 * 60;
+<a name='L92'>  92   time += min * 60;
+<a name='L93'>  93   time += sec;
+<a name='L94'>  94 
+<a name='L95'>  95   <b>return</b> time;
+<a name='L96'>  96 <font color='red'>}</font>
+<a name='L97'>  97 
+<a name='L98'>  98 <i><font color='green'>/* Returns the integer value of the given BCD byte. */</font></i>
+<a name='L99'>  99 <b>static</b> <b>int</b>
+<a name='L100'> 100 <a href='../R/304.html' title='Multiple refered from 8 places.'>bcd_to_bin</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> x)
+<a name='L101'> 101 <font color='red'>{</font>
+<a name='L102'> 102   <b>return</b> (x &amp; 0x0f) + ((x &gt;&gt; 4) * 10);
+<a name='L103'> 103 <font color='red'>}</font>
+<a name='L104'> 104 
+<a name='L105'> 105 <i><font color='green'>/* Reads a byte from the CMOS register with the given INDEX and</font></i>
+<a name='L106'> 106 <i><font color='green'>   returns the byte read. */</font></i>
+<a name='L107'> 107 <b>static</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a>
+<a name='L108'> 108 <a href='../R/373.html' title='Multiple refered from 8 places.'>cmos_read</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> index)
+<a name='L109'> 109 <font color='red'>{</font>
+<a name='L110'> 110   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/126.html#L10' title='Defined at 10 in src/devices/rtc.c.'>CMOS_REG_SET</a>, index);
+<a name='L111'> 111   <b>return</b> <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/126.html#L11' title='Defined at 11 in src/devices/rtc.c.'>CMOS_REG_IO</a>);
+<a name='L112'> 112 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L43'>[^]</a><a href='#L108'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

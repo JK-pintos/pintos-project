@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>src/userprog/pagedir.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/pagedir.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/318.html' title='Multiple included from 2 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/73.html#L2' title='Defined at 2 in src/userprog/pagedir.h.'>USERPROG_PAGEDIR_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/73.html#L1' title='Refered from 1 in src/userprog/pagedir.h.'>USERPROG_PAGEDIR_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *<a href='../S/75.html#L17' title='Defined at 17 in src/userprog/pagedir.c.'>pagedir_create</a> (<b>void</b>);
+<a name='L8'>   8 <b>void</b> <a href='../S/75.html#L28' title='Defined at 28 in src/userprog/pagedir.c.'>pagedir_destroy</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd);
+<a name='L9'>   9 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/75.html#L99' title='Defined at 99 in src/userprog/pagedir.c.'>pagedir_set_page</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>void</b> *upage, <b>void</b> *kpage, bool rw);
+<a name='L10'>  10 <b>void</b> *<a href='../S/75.html#L126' title='Defined at 126 in src/userprog/pagedir.c.'>pagedir_get_page</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>const</b> <b>void</b> *upage);
+<a name='L11'>  11 <b>void</b> <a href='../S/75.html#L144' title='Defined at 144 in src/userprog/pagedir.c.'>pagedir_clear_page</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>void</b> *upage);
+<a name='L12'>  12 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/75.html#L164' title='Defined at 164 in src/userprog/pagedir.c.'>pagedir_is_dirty</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>const</b> <b>void</b> *upage);
+<a name='L13'>  13 <b>void</b> <a href='../S/75.html#L173' title='Defined at 173 in src/userprog/pagedir.c.'>pagedir_set_dirty</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>const</b> <b>void</b> *upage, bool dirty);
+<a name='L14'>  14 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/75.html#L193' title='Defined at 193 in src/userprog/pagedir.c.'>pagedir_is_accessed</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>const</b> <b>void</b> *upage);
+<a name='L15'>  15 <b>void</b> <a href='../S/75.html#L202' title='Defined at 202 in src/userprog/pagedir.c.'>pagedir_set_accessed</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd, <b>const</b> <b>void</b> *upage, bool accessed);
+<a name='L16'>  16 <b>void</b> <a href='../S/75.html#L220' title='Defined at 220 in src/userprog/pagedir.c.'>pagedir_activate</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> *pd);
+<a name='L17'>  17 
+<a name='L18'>  18 <font color='darkred'>#endif</font> <i><font color='green'>/* userprog/pagedir.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

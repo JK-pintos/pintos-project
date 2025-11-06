@@ -1,0 +1,87 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/dir-rm-tree.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/dir-rm-tree.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a><a href='#L52'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L14' title='Defined at 14.'>test_main</a>
+<li><a href='#L20' title='Defined at 20.'>do_remove</a>
+<li><a href='#L52' title='Defined at 52.'>do_remove</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Creates directories /0/0/0 through /3/2/2 and files in the</font></i>
+<a name='L2'>   2 <i><font color='green'>   leaf directories, then removes them. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='249.html'>tests/filesys/extended/mk-tree.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L10'>  10 
+<a name='L11'>  11 <b>static</b> <b>void</b> remove_tree (<b>int</b> at, <b>int</b> bt, <b>int</b> ct, <b>int</b> dt);
+<a name='L12'>  12 
+<a name='L13'>  13 <b>void</b>
+<a name='L14'>  14 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L15'>  15 <font color='red'>{</font>
+<a name='L16'>  16   make_tree (4, 3, 3, 4);
+<a name='L17'>  17   remove_tree (4, 3, 3, 4);
+<a name='L18'>  18 <font color='red'>}</font>
+<a name='L19'>  19 
+<a name='L20'>  20 <b>static</b> <b>void</b> <a href='../R/410.html' title='Multiple refered from 4 places.'>do_remove</a> (<b>const</b> <b>char</b> *format, ...) <a href='../S/104.html#L10' title='Defined at 10 in src/lib/debug.h.'>PRINTF_FORMAT</a> (1, 2);
+<a name='L21'>  21 
+<a name='L22'>  22 <b>static</b> <b>void</b>
+<a name='L23'>  23 remove_tree (<b>int</b> at, <b>int</b> bt, <b>int</b> ct, <b>int</b> dt) 
+<a name='L24'>  24 <font color='red'>{</font>
+<a name='L25'>  25   <b>char</b> try[128];
+<a name='L26'>  26   <b>int</b> a, b, c, d;
+<a name='L27'>  27 
+<a name='L28'>  28   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("removing /0/0/0/0 through /%d/%d/%d/%d...",
+<a name='L29'>  29        at - 1, bt - 1, ct - 1, dt - 1);
+<a name='L30'>  30   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L31'>  31   <b>for</b> (a = 0; a &lt; at; a++) 
+<a name='L32'>  32     <font color='red'>{</font>
+<a name='L33'>  33       <b>for</b> (b = 0; b &lt; bt; b++) 
+<a name='L34'>  34         <font color='red'>{</font>
+<a name='L35'>  35           <b>for</b> (c = 0; c &lt; ct; c++) 
+<a name='L36'>  36             <font color='red'>{</font>
+<a name='L37'>  37               <b>for</b> (d = 0; d &lt; dt; d++)
+<a name='L38'>  38                 <a href='../D/496.html' title='Multiple defined in 2 places.'>do_remove</a> ("/%d/%d/%d/%d", a, b, c, d);
+<a name='L39'>  39               <a href='../D/496.html' title='Multiple defined in 2 places.'>do_remove</a> ("/%d/%d/%d", a, b, c);
+<a name='L40'>  40             <font color='red'>}</font>
+<a name='L41'>  41           <a href='../D/496.html' title='Multiple defined in 2 places.'>do_remove</a> ("/%d/%d", a, b);
+<a name='L42'>  42         <font color='red'>}</font>
+<a name='L43'>  43       <a href='../D/496.html' title='Multiple defined in 2 places.'>do_remove</a> ("/%d", a);
+<a name='L44'>  44     <font color='red'>}</font>
+<a name='L45'>  45   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L46'>  46 
+<a name='L47'>  47   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (try, <b>sizeof</b> (try), "/%d/%d/%d/%d", at - 1, 0, ct - 1, 0);
+<a name='L48'>  48   CHECK (<a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (try) == -1, "open \"%s\" (must return -1)", try);
+<a name='L49'>  49 <font color='red'>}</font>
+<a name='L50'>  50 
+<a name='L51'>  51 <b>static</b> <b>void</b>
+<a name='L52'>  52 <a href='../R/410.html' title='Multiple refered from 4 places.'>do_remove</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L53'>  53 <font color='red'>{</font>
+<a name='L54'>  54   <b>char</b> name[128];
+<a name='L55'>  55   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L56'>  56 
+<a name='L57'>  57   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L58'>  58   <a href='../S/115.html#L26' title='Defined at 26 in src/lib/stdio.c.'>vsnprintf</a> (name, <b>sizeof</b> name, format, args);
+<a name='L59'>  59   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L60'>  60 
+<a name='L61'>  61   CHECK (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (name), "remove \"%s\"", name);
+<a name='L62'>  62 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a><a href='#L52'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

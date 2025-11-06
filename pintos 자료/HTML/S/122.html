@@ -1,0 +1,239 @@
+<html>
+<head>
+<title>src/devices/kbd.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/kbd.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L31'>[^]</a><a href='#L202'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L31' title='Defined at 31.'>kbd_init</a>
+<li><a href='#L38' title='Defined at 38.'>kbd_print_stats</a>
+<li><a href='#L96' title='Defined at 96.'>keyboard_interrupt</a>
+<li><a href='#L202' title='Defined at 202.'>map_key</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='119.html'>devices/kbd.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='120.html'>devices/input.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='141.html'>devices/shutdown.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Keyboard data register port. */</font></i>
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/23.html' title='Multiple refered from 2 places.'>DATA_REG</a> 0x60
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* Current state of shift keys.</font></i>
+<a name='L15'>  15 <i><font color='green'>   True if depressed, false otherwise. */</font></i>
+<a name='L16'>  16 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> left_shift, right_shift;    <i><font color='green'>/* Left and right Shift keys. */</font></i>
+<a name='L17'>  17 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> left_alt, right_alt;        <i><font color='green'>/* Left and right Alt keys. */</font></i>
+<a name='L18'>  18 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> left_ctrl, right_ctrl;      <i><font color='green'>/* Left and right Ctl keys. */</font></i>
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Status of Caps Lock.</font></i>
+<a name='L21'>  21 <i><font color='green'>   True when on, false when off. */</font></i>
+<a name='L22'>  22 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> caps_lock;
+<a name='L23'>  23 
+<a name='L24'>  24 <i><font color='green'>/* Number of keys pressed. */</font></i>
+<a name='L25'>  25 <b>static</b> <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> key_cnt;
+<a name='L26'>  26 
+<a name='L27'>  27 <b>static</b> <a href='../S/150.html#L58' title='Defined at 58 in src/threads/interrupt.h.'>intr_handler_func</a> <a href='../S/122.html#L96' title='Defined at 96 in src/devices/kbd.c.'>keyboard_interrupt</a>;
+<a name='L28'>  28 
+<a name='L29'>  29 <i><font color='green'>/* Initializes the keyboard. */</font></i>
+<a name='L30'>  30 <b>void</b>
+<a name='L31'>  31 <a href='../R/581.html' title='Multiple refered from 2 places.'>kbd_init</a> (<b>void</b>) 
+<a name='L32'>  32 <font color='red'>{</font>
+<a name='L33'>  33   <a href='../S/168.html#L181' title='Defined at 181 in src/threads/interrupt.c.'>intr_register_ext</a> (0x21, <a href='../S/122.html#L96' title='Defined at 96 in src/devices/kbd.c.'>keyboard_interrupt</a>, "8042 Keyboard");
+<a name='L34'>  34 <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Prints keyboard statistics. */</font></i>
+<a name='L37'>  37 <b>void</b>
+<a name='L38'>  38 <a href='../R/582.html' title='Multiple refered from 2 places.'>kbd_print_stats</a> (<b>void</b>) 
+<a name='L39'>  39 <font color='red'>{</font>
+<a name='L40'>  40   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Keyboard: %lld keys pressed\n", key_cnt);
+<a name='L41'>  41 <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Maps a set of contiguous scancodes into characters. */</font></i>
+<a name='L44'>  44 <b>struct</b> <a href='../R/586.html' title='Multiple refered from 3 places.'>keymap</a>
+<a name='L45'>  45   <font color='red'>{</font>
+<a name='L46'>  46     <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> first_scancode;     <i><font color='green'>/* First scancode. */</font></i>
+<a name='L47'>  47     <b>const</b> <b>char</b> *chars;          <i><font color='green'>/* chars[0] has scancode first_scancode,</font></i>
+<a name='L48'>  48 <i><font color='green'>                                   chars[1] has scancode first_scancode + 1,</font></i>
+<a name='L49'>  49 <i><font color='green'>                                   and so on to the end of the string. */</font></i>
+<a name='L50'>  50   <font color='red'>}</font>;
+<a name='L51'>  51   
+<a name='L52'>  52 <i><font color='green'>/* Keys that produce the same characters regardless of whether</font></i>
+<a name='L53'>  53 <i><font color='green'>   the Shift keys are down.  Case of letters is an exception</font></i>
+<a name='L54'>  54 <i><font color='green'>   that we handle elsewhere.  */</font></i>
+<a name='L55'>  55 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/122.html#L44' title='Defined at 44 in src/devices/kbd.c.'>keymap</a> invariant_keymap[] = 
+<a name='L56'>  56   <font color='red'>{</font>
+<a name='L57'>  57     <font color='red'>{</font>0x01, "\033"<font color='red'>}</font>,             <i><font color='green'>/* Escape. */</font></i>
+<a name='L58'>  58     <font color='red'>{</font>0x0e, "\b"<font color='red'>}</font>,
+<a name='L59'>  59     <font color='red'>{</font>0x0f, "\tQWERTYUIOP"<font color='red'>}</font>,
+<a name='L60'>  60     <font color='red'>{</font>0x1c, "\r"<font color='red'>}</font>,
+<a name='L61'>  61     <font color='red'>{</font>0x1e, "ASDFGHJKL"<font color='red'>}</font>,
+<a name='L62'>  62     <font color='red'>{</font>0x2c, "ZXCVBNM"<font color='red'>}</font>,
+<a name='L63'>  63     <font color='red'>{</font>0x37, "*"<font color='red'>}</font>,
+<a name='L64'>  64     <font color='red'>{</font>0x39, " "<font color='red'>}</font>,
+<a name='L65'>  65     <font color='red'>{</font>0x53, "\177"<font color='red'>}</font>,             <i><font color='green'>/* Delete. */</font></i>
+<a name='L66'>  66     <font color='red'>{</font>0, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a><font color='red'>}</font>,
+<a name='L67'>  67   <font color='red'>}</font>;
+<a name='L68'>  68 
+<a name='L69'>  69 <i><font color='green'>/* Characters for keys pressed without Shift, for those keys</font></i>
+<a name='L70'>  70 <i><font color='green'>   where it matters. */</font></i>
+<a name='L71'>  71 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/122.html#L44' title='Defined at 44 in src/devices/kbd.c.'>keymap</a> unshifted_keymap[] = 
+<a name='L72'>  72   <font color='red'>{</font>
+<a name='L73'>  73     <font color='red'>{</font>0x02, "1234567890-="<font color='red'>}</font>,
+<a name='L74'>  74     <font color='red'>{</font>0x1a, "[]"<font color='red'>}</font>,
+<a name='L75'>  75     <font color='red'>{</font>0x27, ";'`"<font color='red'>}</font>,
+<a name='L76'>  76     <font color='red'>{</font>0x2b, "\\"<font color='red'>}</font>,
+<a name='L77'>  77     <font color='red'>{</font>0x33, ",./"<font color='red'>}</font>,
+<a name='L78'>  78     <font color='red'>{</font>0, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a><font color='red'>}</font>,
+<a name='L79'>  79   <font color='red'>}</font>;
+<a name='L80'>  80   
+<a name='L81'>  81 <i><font color='green'>/* Characters for keys pressed with Shift, for those keys where</font></i>
+<a name='L82'>  82 <i><font color='green'>   it matters. */</font></i>
+<a name='L83'>  83 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/122.html#L44' title='Defined at 44 in src/devices/kbd.c.'>keymap</a> shifted_keymap[] = 
+<a name='L84'>  84   <font color='red'>{</font>
+<a name='L85'>  85     <font color='red'>{</font>0x02, "!@#$%^&amp;*()_+"<font color='red'>}</font>,
+<a name='L86'>  86     <font color='red'>{</font>0x1a, "{}"<font color='red'>}</font>,
+<a name='L87'>  87     <font color='red'>{</font>0x27, ":\"~"<font color='red'>}</font>,
+<a name='L88'>  88     <font color='red'>{</font>0x2b, "|"<font color='red'>}</font>,
+<a name='L89'>  89     <font color='red'>{</font>0x33, "&lt;&gt;?"<font color='red'>}</font>,
+<a name='L90'>  90     <font color='red'>{</font>0, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a><font color='red'>}</font>,
+<a name='L91'>  91   <font color='red'>}</font>;
+<a name='L92'>  92 
+<a name='L93'>  93 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/122.html#L202' title='Defined at 202 in src/devices/kbd.c.'>map_key</a> (<b>const</b> <b>struct</b> keymap[], <b>unsigned</b> scancode, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *);
+<a name='L94'>  94 
+<a name='L95'>  95 <b>static</b> <b>void</b>
+<a name='L96'>  96 <a href='../R/585.html' title='Multiple refered from 2 places.'>keyboard_interrupt</a> (<b>struct</b> intr_frame *args <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L97'>  97 <font color='red'>{</font>
+<a name='L98'>  98   <i><font color='green'>/* Status of shift keys. */</font></i>
+<a name='L99'>  99   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> shift = left_shift || right_shift;
+<a name='L100'> 100   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> alt = left_alt || right_alt;
+<a name='L101'> 101   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> ctrl = left_ctrl || right_ctrl;
+<a name='L102'> 102 
+<a name='L103'> 103   <i><font color='green'>/* Keyboard scancode. */</font></i>
+<a name='L104'> 104   <b>unsigned</b> code;
+<a name='L105'> 105 
+<a name='L106'> 106   <i><font color='green'>/* False if key pressed, true if key released. */</font></i>
+<a name='L107'> 107   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> release;
+<a name='L108'> 108 
+<a name='L109'> 109   <i><font color='green'>/* Character that corresponds to `code'. */</font></i>
+<a name='L110'> 110   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> c;
+<a name='L111'> 111 
+<a name='L112'> 112   <i><font color='green'>/* Read scancode, including second byte if prefix code. */</font></i>
+<a name='L113'> 113   code = <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/122.html#L12' title='Defined at 12 in src/devices/kbd.c.'>DATA_REG</a>);
+<a name='L114'> 114   <b>if</b> (code == 0xe0)
+<a name='L115'> 115     code = (code &lt;&lt; 8) | <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/122.html#L12' title='Defined at 12 in src/devices/kbd.c.'>DATA_REG</a>);
+<a name='L116'> 116 
+<a name='L117'> 117   <i><font color='green'>/* Bit 0x80 distinguishes key press from key release</font></i>
+<a name='L118'> 118 <i><font color='green'>     (even if there's a prefix). */</font></i>
+<a name='L119'> 119   release = (code &amp; 0x80) != 0;
+<a name='L120'> 120   code &amp;= ~0x80u;
+<a name='L121'> 121 
+<a name='L122'> 122   <i><font color='green'>/* Interpret key. */</font></i>
+<a name='L123'> 123   <b>if</b> (code == 0x3a) 
+<a name='L124'> 124     <font color='red'>{</font>
+<a name='L125'> 125       <i><font color='green'>/* Caps Lock. */</font></i>
+<a name='L126'> 126       <b>if</b> (!release)
+<a name='L127'> 127         caps_lock = !caps_lock;
+<a name='L128'> 128     <font color='red'>}</font>
+<a name='L129'> 129   <b>else</b> <b>if</b> (<a href='../S/122.html#L202' title='Defined at 202 in src/devices/kbd.c.'>map_key</a> (invariant_keymap, code, &amp;c)
+<a name='L130'> 130            || (!shift &amp;&amp; <a href='../S/122.html#L202' title='Defined at 202 in src/devices/kbd.c.'>map_key</a> (unshifted_keymap, code, &amp;c))
+<a name='L131'> 131            || (shift &amp;&amp; <a href='../S/122.html#L202' title='Defined at 202 in src/devices/kbd.c.'>map_key</a> (shifted_keymap, code, &amp;c)))
+<a name='L132'> 132     <font color='red'>{</font>
+<a name='L133'> 133       <i><font color='green'>/* Ordinary character. */</font></i>
+<a name='L134'> 134       <b>if</b> (!release) 
+<a name='L135'> 135         <font color='red'>{</font>
+<a name='L136'> 136           <i><font color='green'>/* Reboot if Ctrl+Alt+Del pressed. */</font></i>
+<a name='L137'> 137           <b>if</b> (c == 0177 &amp;&amp; ctrl &amp;&amp; alt)
+<a name='L138'> 138             <a href='../S/136.html#L57' title='Defined at 57 in src/devices/shutdown.c.'>shutdown_reboot</a> ();
+<a name='L139'> 139 
+<a name='L140'> 140           <i><font color='green'>/* Handle Ctrl, Shift.</font></i>
+<a name='L141'> 141 <i><font color='green'>             Note that Ctrl overrides Shift. */</font></i>
+<a name='L142'> 142           <b>if</b> (ctrl &amp;&amp; c &gt;= 0x40 &amp;&amp; c &lt; 0x60) 
+<a name='L143'> 143             <font color='red'>{</font>
+<a name='L144'> 144               <i><font color='green'>/* A is 0x41, Ctrl+A is 0x01, etc. */</font></i>
+<a name='L145'> 145               c -= 0x40; 
+<a name='L146'> 146             <font color='red'>}</font>
+<a name='L147'> 147           <b>else</b> <b>if</b> (shift == caps_lock)
+<a name='L148'> 148             c = <a href='../S/93.html#L25' title='Defined at 25 in src/lib/ctype.h.'>tolower</a> (c);
+<a name='L149'> 149 
+<a name='L150'> 150           <i><font color='green'>/* Handle Alt by setting the high bit.</font></i>
+<a name='L151'> 151 <i><font color='green'>             This 0x80 is unrelated to the one used to</font></i>
+<a name='L152'> 152 <i><font color='green'>             distinguish key press from key release. */</font></i>
+<a name='L153'> 153           <b>if</b> (alt)
+<a name='L154'> 154             c += 0x80;
+<a name='L155'> 155 
+<a name='L156'> 156           <i><font color='green'>/* Append to keyboard buffer. */</font></i>
+<a name='L157'> 157           <b>if</b> (!<a href='../S/133.html#L48' title='Defined at 48 in src/devices/input.c.'>input_full</a> ())
+<a name='L158'> 158             <font color='red'>{</font>
+<a name='L159'> 159               key_cnt++;
+<a name='L160'> 160               <a href='../S/133.html#L19' title='Defined at 19 in src/devices/input.c.'>input_putc</a> (c);
+<a name='L161'> 161             <font color='red'>}</font>
+<a name='L162'> 162         <font color='red'>}</font>
+<a name='L163'> 163     <font color='red'>}</font>
+<a name='L164'> 164   <b>else</b>
+<a name='L165'> 165     <font color='red'>{</font>
+<a name='L166'> 166       <i><font color='green'>/* Maps a keycode into a shift state variable. */</font></i>
+<a name='L167'> 167       <b>struct</b> <a href='../R/804.html' title='Multiple refered from 2 places.'>shift_key</a> 
+<a name='L168'> 168         <font color='red'>{</font>
+<a name='L169'> 169           <b>unsigned</b> scancode;
+<a name='L170'> 170           <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> *state_var;
+<a name='L171'> 171         <font color='red'>}</font>;
+<a name='L172'> 172 
+<a name='L173'> 173       <i><font color='green'>/* Table of shift keys. */</font></i>
+<a name='L174'> 174       <b>static</b> <b>const</b> <b>struct</b> <a href='../S/122.html#L167' title='Defined at 167 in src/devices/kbd.c.'>shift_key</a> shift_keys[] = 
+<a name='L175'> 175         <font color='red'>{</font>
+<a name='L176'> 176           <font color='red'>{</font>  0x2a, &amp;left_shift<font color='red'>}</font>,
+<a name='L177'> 177           <font color='red'>{</font>  0x36, &amp;right_shift<font color='red'>}</font>,
+<a name='L178'> 178           <font color='red'>{</font>  0x38, &amp;left_alt<font color='red'>}</font>,
+<a name='L179'> 179           <font color='red'>{</font>0xe038, &amp;right_alt<font color='red'>}</font>,
+<a name='L180'> 180           <font color='red'>{</font>  0x1d, &amp;left_ctrl<font color='red'>}</font>,
+<a name='L181'> 181           <font color='red'>{</font>0xe01d, &amp;right_ctrl<font color='red'>}</font>,
+<a name='L182'> 182           <font color='red'>{</font>0,      <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a><font color='red'>}</font>,
+<a name='L183'> 183         <font color='red'>}</font>;
+<a name='L184'> 184   
+<a name='L185'> 185       <b>const</b> <b>struct</b> <a href='../S/122.html#L167' title='Defined at 167 in src/devices/kbd.c.'>shift_key</a> *key;
+<a name='L186'> 186 
+<a name='L187'> 187       <i><font color='green'>/* Scan the table. */</font></i>
+<a name='L188'> 188       <b>for</b> (key = shift_keys; key-&gt;scancode != 0; key++) 
+<a name='L189'> 189         <b>if</b> (key-&gt;scancode == code)
+<a name='L190'> 190           <font color='red'>{</font>
+<a name='L191'> 191             *key-&gt;state_var = !release;
+<a name='L192'> 192             <b>break</b>;
+<a name='L193'> 193           <font color='red'>}</font>
+<a name='L194'> 194     <font color='red'>}</font>
+<a name='L195'> 195 <font color='red'>}</font>
+<a name='L196'> 196 
+<a name='L197'> 197 <i><font color='green'>/* Scans the array of keymaps K for SCANCODE.</font></i>
+<a name='L198'> 198 <i><font color='green'>   If found, sets *C to the corresponding character and returns</font></i>
+<a name='L199'> 199 <i><font color='green'>   true.</font></i>
+<a name='L200'> 200 <i><font color='green'>   If not found, returns false and C is ignored. */</font></i>
+<a name='L201'> 201 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L202'> 202 <a href='../R/654.html' title='Multiple refered from 4 places.'>map_key</a> (<b>const</b> <b>struct</b> keymap k[], <b>unsigned</b> scancode, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *c) 
+<a name='L203'> 203 <font color='red'>{</font>
+<a name='L204'> 204   <b>for</b> (; k-&gt;first_scancode != 0; k++)
+<a name='L205'> 205     <b>if</b> (scancode &gt;= k-&gt;first_scancode
+<a name='L206'> 206         &amp;&amp; scancode &lt; k-&gt;first_scancode + <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (k-&gt;chars)) 
+<a name='L207'> 207       <font color='red'>{</font>
+<a name='L208'> 208         *c = k-&gt;chars[scancode - k-&gt;first_scancode];
+<a name='L209'> 209         <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>; 
+<a name='L210'> 210       <font color='red'>}</font>
+<a name='L211'> 211 
+<a name='L212'> 212   <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L213'> 213 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L31'>[^]</a><a href='#L202'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

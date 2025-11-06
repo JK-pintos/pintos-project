@@ -1,0 +1,174 @@
+<html>
+<head>
+<title>src/userprog/gdt.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/gdt.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L143'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L36' title='Defined at 36.'>gdt_init</a>
+<li><a href='#L82' title='Defined at 82.'>make_seg_desc</a>
+<li><a href='#L116' title='Defined at 116.'>make_code_desc</a>
+<li><a href='#L124' title='Defined at 124.'>make_data_desc</a>
+<li><a href='#L134' title='Defined at 134.'>make_tss_desc</a>
+<li><a href='#L143' title='Defined at 143.'>make_gdtr_operand</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='70.html'>userprog/gdt.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> "<a href='69.html'>userprog/tss.h</a>"
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='165.html'>threads/palloc.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* The Global Descriptor Table (GDT).</font></i>
+<a name='L8'>   8 <i><font color='green'></font></i>
+<a name='L9'>   9 <i><font color='green'>   The GDT, an x86-specific structure, defines segments that can</font></i>
+<a name='L10'>  10 <i><font color='green'>   potentially be used by all processes in a system, subject to</font></i>
+<a name='L11'>  11 <i><font color='green'>   their permissions.  There is also a per-process Local</font></i>
+<a name='L12'>  12 <i><font color='green'>   Descriptor Table (LDT) but that is not used by modern</font></i>
+<a name='L13'>  13 <i><font color='green'>   operating systems.</font></i>
+<a name='L14'>  14 <i><font color='green'></font></i>
+<a name='L15'>  15 <i><font color='green'>   Each entry in the GDT, which is known by its byte offset in</font></i>
+<a name='L16'>  16 <i><font color='green'>   the table, identifies a segment.  For our purposes only three</font></i>
+<a name='L17'>  17 <i><font color='green'>   types of segments are of interest: code, data, and TSS or</font></i>
+<a name='L18'>  18 <i><font color='green'>   Task-State Segment descriptors.  The former two types are</font></i>
+<a name='L19'>  19 <i><font color='green'>   exactly what they sound like.  The TSS is used primarily for</font></i>
+<a name='L20'>  20 <i><font color='green'>   stack switching on interrupts.</font></i>
+<a name='L21'>  21 <i><font color='green'></font></i>
+<a name='L22'>  22 <i><font color='green'>   For more information on the GDT as used here, refer to</font></i>
+<a name='L23'>  23 <i><font color='green'>   [IA32-v3a] 3.2 "Using Segments" through 3.5 "System Descriptor</font></i>
+<a name='L24'>  24 <i><font color='green'>   Types". */</font></i>
+<a name='L25'>  25 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> gdt[<a href='../S/70.html#L11' title='Defined at 11 in src/userprog/gdt.h.'>SEL_CNT</a>];
+<a name='L26'>  26 
+<a name='L27'>  27 <i><font color='green'>/* GDT helpers. */</font></i>
+<a name='L28'>  28 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> <a href='../S/65.html#L116' title='Defined at 116 in src/userprog/gdt.c.'>make_code_desc</a> (<b>int</b> dpl);
+<a name='L29'>  29 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> <a href='../S/65.html#L124' title='Defined at 124 in src/userprog/gdt.c.'>make_data_desc</a> (<b>int</b> dpl);
+<a name='L30'>  30 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> <a href='../S/65.html#L134' title='Defined at 134 in src/userprog/gdt.c.'>make_tss_desc</a> (<b>void</b> *laddr);
+<a name='L31'>  31 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> <a href='../S/65.html#L143' title='Defined at 143 in src/userprog/gdt.c.'>make_gdtr_operand</a> (<a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> limit, <b>void</b> *base);
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Sets up a proper GDT.  The bootstrap loader's GDT didn't</font></i>
+<a name='L34'>  34 <i><font color='green'>   include user-mode selectors or a TSS, but we need both now. */</font></i>
+<a name='L35'>  35 <b>void</b>
+<a name='L36'>  36 <a href='../R/467.html' title='Multiple refered from 2 places.'>gdt_init</a> (<b>void</b>)
+<a name='L37'>  37 <font color='red'>{</font>
+<a name='L38'>  38   <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> gdtr_operand;
+<a name='L39'>  39 
+<a name='L40'>  40   <i><font color='green'>/* Initialize GDT. */</font></i>
+<a name='L41'>  41   gdt[<a href='../S/152.html#L29' title='Defined at 29 in src/threads/loader.h.'>SEL_NULL</a> / <b>sizeof</b> *gdt] = 0;
+<a name='L42'>  42   gdt[<a href='../S/152.html#L30' title='Defined at 30 in src/threads/loader.h.'>SEL_KCSEG</a> / <b>sizeof</b> *gdt] = <a href='../S/65.html#L116' title='Defined at 116 in src/userprog/gdt.c.'>make_code_desc</a> (0);
+<a name='L43'>  43   gdt[<a href='../S/152.html#L31' title='Defined at 31 in src/threads/loader.h.'>SEL_KDSEG</a> / <b>sizeof</b> *gdt] = <a href='../S/65.html#L124' title='Defined at 124 in src/userprog/gdt.c.'>make_data_desc</a> (0);
+<a name='L44'>  44   gdt[<a href='../S/70.html#L8' title='Defined at 8 in src/userprog/gdt.h.'>SEL_UCSEG</a> / <b>sizeof</b> *gdt] = <a href='../S/65.html#L116' title='Defined at 116 in src/userprog/gdt.c.'>make_code_desc</a> (3);
+<a name='L45'>  45   gdt[<a href='../S/70.html#L9' title='Defined at 9 in src/userprog/gdt.h.'>SEL_UDSEG</a> / <b>sizeof</b> *gdt] = <a href='../S/65.html#L124' title='Defined at 124 in src/userprog/gdt.c.'>make_data_desc</a> (3);
+<a name='L46'>  46   gdt[<a href='../S/70.html#L10' title='Defined at 10 in src/userprog/gdt.h.'>SEL_TSS</a> / <b>sizeof</b> *gdt] = <a href='../S/65.html#L134' title='Defined at 134 in src/userprog/gdt.c.'>make_tss_desc</a> (<a href='../S/72.html#L93' title='Defined at 93 in src/userprog/tss.c.'>tss_get</a> ());
+<a name='L47'>  47 
+<a name='L48'>  48   <i><font color='green'>/* Load GDTR, TR.  See [IA32-v3a] 2.4.1 "Global Descriptor</font></i>
+<a name='L49'>  49 <i><font color='green'>     Table Register (GDTR)", 2.4.4 "Task Register (TR)", and</font></i>
+<a name='L50'>  50 <i><font color='green'>     6.2.4 "Task Register".  */</font></i>
+<a name='L51'>  51   gdtr_operand = <a href='../S/65.html#L143' title='Defined at 143 in src/userprog/gdt.c.'>make_gdtr_operand</a> (<b>sizeof</b> gdt - 1, gdt);
+<a name='L52'>  52   <b>asm</b> <b>volatile</b> ("lgdt %0" : : "m" (gdtr_operand));
+<a name='L53'>  53   <b>asm</b> <b>volatile</b> ("ltr %w0" : : "q" (<a href='../S/70.html#L10' title='Defined at 10 in src/userprog/gdt.h.'>SEL_TSS</a>));
+<a name='L54'>  54 <font color='red'>}</font>
+<a name='L55'>  55 
+<a name='L56'>  56 <i><font color='green'>/* System segment or code/data segment? */</font></i>
+<a name='L57'>  57 <b>enum</b> seg_class
+<a name='L58'>  58   <font color='red'>{</font>
+<a name='L59'>  59     CLS_SYSTEM = 0,             <i><font color='green'>/* System segment. */</font></i>
+<a name='L60'>  60     CLS_CODE_DATA = 1           <i><font color='green'>/* Code or data segment. */</font></i>
+<a name='L61'>  61   <font color='red'>}</font>;
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Limit has byte or 4 kB page granularity? */</font></i>
+<a name='L64'>  64 <b>enum</b> seg_granularity
+<a name='L65'>  65   <font color='red'>{</font>
+<a name='L66'>  66     GRAN_BYTE = 0,              <i><font color='green'>/* Limit has 1-byte granularity. */</font></i>
+<a name='L67'>  67     GRAN_PAGE = 1               <i><font color='green'>/* Limit has 4 kB granularity. */</font></i>
+<a name='L68'>  68   <font color='red'>}</font>;
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Returns a segment descriptor with the given 32-bit BASE and</font></i>
+<a name='L71'>  71 <i><font color='green'>   20-bit LIMIT (whose interpretation depends on GRANULARITY).</font></i>
+<a name='L72'>  72 <i><font color='green'>   The descriptor represents a system or code/data segment</font></i>
+<a name='L73'>  73 <i><font color='green'>   according to CLASS, and TYPE is its type (whose interpretation</font></i>
+<a name='L74'>  74 <i><font color='green'>   depends on the class).</font></i>
+<a name='L75'>  75 <i><font color='green'></font></i>
+<a name='L76'>  76 <i><font color='green'>   The segment has descriptor privilege level DPL, meaning that</font></i>
+<a name='L77'>  77 <i><font color='green'>   it can be used in rings numbered DPL or lower.  In practice,</font></i>
+<a name='L78'>  78 <i><font color='green'>   DPL==3 means that user processes can use the segment and</font></i>
+<a name='L79'>  79 <i><font color='green'>   DPL==0 means that only the kernel can use the segment.  See</font></i>
+<a name='L80'>  80 <i><font color='green'>   [IA32-v3a] 4.5 "Privilege Levels" for further discussion. */</font></i>
+<a name='L81'>  81 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>
+<a name='L82'>  82 <a href='../R/648.html' title='Multiple refered from 3 places.'>make_seg_desc</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> base,
+<a name='L83'>  83                <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> limit,
+<a name='L84'>  84                <b>enum</b> seg_class class,
+<a name='L85'>  85                <b>int</b> type,
+<a name='L86'>  86                <b>int</b> dpl,
+<a name='L87'>  87                <b>enum</b> seg_granularity granularity)
+<a name='L88'>  88 <font color='red'>{</font>
+<a name='L89'>  89   <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> e0, e1;
+<a name='L90'>  90 
+<a name='L91'>  91   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (limit &lt;= 0xfffff);
+<a name='L92'>  92   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (class == CLS_SYSTEM || class == CLS_CODE_DATA);
+<a name='L93'>  93   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (type &gt;= 0 &amp;&amp; type &lt;= 15);
+<a name='L94'>  94   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (dpl &gt;= 0 &amp;&amp; dpl &lt;= 3);
+<a name='L95'>  95   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (granularity == GRAN_BYTE || granularity == GRAN_PAGE);
+<a name='L96'>  96 
+<a name='L97'>  97   e0 = ((limit &amp; 0xffff)             <i><font color='green'>/* Limit 15:0. */</font></i>
+<a name='L98'>  98         | (base &lt;&lt; 16));             <i><font color='green'>/* Base 15:0. */</font></i>
+<a name='L99'>  99 
+<a name='L100'> 100   e1 = (((base &gt;&gt; 16) &amp; 0xff)        <i><font color='green'>/* Base 23:16. */</font></i>
+<a name='L101'> 101         | (type &lt;&lt; 8)                <i><font color='green'>/* Segment type. */</font></i>
+<a name='L102'> 102         | (class &lt;&lt; 12)              <i><font color='green'>/* 0=system, 1=code/data. */</font></i>
+<a name='L103'> 103         | (dpl &lt;&lt; 13)                <i><font color='green'>/* Descriptor privilege. */</font></i>
+<a name='L104'> 104         | (1 &lt;&lt; 15)                  <i><font color='green'>/* Present. */</font></i>
+<a name='L105'> 105         | (limit &amp; 0xf0000)          <i><font color='green'>/* Limit 16:19. */</font></i>
+<a name='L106'> 106         | (1 &lt;&lt; 22)                  <i><font color='green'>/* 32-bit segment. */</font></i>
+<a name='L107'> 107         | (granularity &lt;&lt; 23)        <i><font color='green'>/* Byte/page granularity. */</font></i>
+<a name='L108'> 108         | (base &amp; 0xff000000));      <i><font color='green'>/* Base 31:24. */</font></i>
+<a name='L109'> 109 
+<a name='L110'> 110   <b>return</b> e0 | ((<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) e1 &lt;&lt; 32);
+<a name='L111'> 111 <font color='red'>}</font>
+<a name='L112'> 112 
+<a name='L113'> 113 <i><font color='green'>/* Returns a descriptor for a readable code segment with base at</font></i>
+<a name='L114'> 114 <i><font color='green'>   0, a limit of 4 GB, and the given DPL. */</font></i>
+<a name='L115'> 115 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>
+<a name='L116'> 116 <a href='../R/640.html' title='Multiple refered from 3 places.'>make_code_desc</a> (<b>int</b> dpl)
+<a name='L117'> 117 <font color='red'>{</font>
+<a name='L118'> 118   <b>return</b> <a href='../S/65.html#L82' title='Defined at 82 in src/userprog/gdt.c.'>make_seg_desc</a> (0, 0xfffff, CLS_CODE_DATA, 10, dpl, GRAN_PAGE);
+<a name='L119'> 119 <font color='red'>}</font>
+<a name='L120'> 120 
+<a name='L121'> 121 <i><font color='green'>/* Returns a descriptor for a writable data segment with base at</font></i>
+<a name='L122'> 122 <i><font color='green'>   0, a limit of 4 GB, and the given DPL. */</font></i>
+<a name='L123'> 123 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>
+<a name='L124'> 124 <a href='../R/641.html' title='Multiple refered from 3 places.'>make_data_desc</a> (<b>int</b> dpl)
+<a name='L125'> 125 <font color='red'>{</font>
+<a name='L126'> 126   <b>return</b> <a href='../S/65.html#L82' title='Defined at 82 in src/userprog/gdt.c.'>make_seg_desc</a> (0, 0xfffff, CLS_CODE_DATA, 2, dpl, GRAN_PAGE);
+<a name='L127'> 127 <font color='red'>}</font>
+<a name='L128'> 128 
+<a name='L129'> 129 <i><font color='green'>/* Returns a descriptor for an "available" 32-bit Task-State</font></i>
+<a name='L130'> 130 <i><font color='green'>   Segment with its base at the given linear address, a limit of</font></i>
+<a name='L131'> 131 <i><font color='green'>   0x67 bytes (the size of a 32-bit TSS), and a DPL of 0.</font></i>
+<a name='L132'> 132 <i><font color='green'>   See [IA32-v3a] 6.2.2 "TSS Descriptor". */</font></i>
+<a name='L133'> 133 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>
+<a name='L134'> 134 <a href='../R/651.html' title='Multiple refered from 2 places.'>make_tss_desc</a> (<b>void</b> *laddr)
+<a name='L135'> 135 <font color='red'>{</font>
+<a name='L136'> 136   <b>return</b> <a href='../S/65.html#L82' title='Defined at 82 in src/userprog/gdt.c.'>make_seg_desc</a> ((<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a>) laddr, 0x67, CLS_SYSTEM, 9, 0, GRAN_BYTE);
+<a name='L137'> 137 <font color='red'>}</font>
+<a name='L138'> 138 
+<a name='L139'> 139 
+<a name='L140'> 140 <i><font color='green'>/* Returns a descriptor that yields the given LIMIT and BASE when</font></i>
+<a name='L141'> 141 <i><font color='green'>   used as an operand for the LGDT instruction. */</font></i>
+<a name='L142'> 142 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>
+<a name='L143'> 143 <a href='../R/643.html' title='Multiple refered from 2 places.'>make_gdtr_operand</a> (<a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> limit, <b>void</b> *base)
+<a name='L144'> 144 <font color='red'>{</font>
+<a name='L145'> 145   <b>return</b> limit | ((<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a>) base &lt;&lt; 16);
+<a name='L146'> 146 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L143'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

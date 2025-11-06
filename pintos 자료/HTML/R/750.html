@@ -1,0 +1,51 @@
+<html>
+<head>
+<title>read</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L124'>read</a>              124 src/devices/block.c   block-&gt;ops-&gt;read (block-&gt;aux, sector, buffer);
+<a href='../S/128.html#L66'>read</a>               66 src/devices/block.h     void (*read) (void *aux, block_sector_t, void *buffer);
+<a href='../S/43.html#L26'>read</a>               26 src/examples/cat.c           int bytes_read = read (fd, buffer, sizeof buffer);
+<a href='../S/52.html#L43'>read</a>               43 src/examples/cmp.c       bytes_read[0] = read (fd[0], buffer[0], sizeof buffer[0]);
+<a href='../S/52.html#L44'>read</a>               44 src/examples/cmp.c       bytes_read[1] = read (fd[1], buffer[1], sizeof buffer[1]);
+<a href='../S/51.html#L44'>read</a>               44 src/examples/cp.c       int bytes_read = read (in_fd, buffer, sizeof buffer);
+<a href='../S/58.html#L27'>read</a>               27 src/examples/hex-dump.c           int bytes_read = read (fd, buffer, sizeof buffer);
+<a href='../S/50.html#L31'>read</a>               31 src/examples/lineup.c       n = read (handle, buf, sizeof buf);
+<a href='../S/56.html#L58'>read</a>               58 src/examples/shell.c       read (STDIN_FILENO, &amp;c, 1);
+<a href='../S/197.html#L37'>read</a>               37 src/tests/filesys/base/child-syn-read.c       CHECK (read (fd, &amp;c, 1) &gt; 0, "read \"%s\"", file_name);
+<a href='../S/209.html#L26'>read</a>               26 src/tests/filesys/base/syn-remove.c   CHECK (read (fd, buf2, sizeof buf2) &gt; 0, "read \"%s\"", file_name);
+<a href='../S/212.html#L28'>read</a>               28 src/tests/filesys/base/syn-write.c   CHECK (read (fd, buf1, sizeof buf1) &gt; 0, "read \"%s\"", file_name);
+<a href='../S/236.html#L40'>read</a>               40 src/tests/filesys/extended/child-syn-rw.c       int bytes_read = read (fd, buf2 + ofs, sizeof buf2 - ofs);
+<a href='../S/233.html#L139'>read</a>              139 src/tests/filesys/extended/tar.c       int read_retval = read (file_fd, buf, chunk_size);
+<a href='../S/591.html#L133'>read</a>              133 src/tests/lib.c       ret_val = read (fd, block, block_size);
+<a href='../S/458.html#L14'>read</a>               14 src/tests/userprog/read-bad-fd.c   read (0x20101234, &amp;buf, 1);
+<a href='../S/458.html#L15'>read</a>               15 src/tests/userprog/read-bad-fd.c   read (5, &amp;buf, 1);
+<a href='../S/458.html#L16'>read</a>               16 src/tests/userprog/read-bad-fd.c   read (1234, &amp;buf, 1);
+<a href='../S/458.html#L17'>read</a>               17 src/tests/userprog/read-bad-fd.c   read (-1, &amp;buf, 1);
+<a href='../S/458.html#L18'>read</a>               18 src/tests/userprog/read-bad-fd.c   read (-1024, &amp;buf, 1);
+<a href='../S/458.html#L19'>read</a>               19 src/tests/userprog/read-bad-fd.c   read (INT_MIN, &amp;buf, 1);
+<a href='../S/458.html#L20'>read</a>               20 src/tests/userprog/read-bad-fd.c   read (INT_MAX, &amp;buf, 1);
+<a href='../S/414.html#L14'>read</a>               14 src/tests/userprog/read-bad-ptr.c   read (handle, (char *) 0xc0100000, 123);
+<a href='../S/487.html#L21'>read</a>               21 src/tests/userprog/read-boundary.c   byte_cnt = read (handle, buffer, sizeof sample - 1);
+<a href='../S/426.html#L13'>read</a>               13 src/tests/userprog/read-stdout.c   read (STDOUT_FILENO, &amp;buf, 1);
+<a href='../S/463.html#L17'>read</a>               17 src/tests/userprog/read-zero.c   byte_cnt = read (handle, &amp;buf, 0);
+<a href='../S/488.html#L15'>read</a>               15 src/tests/userprog/rox-simple.c   CHECK (read (handle, buffer, sizeof buffer) == (int) sizeof buffer,
+<a href='../S/341.html#L25'>read</a>               25 src/tests/vm/child-qsort.c   size = read (handle, buf, sizeof buf);
+<a href='../S/380.html#L27'>read</a>               27 src/tests/vm/child-sort.c   size = read (handle, buf, sizeof buf);
+<a href='../S/324.html#L38'>read</a>               38 src/tests/vm/mmap-clean.c   CHECK (read (handle, buffer, sizeof buffer) == sizeof buffer,
+<a href='../S/336.html#L28'>read</a>               28 src/tests/vm/mmap-write.c   read (handle, buf, strlen (sample));
+<a href='../S/350.html#L64'>read</a>               64 src/tests/vm/page-merge-seq.c       read (handle, buf1 + CHUNK_SIZE * i, CHUNK_SIZE);
+<a href='../S/339.html#L77'>read</a>               77 src/tests/vm/parallel-merge.c       read (handle, buf1 + CHUNK_SIZE * i, CHUNK_SIZE);
+<a href='../S/304.html#L14'>read</a>               14 src/tests/vm/pt-bad-read.c   read (handle, (char *) &amp;handle - 4096, 1);
+<a href='../S/369.html#L28'>read</a>               28 src/tests/vm/pt-grow-stk-sc.c   CHECK (read (handle, buf2 + 32768, slen) == slen, "read \"sample.txt\"");
+<a href='../S/329.html#L13'>read</a>               13 src/tests/vm/pt-write-code-2.c   read (handle, (void *) test_main, 1);
+<a href='../S/7.html#L182'>read</a>              182 src/utils/squish-pty.c               ssize_t n = read (p-&gt;in, p-&gt;buf + p-&gt;ofs + p-&gt;size,
+<a href='../S/7.html#L235'>read</a>              235 src/utils/squish-pty.c         p-&gt;size = n = read (p-&gt;in, p-&gt;buf, sizeof p-&gt;buf);
+<a href='../S/1.html#L189'>read</a>              189 src/utils/squish-unix.c                   p-&gt;size = n = read (p-&gt;in, p-&gt;buf, sizeof p-&gt;buf);
+<a href='../S/1.html#L202'>read</a>              202 src/utils/squish-unix.c               ssize_t n = read (p-&gt;in, p-&gt;buf + p-&gt;ofs + p-&gt;size,
+</pre>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>src/userprog/syscall.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/syscall.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L16'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>syscall_init</a>
+<li><a href='#L16' title='Defined at 16.'>syscall_handler</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='../I/94.html'>userprog/syscall.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='89.html'>syscall-nr.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <b>static</b> <b>void</b> <a href='../S/68.html#L16' title='Defined at 16 in src/userprog/syscall.c.'>syscall_handler</a> (<b>struct</b> intr_frame *);
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/853.html' title='Multiple refered from 2 places.'>syscall_init</a> (<b>void</b>) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <a href='../S/168.html#L202' title='Defined at 202 in src/threads/interrupt.c.'>intr_register_int</a> (0x30, 3, INTR_ON, <a href='../S/68.html#L16' title='Defined at 16 in src/userprog/syscall.c.'>syscall_handler</a>, "syscall");
+<a name='L13'>  13 <font color='red'>}</font>
+<a name='L14'>  14 
+<a name='L15'>  15 <b>static</b> <b>void</b>
+<a name='L16'>  16 <a href='../R/852.html' title='Multiple refered from 2 places.'>syscall_handler</a> (<b>struct</b> intr_frame *f <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("system call!\n");
+<a name='L19'>  19   <a href='../S/163.html#L289' title='Defined at 289 in src/threads/thread.c.'>thread_exit</a> ();
+<a name='L20'>  20 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L16'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

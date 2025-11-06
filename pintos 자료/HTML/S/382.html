@@ -1,0 +1,51 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-twice.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-twice.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Maps the same file into memory twice and verifies that the</font></i>
+<a name='L2'>   2 <i><font color='green'>   same data is readable in both. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "tests/vm/sample.inc"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b>
+<a name='L11'>  11 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <b>char</b> *actual[2] = <font color='red'>{</font>(<b>char</b> *) 0x10000000, (<b>char</b> *) 0x20000000<font color='red'>}</font>;
+<a name='L14'>  14   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L15'>  15   <b>int</b> handle[2];
+<a name='L16'>  16 
+<a name='L17'>  17   <b>for</b> (i = 0; i &lt; 2; i++) 
+<a name='L18'>  18     <font color='red'>{</font>
+<a name='L19'>  19       CHECK ((handle[i] = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1,
+<a name='L20'>  20              "open \"sample.txt\" #%zu", i);
+<a name='L21'>  21       CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle[i], actual[i]) != <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>,
+<a name='L22'>  22              "mmap \"sample.txt\" #%zu at %p", i, (<b>void</b> *) actual[i]);
+<a name='L23'>  23     <font color='red'>}</font>
+<a name='L24'>  24 
+<a name='L25'>  25   <b>for</b> (i = 0; i &lt; 2; i++)
+<a name='L26'>  26     CHECK (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (actual[i], sample, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sample)),
+<a name='L27'>  27            "compare mmap'd file %zu against data", i);
+<a name='L28'>  28 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

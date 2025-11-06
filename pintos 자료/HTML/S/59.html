@@ -1,0 +1,178 @@
+<html>
+<head>
+<title>src/examples/pwd.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/pwd.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L72'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L13' title='Defined at 13.'>main</a>
+<li><a href='#L32' title='Defined at 32.'>get_inumber</a>
+<li><a href='#L52' title='Defined at 52.'>prepend</a>
+<li><a href='#L72' title='Defined at 72.'>getcwd</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* pwd.c</font></i>
+<a name='L2'>   2 <i><font color='green'>   </font></i>
+<a name='L3'>   3 <i><font color='green'>   Prints the absolute name of the present working directory. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L9'>   9 
+<a name='L10'>  10 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/59.html#L72' title='Defined at 72 in src/examples/pwd.c.'>getcwd</a> (<b>char</b> *cwd, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cwd_size);
+<a name='L11'>  11 
+<a name='L12'>  12 <b>int</b>
+<a name='L13'>  13 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>void</b>) 
+<a name='L14'>  14 <font color='red'>{</font>
+<a name='L15'>  15   <b>char</b> cwd[128];
+<a name='L16'>  16   <b>if</b> (<a href='../S/59.html#L72' title='Defined at 72 in src/examples/pwd.c.'>getcwd</a> (cwd, <b>sizeof</b> cwd)) 
+<a name='L17'>  17     <font color='red'>{</font>
+<a name='L18'>  18       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s\n", cwd);
+<a name='L19'>  19       <b>return</b> <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a>;
+<a name='L20'>  20     <font color='red'>}</font>
+<a name='L21'>  21   <b>else</b> 
+<a name='L22'>  22     <font color='red'>{</font>
+<a name='L23'>  23       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("error\n");
+<a name='L24'>  24       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>; 
+<a name='L25'>  25     <font color='red'>}</font>
+<a name='L26'>  26 <font color='red'>}</font>
+<a name='L27'>  27 
+<a name='L28'>  28 <i><font color='green'>/* Stores the inode number for FILE_NAME in *INUM.</font></i>
+<a name='L29'>  29 <i><font color='green'>   Returns true if successful, false if the file could not be</font></i>
+<a name='L30'>  30 <i><font color='green'>   opened. */</font></i>
+<a name='L31'>  31 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L32'>  32 <a href='../R/469.html' title='Multiple refered from 2 places.'>get_inumber</a> (<b>const</b> <b>char</b> *file_name, <b>int</b> *inum) 
+<a name='L33'>  33 <font color='red'>{</font>
+<a name='L34'>  34   <b>int</b> fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name);
+<a name='L35'>  35   <b>if</b> (fd &gt;= 0) 
+<a name='L36'>  36     <font color='red'>{</font>
+<a name='L37'>  37       *inum = <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (fd);
+<a name='L38'>  38       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L39'>  39       <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L40'>  40     <font color='red'>}</font>
+<a name='L41'>  41   <b>else</b>
+<a name='L42'>  42     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L43'>  43 <font color='red'>}</font>
+<a name='L44'>  44 
+<a name='L45'>  45 <i><font color='green'>/* Prepends PREFIX to the characters stored in the final *DST_LEN</font></i>
+<a name='L46'>  46 <i><font color='green'>   bytes of the DST_SIZE-byte buffer that starts at DST.</font></i>
+<a name='L47'>  47 <i><font color='green'>   Returns true if successful, false if adding that many</font></i>
+<a name='L48'>  48 <i><font color='green'>   characters, plus a null terminator, would overflow the buffer.</font></i>
+<a name='L49'>  49 <i><font color='green'>   (No null terminator is actually added or depended upon, but</font></i>
+<a name='L50'>  50 <i><font color='green'>   its space is accounted for.) */</font></i>
+<a name='L51'>  51 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L52'>  52 <a href='../S/59.html#L130' title='Refered from 130 in src/examples/pwd.c.'>prepend</a> (<b>const</b> <b>char</b> *prefix,
+<a name='L53'>  53          <b>char</b> *dst, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> *dst_len, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> dst_size) 
+<a name='L54'>  54 <font color='red'>{</font>
+<a name='L55'>  55   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> prefix_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (prefix);
+<a name='L56'>  56   <b>if</b> (prefix_len + *dst_len + 1 &lt;= dst_size) 
+<a name='L57'>  57     <font color='red'>{</font>
+<a name='L58'>  58       *dst_len += prefix_len;
+<a name='L59'>  59       <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> ((dst + dst_size) - *dst_len, prefix, prefix_len);
+<a name='L60'>  60       <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L61'>  61     <font color='red'>}</font>
+<a name='L62'>  62   <b>else</b>
+<a name='L63'>  63     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L64'>  64 <font color='red'>}</font>
+<a name='L65'>  65 
+<a name='L66'>  66 <i><font color='green'>/* Stores the current working directory, as a null-terminated</font></i>
+<a name='L67'>  67 <i><font color='green'>   string, in the CWD_SIZE bytes in CWD.</font></i>
+<a name='L68'>  68 <i><font color='green'>   Returns true if successful, false on error.  Errors include</font></i>
+<a name='L69'>  69 <i><font color='green'>   system errors, directory trees deeper than MAX_LEVEL levels,</font></i>
+<a name='L70'>  70 <i><font color='green'>   and insufficient space in CWD. */</font></i>
+<a name='L71'>  71 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L72'>  72 <a href='../R/470.html' title='Multiple refered from 2 places.'>getcwd</a> (<b>char</b> *cwd, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cwd_size) 
+<a name='L73'>  73 <font color='red'>{</font>
+<a name='L74'>  74   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cwd_len = 0;   
+<a name='L75'>  75   
+<a name='L76'>  76 <font color='darkred'>#define</font> <a href='../R/105.html' title='Multiple refered from 2 places.'>MAX_LEVEL</a> 20
+<a name='L77'>  77   <b>char</b> name[<a href='../S/59.html#L76' title='Defined at 76 in src/examples/pwd.c.'>MAX_LEVEL</a> * 3 + 1 + <a href='../S/100.html#L16' title='Defined at 16 in src/lib/user/syscall.h.'>READDIR_MAX_LEN</a> + 1];
+<a name='L78'>  78   <b>char</b> *namep;
+<a name='L79'>  79 
+<a name='L80'>  80   <b>int</b> child_inum;
+<a name='L81'>  81 
+<a name='L82'>  82   <i><font color='green'>/* Make sure there's enough space for at least "/". */</font></i>
+<a name='L83'>  83   <b>if</b> (cwd_size &lt; 2)
+<a name='L84'>  84     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L85'>  85 
+<a name='L86'>  86   <i><font color='green'>/* Get inumber for current directory. */</font></i>
+<a name='L87'>  87   <b>if</b> (!<a href='../S/59.html#L32' title='Defined at 32 in src/examples/pwd.c.'>get_inumber</a> (".", &amp;child_inum))
+<a name='L88'>  88     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L89'>  89 
+<a name='L90'>  90   namep = name;
+<a name='L91'>  91   <b>for</b> (;;)
+<a name='L92'>  92     <font color='red'>{</font>
+<a name='L93'>  93       <b>int</b> parent_inum, parent_fd;
+<a name='L94'>  94 
+<a name='L95'>  95       <i><font color='green'>/* Compose "../../../..", etc., in NAME. */</font></i>
+<a name='L96'>  96       <b>if</b> ((namep - name) &gt; <a href='../S/59.html#L76' title='Defined at 76 in src/examples/pwd.c.'>MAX_LEVEL</a> * 3)
+<a name='L97'>  97         <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L98'>  98       *namep++ = '.';
+<a name='L99'>  99       *namep++ = '.';
+<a name='L100'> 100       *namep = '\0';
+<a name='L101'> 101 
+<a name='L102'> 102       <i><font color='green'>/* Open directory. */</font></i>
+<a name='L103'> 103       parent_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (name);
+<a name='L104'> 104       <b>if</b> (parent_fd &lt; 0)
+<a name='L105'> 105         <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L106'> 106       *namep++ = '/';
+<a name='L107'> 107 
+<a name='L108'> 108       <i><font color='green'>/* If parent and child have the same inumber,</font></i>
+<a name='L109'> 109 <i><font color='green'>         then we've arrived at the root. */</font></i>
+<a name='L110'> 110       parent_inum = <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (parent_fd);
+<a name='L111'> 111       <b>if</b> (parent_inum == child_inum)
+<a name='L112'> 112         <b>break</b>;
+<a name='L113'> 113 
+<a name='L114'> 114       <i><font color='green'>/* Find name of file in parent directory with the child's</font></i>
+<a name='L115'> 115 <i><font color='green'>         inumber. */</font></i>
+<a name='L116'> 116       <b>for</b> (;;)
+<a name='L117'> 117         <font color='red'>{</font>
+<a name='L118'> 118           <b>int</b> test_inum;
+<a name='L119'> 119           <b>if</b> (!<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (parent_fd, namep) || !<a href='../S/59.html#L32' title='Defined at 32 in src/examples/pwd.c.'>get_inumber</a> (name, &amp;test_inum)) 
+<a name='L120'> 120             <font color='red'>{</font>
+<a name='L121'> 121               <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (parent_fd);
+<a name='L122'> 122               <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>; 
+<a name='L123'> 123             <font color='red'>}</font>
+<a name='L124'> 124           <b>if</b> (test_inum == child_inum)
+<a name='L125'> 125             <b>break</b>;
+<a name='L126'> 126         <font color='red'>}</font>
+<a name='L127'> 127       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (parent_fd);
+<a name='L128'> 128 
+<a name='L129'> 129       <i><font color='green'>/* Prepend "/name" to CWD. */</font></i>
+<a name='L130'> 130       <b>if</b> (!<a href='../S/59.html#L52' title='Defined at 52 in src/examples/pwd.c.'>prepend</a> (namep - 1, cwd, &amp;cwd_len, cwd_size))
+<a name='L131'> 131         <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L132'> 132 
+<a name='L133'> 133       <i><font color='green'>/* Move up. */</font></i>
+<a name='L134'> 134       child_inum = parent_inum;
+<a name='L135'> 135     <font color='red'>}</font>
+<a name='L136'> 136 
+<a name='L137'> 137   <i><font color='green'>/* Finalize CWD. */</font></i>
+<a name='L138'> 138   <b>if</b> (cwd_len &gt; 0) 
+<a name='L139'> 139     <font color='red'>{</font>
+<a name='L140'> 140       <i><font color='green'>/* Move the string to the beginning of CWD,</font></i>
+<a name='L141'> 141 <i><font color='green'>         and null-terminate it. */</font></i>
+<a name='L142'> 142       <a href='../S/83.html#L24' title='Defined at 24 in src/lib/string.c.'>memmove</a> (cwd, (cwd + cwd_size) - cwd_len, cwd_len);
+<a name='L143'> 143       cwd[cwd_len] = '\0';
+<a name='L144'> 144     <font color='red'>}</font>
+<a name='L145'> 145   <b>else</b> 
+<a name='L146'> 146     <font color='red'>{</font>
+<a name='L147'> 147       <i><font color='green'>/* Special case for the root. */</font></i>
+<a name='L148'> 148       <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (cwd, "/", cwd_size); 
+<a name='L149'> 149     <font color='red'>}</font>
+<a name='L150'> 150   
+<a name='L151'> 151   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L152'> 152 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L72'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

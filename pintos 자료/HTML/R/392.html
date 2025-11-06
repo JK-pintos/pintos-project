@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>desc</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/161.html#L53'>desc</a>               53 src/threads/malloc.c     struct desc *desc;          /* Owning descriptor, null for big block. */
+<a href='../S/161.html#L64'>desc</a>               64 src/threads/malloc.c static struct desc descs[10];   /* Descriptors. */
+<a href='../S/161.html#L78'>desc</a>               78 src/threads/malloc.c       struct desc *d = &amp;descs[desc_cnt++];
+<a href='../S/161.html#L92'>desc</a>               92 src/threads/malloc.c   struct desc *d;
+<a href='../S/161.html#L117'>desc</a>              117 src/threads/malloc.c       a-&gt;desc = NULL;
+<a href='../S/161.html#L139'>desc</a>              139 src/threads/malloc.c       a-&gt;desc = d;
+<a href='../S/161.html#L183'>desc</a>              183 src/threads/malloc.c   struct desc *d = a-&gt;desc;
+<a href='../S/161.html#L225'>desc</a>              225 src/threads/malloc.c       struct desc *d = a-&gt;desc;
+<a href='../S/161.html#L277'>desc</a>              277 src/threads/malloc.c   ASSERT (a-&gt;desc == NULL
+<a href='../S/161.html#L278'>desc</a>              278 src/threads/malloc.c           || (pg_ofs (b) - sizeof *a) % a-&gt;desc-&gt;block_size == 0);
+<a href='../S/161.html#L279'>desc</a>              279 src/threads/malloc.c   ASSERT (a-&gt;desc != NULL || pg_ofs (b) == sizeof *a);
+<a href='../S/161.html#L290'>desc</a>              290 src/threads/malloc.c   ASSERT (idx &lt; a-&gt;desc-&gt;blocks_per_arena);
+<a href='../S/161.html#L293'>desc</a>              293 src/threads/malloc.c                            + idx * a-&gt;desc-&gt;block_size);
+</pre>
+</body>
+</html>

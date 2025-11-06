@@ -1,0 +1,158 @@
+<html>
+<head>
+<title>src/devices/shutdown.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/shutdown.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L29'>[^]</a><a href='#L119'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L29' title='Defined at 29.'>shutdown</a>
+<li><a href='#L50' title='Defined at 50.'>shutdown_configure</a>
+<li><a href='#L57' title='Defined at 57.'>shutdown_reboot</a>
+<li><a href='#L88' title='Defined at 88.'>shutdown_power_off</a>
+<li><a href='#L119' title='Defined at 119.'>print_stats</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='141.html'>devices/shutdown.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='110.html'>console.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='119.html'>devices/kbd.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='137.html'>devices/serial.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L9'>   9 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='71.html'>userprog/exception.h</a>"
+<a name='L11'>  11 <font color='darkred'>#endif</font>
+<a name='L12'>  12 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='128.html'>devices/block.h</a>"
+<a name='L14'>  14 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L15'>  15 <font color='darkred'>#endif</font>
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Keyboard control register port. */</font></i>
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../R/20.html' title='Multiple refered from 2 places.'>CONTROL_REG</a> 0x64
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* How to shut down when shutdown() is called. */</font></i>
+<a name='L21'>  21 <b>static</b> <b>enum</b> <a href='../S/141.html#L7' title='Defined at 7 in src/devices/shutdown.h.'>shutdown_type</a> how = SHUTDOWN_NONE;
+<a name='L22'>  22 
+<a name='L23'>  23 <b>static</b> <b>void</b> <a href='../S/136.html#L119' title='Defined at 119 in src/devices/shutdown.c.'>print_stats</a> (<b>void</b>);
+<a name='L24'>  24 
+<a name='L25'>  25 <i><font color='green'>/* Shuts down the machine in the way configured by</font></i>
+<a name='L26'>  26 <i><font color='green'>   shutdown_configure().  If the shutdown type is SHUTDOWN_NONE</font></i>
+<a name='L27'>  27 <i><font color='green'>   (which is the default), returns without doing anything. */</font></i>
+<a name='L28'>  28 <b>void</b>
+<a name='L29'>  29 <a href='../R/806.html' title='Multiple refered from 3 places.'>shutdown</a> (<b>void</b>)
+<a name='L30'>  30 <font color='red'>{</font>
+<a name='L31'>  31   <b>switch</b> (how)
+<a name='L32'>  32     <font color='red'>{</font>
+<a name='L33'>  33     <b>case</b> SHUTDOWN_POWER_OFF:
+<a name='L34'>  34       <a href='../S/136.html#L88' title='Defined at 88 in src/devices/shutdown.c.'>shutdown_power_off</a> ();
+<a name='L35'>  35       <b>break</b>;
+<a name='L36'>  36 
+<a name='L37'>  37     <b>case</b> SHUTDOWN_REBOOT:
+<a name='L38'>  38       <a href='../S/136.html#L57' title='Defined at 57 in src/devices/shutdown.c.'>shutdown_reboot</a> ();
+<a name='L39'>  39       <b>break</b>;
+<a name='L40'>  40 
+<a name='L41'>  41     <b>default</b>:
+<a name='L42'>  42       <i><font color='green'>/* Nothing to do. */</font></i>
+<a name='L43'>  43       <b>break</b>;
+<a name='L44'>  44     <font color='red'>}</font>
+<a name='L45'>  45 <font color='red'>}</font>
+<a name='L46'>  46 
+<a name='L47'>  47 <i><font color='green'>/* Sets TYPE as the way that machine will shut down when Pintos</font></i>
+<a name='L48'>  48 <i><font color='green'>   execution is complete. */</font></i>
+<a name='L49'>  49 <b>void</b>
+<a name='L50'>  50 <a href='../R/807.html' title='Multiple refered from 3 places.'>shutdown_configure</a> (<b>enum</b> shutdown_type type)
+<a name='L51'>  51 <font color='red'>{</font>
+<a name='L52'>  52   how = type;
+<a name='L53'>  53 <font color='red'>}</font>
+<a name='L54'>  54 
+<a name='L55'>  55 <i><font color='green'>/* Reboots the machine via the keyboard controller. */</font></i>
+<a name='L56'>  56 <b>void</b>
+<a name='L57'>  57 <a href='../R/809.html' title='Multiple refered from 3 places.'>shutdown_reboot</a> (<b>void</b>)
+<a name='L58'>  58 <font color='red'>{</font>
+<a name='L59'>  59   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Rebooting...\n");
+<a name='L60'>  60 
+<a name='L61'>  61     <i><font color='green'>/* See [kbd] for details on how to program the keyboard</font></i>
+<a name='L62'>  62 <i><font color='green'>     * controller. */</font></i>
+<a name='L63'>  63   <b>for</b> (;;)
+<a name='L64'>  64     <font color='red'>{</font>
+<a name='L65'>  65       <b>int</b> i;
+<a name='L66'>  66 
+<a name='L67'>  67       <i><font color='green'>/* Poll keyboard controller's status byte until</font></i>
+<a name='L68'>  68 <i><font color='green'>       * 'input buffer empty' is reported. */</font></i>
+<a name='L69'>  69       <b>for</b> (i = 0; i &lt; 0x10000; i++)
+<a name='L70'>  70         <font color='red'>{</font>
+<a name='L71'>  71           <b>if</b> ((<a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/136.html#L18' title='Defined at 18 in src/devices/shutdown.c.'>CONTROL_REG</a>) &amp; 0x02) == 0)
+<a name='L72'>  72             <b>break</b>;
+<a name='L73'>  73           <a href='../S/125.html#L144' title='Defined at 144 in src/devices/timer.c.'>timer_udelay</a> (2);
+<a name='L74'>  74         <font color='red'>}</font>
+<a name='L75'>  75 
+<a name='L76'>  76       <a href='../S/125.html#L144' title='Defined at 144 in src/devices/timer.c.'>timer_udelay</a> (50);
+<a name='L77'>  77 
+<a name='L78'>  78       <i><font color='green'>/* Pulse bit 0 of the output port P2 of the keyboard controller.</font></i>
+<a name='L79'>  79 <i><font color='green'>       * This will reset the CPU. */</font></i>
+<a name='L80'>  80       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/136.html#L18' title='Defined at 18 in src/devices/shutdown.c.'>CONTROL_REG</a>, 0xfe);
+<a name='L81'>  81       <a href='../S/125.html#L144' title='Defined at 144 in src/devices/timer.c.'>timer_udelay</a> (50);
+<a name='L82'>  82     <font color='red'>}</font>
+<a name='L83'>  83 <font color='red'>}</font>
+<a name='L84'>  84 
+<a name='L85'>  85 <i><font color='green'>/* Powers down the machine we're running on,</font></i>
+<a name='L86'>  86 <i><font color='green'>   as long as we're running on Bochs or QEMU. */</font></i>
+<a name='L87'>  87 <b>void</b>
+<a name='L88'>  88 <a href='../R/808.html' title='Multiple refered from 2 places.'>shutdown_power_off</a> (<b>void</b>)
+<a name='L89'>  89 <font color='red'>{</font>
+<a name='L90'>  90   <b>const</b> <b>char</b> s[] = "Shutdown";
+<a name='L91'>  91   <b>const</b> <b>char</b> *p;
+<a name='L92'>  92 
+<a name='L93'>  93 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L94'>  94   <a href='../S/38.html#L36' title='Defined at 36 in src/filesys/filesys.c.'>filesys_done</a> ();
+<a name='L95'>  95 <font color='darkred'>#endif</font>
+<a name='L96'>  96 
+<a name='L97'>  97   <a href='../S/136.html#L119' title='Defined at 119 in src/devices/shutdown.c.'>print_stats</a> ();
+<a name='L98'>  98 
+<a name='L99'>  99   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Powering off...\n");
+<a name='L100'> 100   <a href='../S/142.html#L135' title='Defined at 135 in src/devices/serial.c.'>serial_flush</a> ();
+<a name='L101'> 101 
+<a name='L102'> 102   <i><font color='green'>/* This is a special power-off sequence supported by Bochs and</font></i>
+<a name='L103'> 103 <i><font color='green'>     QEMU, but not by physical hardware. */</font></i>
+<a name='L104'> 104   <b>for</b> (p = s; *p != '\0'; p++)
+<a name='L105'> 105     <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (0x8900, *p);
+<a name='L106'> 106 
+<a name='L107'> 107   <i><font color='green'>/* This will power off a VMware VM if "gui.exitOnCLIHLT = TRUE"</font></i>
+<a name='L108'> 108 <i><font color='green'>     is set in its configuration file.  (The "pintos" script does</font></i>
+<a name='L109'> 109 <i><font color='green'>     that automatically.)  */</font></i>
+<a name='L110'> 110   <b>asm</b> <b>volatile</b> ("cli; hlt" : : : "memory");
+<a name='L111'> 111 
+<a name='L112'> 112   <i><font color='green'>/* None of those worked. */</font></i>
+<a name='L113'> 113   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("still running...\n");
+<a name='L114'> 114   <b>for</b> (;;);
+<a name='L115'> 115 <font color='red'>}</font>
+<a name='L116'> 116 
+<a name='L117'> 117 <i><font color='green'>/* Print statistics about Pintos execution. */</font></i>
+<a name='L118'> 118 <b>static</b> <b>void</b>
+<a name='L119'> 119 <a href='../R/726.html' title='Multiple refered from 2 places.'>print_stats</a> (<b>void</b>)
+<a name='L120'> 120 <font color='red'>{</font>
+<a name='L121'> 121   <a href='../S/125.html#L164' title='Defined at 164 in src/devices/timer.c.'>timer_print_stats</a> ();
+<a name='L122'> 122   <a href='../S/163.html#L144' title='Defined at 144 in src/threads/thread.c.'>thread_print_stats</a> ();
+<a name='L123'> 123 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L124'> 124   <a href='../S/132.html#L165' title='Defined at 165 in src/devices/block.c.'>block_print_stats</a> ();
+<a name='L125'> 125 <font color='darkred'>#endif</font>
+<a name='L126'> 126   <a href='../S/105.html#L81' title='Defined at 81 in src/lib/kernel/console.c.'>console_print_stats</a> ();
+<a name='L127'> 127   <a href='../S/122.html#L38' title='Defined at 38 in src/devices/kbd.c.'>kbd_print_stats</a> ();
+<a name='L128'> 128 <font color='darkred'>#ifdef</font> USERPROG
+<a name='L129'> 129   <a href='../S/64.html#L65' title='Defined at 65 in src/userprog/exception.c.'>exception_print_stats</a> ();
+<a name='L130'> 130 <font color='darkred'>#endif</font>
+<a name='L131'> 131 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L29'>[^]</a><a href='#L119'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

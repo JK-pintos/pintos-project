@@ -1,0 +1,194 @@
+<html>
+<head>
+<title>bool</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/123.html#L59'>bool</a>               59 src/devices/ide.c     bool is_ata;                /* Is device an ATA disk? */
+<a href='../S/123.html#L71'>bool</a>               71 src/devices/ide.c     bool expecting_interrupt;   /* True if an interrupt is expected, false if
+<a href='../S/123.html#L85'>bool</a>               85 src/devices/ide.c static bool check_device_type (struct ata_disk *);
+<a href='../S/123.html#L94'>bool</a>               94 src/devices/ide.c static bool wait_while_busy (const struct ata_disk *);
+<a href='../S/123.html#L167'>bool</a>              167 src/devices/ide.c   bool present[2];
+<a href='../S/123.html#L229'>bool</a>              229 src/devices/ide.c static bool
+<a href='../S/123.html#L459'>bool</a>              459 src/devices/ide.c static bool
+<a href='../S/133.html#L47'>bool</a>               47 src/devices/input.c bool
+<a href='../S/120.html#L10'>bool</a>               10 src/devices/input.h bool input_full (void);
+<a href='../S/135.html#L19'>bool</a>               19 src/devices/intq.c bool
+<a href='../S/135.html#L27'>bool</a>               27 src/devices/intq.c bool
+<a href='../S/130.html#L38'>bool</a>               38 src/devices/intq.h bool intq_empty (const struct intq *);
+<a href='../S/130.html#L39'>bool</a>               39 src/devices/intq.h bool intq_full (const struct intq *);
+<a href='../S/122.html#L16'>bool</a>               16 src/devices/kbd.c static bool left_shift, right_shift;    /* Left and right Shift keys. */
+<a href='../S/122.html#L17'>bool</a>               17 src/devices/kbd.c static bool left_alt, right_alt;        /* Left and right Alt keys. */
+<a href='../S/122.html#L18'>bool</a>               18 src/devices/kbd.c static bool left_ctrl, right_ctrl;      /* Left and right Ctl keys. */
+<a href='../S/122.html#L22'>bool</a>               22 src/devices/kbd.c static bool caps_lock;
+<a href='../S/122.html#L93'>bool</a>               93 src/devices/kbd.c static bool map_key (const struct keymap[], unsigned scancode, uint8_t *);
+<a href='../S/122.html#L99'>bool</a>               99 src/devices/kbd.c   bool shift = left_shift || right_shift;
+<a href='../S/122.html#L100'>bool</a>              100 src/devices/kbd.c   bool alt = left_alt || right_alt;
+<a href='../S/122.html#L101'>bool</a>              101 src/devices/kbd.c   bool ctrl = left_ctrl || right_ctrl;
+<a href='../S/122.html#L107'>bool</a>              107 src/devices/kbd.c   bool release;
+<a href='../S/122.html#L170'>bool</a>              170 src/devices/kbd.c           bool *state_var;
+<a href='../S/122.html#L201'>bool</a>              201 src/devices/kbd.c static bool
+<a href='../S/125.html#L28'>bool</a>               28 src/devices/timer.c static bool too_many_loops (unsigned loops);
+<a href='../S/125.html#L179'>bool</a>              179 src/devices/timer.c static bool
+<a href='../S/131.html#L40'>bool</a>               40 src/devices/vga.c   static bool inited;
+<a href='../S/43.html#L11'>bool</a>               11 src/examples/cat.c   bool success = true;
+<a href='../S/58.html#L11'>bool</a>               11 src/examples/hex-dump.c   bool success = true;
+<a href='../S/47.html#L15'>bool</a>               15 src/examples/ls.c static bool
+<a href='../S/47.html#L70'>bool</a>               70 src/examples/ls.c   bool success = true;
+<a href='../S/47.html#L71'>bool</a>               71 src/examples/ls.c   bool verbose = false;
+<a href='../S/59.html#L10'>bool</a>               10 src/examples/pwd.c static bool getcwd (char *cwd, size_t cwd_size);
+<a href='../S/59.html#L31'>bool</a>               31 src/examples/pwd.c static bool
+<a href='../S/59.html#L51'>bool</a>               51 src/examples/pwd.c static bool
+<a href='../S/59.html#L71'>bool</a>               71 src/examples/pwd.c static bool
+<a href='../S/62.html#L11'>bool</a>               11 src/examples/rm.c   bool success = true;
+<a href='../S/56.html#L7'>bool</a>                7 src/examples/shell.c static bool backspace (char **pos, char line[]);
+<a href='../S/56.html#L91'>bool</a>               91 src/examples/shell.c static bool
+<a href='../S/32.html#L21'>bool</a>               21 src/filesys/directory.c     bool in_use;                        /* In use or free? */
+<a href='../S/32.html#L26'>bool</a>               26 src/filesys/directory.c bool
+<a href='../S/32.html#L91'>bool</a>               91 src/filesys/directory.c static bool
+<a href='../S/32.html#L118'>bool</a>              118 src/filesys/directory.c bool
+<a href='../S/32.html#L141'>bool</a>              141 src/filesys/directory.c bool
+<a href='../S/32.html#L146'>bool</a>              146 src/filesys/directory.c   bool success = false;
+<a href='../S/32.html#L184'>bool</a>              184 src/filesys/directory.c bool
+<a href='../S/32.html#L189'>bool</a>              189 src/filesys/directory.c   bool success = false;
+<a href='../S/32.html#L221'>bool</a>              221 src/filesys/directory.c bool
+<a href='../S/28.html#L17'>bool</a>               17 src/filesys/directory.h bool dir_create (block_sector_t sector, size_t entry_cnt);
+<a href='../S/28.html#L25'>bool</a>               25 src/filesys/directory.h bool dir_lookup (const struct dir *, const char *name, struct inode **);
+<a href='../S/28.html#L26'>bool</a>               26 src/filesys/directory.h bool dir_add (struct dir *, const char *name, block_sector_t);
+<a href='../S/28.html#L27'>bool</a>               27 src/filesys/directory.h bool dir_remove (struct dir *, const char *name);
+<a href='../S/28.html#L28'>bool</a>               28 src/filesys/directory.h bool dir_readdir (struct dir *, char name[NAME_MAX + 1]);
+<a href='../S/29.html#L11'>bool</a>               11 src/filesys/file.c     bool deny_write;            /* Has file_deny_write() been called? */
+<a href='../S/38.html#L45'>bool</a>               45 src/filesys/filesys.c bool
+<a href='../S/38.html#L50'>bool</a>               50 src/filesys/filesys.c   bool success = (dir != NULL
+<a href='../S/38.html#L83'>bool</a>               83 src/filesys/filesys.c bool
+<a href='../S/38.html#L87'>bool</a>               87 src/filesys/filesys.c   bool success = dir != NULL &amp;&amp; dir_remove (dir, name);
+<a href='../S/33.html#L16'>bool</a>               16 src/filesys/filesys.h bool filesys_create (const char *name, off_t initial_size);
+<a href='../S/33.html#L18'>bool</a>               18 src/filesys/filesys.h bool filesys_remove (const char *name);
+<a href='../S/25.html#L27'>bool</a>               27 src/filesys/free-map.c bool
+<a href='../S/27.html#L14'>bool</a>               14 src/filesys/free-map.h bool free_map_allocate (size_t, block_sector_t *);
+<a href='../S/35.html#L37'>bool</a>               37 src/filesys/inode.c     bool removed;                       /* True if deleted, false otherwise. */
+<a href='../S/35.html#L72'>bool</a>               72 src/filesys/inode.c bool
+<a href='../S/35.html#L76'>bool</a>               76 src/filesys/inode.c   bool success = false;
+<a href='../S/34.html#L11'>bool</a>               11 src/filesys/inode.h bool inode_create (block_sector_t, off_t);
+<a href='../S/91.html#L15'>bool</a>               15 src/lib/debug.c   static bool explained;
+<a href='../S/114.html#L198'>bool</a>              198 src/lib/kernel/bitmap.c bool
+<a href='../S/114.html#L251'>bool</a>              251 src/lib/kernel/bitmap.c bool
+<a href='../S/114.html#L268'>bool</a>              268 src/lib/kernel/bitmap.c bool
+<a href='../S/114.html#L276'>bool</a>              276 src/lib/kernel/bitmap.c bool
+<a href='../S/114.html#L284'>bool</a>              284 src/lib/kernel/bitmap.c bool
+<a href='../S/114.html#L341'>bool</a>              341 src/lib/kernel/bitmap.c bool
+<a href='../S/114.html#L344'>bool</a>              344 src/lib/kernel/bitmap.c   bool success = true;
+<a href='../S/114.html#L356'>bool</a>              356 src/lib/kernel/bitmap.c bool
+<a href='../S/111.html#L24'>bool</a>               24 src/lib/kernel/bitmap.h bool bitmap_test (const struct bitmap *, size_t idx);
+<a href='../S/111.html#L30'>bool</a>               30 src/lib/kernel/bitmap.h bool bitmap_contains (const struct bitmap *, size_t start, size_t cnt, bool);
+<a href='../S/111.html#L31'>bool</a>               31 src/lib/kernel/bitmap.h bool bitmap_any (const struct bitmap *, size_t start, size_t cnt);
+<a href='../S/111.html#L32'>bool</a>               32 src/lib/kernel/bitmap.h bool bitmap_none (const struct bitmap *, size_t start, size_t cnt);
+<a href='../S/111.html#L33'>bool</a>               33 src/lib/kernel/bitmap.h bool bitmap_all (const struct bitmap *, size_t start, size_t cnt);
+<a href='../S/111.html#L44'>bool</a>               44 src/lib/kernel/bitmap.h bool bitmap_read (struct bitmap *, struct file *);
+<a href='../S/111.html#L45'>bool</a>               45 src/lib/kernel/bitmap.h bool bitmap_write (const struct bitmap *, struct file *);
+<a href='../S/105.html#L31'>bool</a>               31 src/lib/kernel/console.c static bool use_console_lock;
+<a href='../S/105.html#L114'>bool</a>              114 src/lib/kernel/console.c static bool
+<a href='../S/113.html#L24'>bool</a>               24 src/lib/kernel/hash.c bool
+<a href='../S/113.html#L254'>bool</a>              254 src/lib/kernel/hash.c bool
+<a href='../S/108.html#L50'>bool</a>               50 src/lib/kernel/hash.h typedef bool hash_less_func (const struct hash_elem *a,
+<a href='../S/108.html#L78'>bool</a>               78 src/lib/kernel/hash.h bool hash_init (struct hash *, hash_hash_func *, hash_less_func *, void *aux);
+<a href='../S/108.html#L96'>bool</a>               96 src/lib/kernel/hash.h bool hash_empty (struct hash *);
+<a href='../S/112.html#L34'>bool</a>               34 src/lib/kernel/list.c static bool is_sorted (struct list_elem *a, struct list_elem *b,
+<a href='../S/112.html#L46'>bool</a>               46 src/lib/kernel/list.c static inline bool
+<a href='../S/112.html#L53'>bool</a>               53 src/lib/kernel/list.c static inline bool
+<a href='../S/112.html#L309'>bool</a>              309 src/lib/kernel/list.c bool
+<a href='../S/112.html#L341'>bool</a>              341 src/lib/kernel/list.c static bool
+<a href='../S/107.html#L157'>bool</a>              157 src/lib/kernel/list.h bool list_empty (struct list *);
+<a href='../S/107.html#L165'>bool</a>              165 src/lib/kernel/list.h typedef bool list_less_func (const struct list_elem *a,
+<a href='../S/85.html#L21'>bool</a>               21 src/lib/random.c static bool inited;     
+<a href='../S/103.html#L12'>bool</a>               12 src/lib/stdlib.c   bool negative;
+<a href='../S/97.html#L90'>bool</a>               90 src/lib/user/syscall.c bool
+<a href='../S/97.html#L96'>bool</a>               96 src/lib/user/syscall.c bool
+<a href='../S/97.html#L156'>bool</a>              156 src/lib/user/syscall.c bool
+<a href='../S/97.html#L162'>bool</a>              162 src/lib/user/syscall.c bool
+<a href='../S/97.html#L168'>bool</a>              168 src/lib/user/syscall.c bool
+<a href='../S/97.html#L174'>bool</a>              174 src/lib/user/syscall.c bool
+<a href='../S/116.html#L50'>bool</a>               50 src/lib/ustar.c       bool in_chksum_field = i &gt;= chksum_start &amp;&amp; i &lt; chksum_end;
+<a href='../S/116.html#L82'>bool</a>               82 src/lib/ustar.c bool
+<a href='../S/116.html#L129'>bool</a>              129 src/lib/ustar.c static bool
+<a href='../S/116.html#L166'>bool</a>              166 src/lib/ustar.c static bool
+<a href='../S/88.html#L23'>bool</a>               23 src/lib/ustar.h bool ustar_make_header (const char *file_name, enum ustar_type,
+<a href='../S/233.html#L11'>bool</a>               11 src/tests/filesys/extended/tar.c static bool make_tar_archive (const char *archive_name,
+<a href='../S/233.html#L36'>bool</a>               36 src/tests/filesys/extended/tar.c static bool archive_file (char file_name[], size_t file_name_size,
+<a href='../S/233.html#L39'>bool</a>               39 src/tests/filesys/extended/tar.c static bool archive_ordinary_file (const char *file_name, int file_fd,
+<a href='../S/233.html#L41'>bool</a>               41 src/tests/filesys/extended/tar.c static bool archive_directory (char file_name[], size_t file_name_size,
+<a href='../S/233.html#L43'>bool</a>               43 src/tests/filesys/extended/tar.c static bool write_header (const char *file_name, enum ustar_type, int size,
+<a href='../S/233.html#L46'>bool</a>               46 src/tests/filesys/extended/tar.c static bool do_write (int fd, const char *buffer, int size, bool *write_error);
+<a href='../S/233.html#L48'>bool</a>               48 src/tests/filesys/extended/tar.c static bool
+<a href='../S/233.html#L53'>bool</a>               53 src/tests/filesys/extended/tar.c   bool success = true;
+<a href='../S/233.html#L54'>bool</a>               54 src/tests/filesys/extended/tar.c   bool write_error = false;
+<a href='../S/233.html#L88'>bool</a>               88 src/tests/filesys/extended/tar.c static bool
+<a href='../S/233.html#L95'>bool</a>               95 src/tests/filesys/extended/tar.c       bool success;
+<a href='../S/233.html#L123'>bool</a>              123 src/tests/filesys/extended/tar.c static bool
+<a href='../S/233.html#L127'>bool</a>              127 src/tests/filesys/extended/tar.c   bool read_error = false;
+<a href='../S/233.html#L128'>bool</a>              128 src/tests/filesys/extended/tar.c   bool success = true;
+<a href='../S/233.html#L159'>bool</a>              159 src/tests/filesys/extended/tar.c static bool
+<a href='../S/233.html#L164'>bool</a>              164 src/tests/filesys/extended/tar.c   bool success = true;
+<a href='../S/233.html#L185'>bool</a>              185 src/tests/filesys/extended/tar.c static bool
+<a href='../S/233.html#L194'>bool</a>              194 src/tests/filesys/extended/tar.c static bool
+<a href='../S/172.html#L29'>bool</a>               29 src/tests/internal/list.c static bool value_less (const struct list_elem *, const struct list_elem *,
+<a href='../S/172.html#L128'>bool</a>              128 src/tests/internal/list.c static bool
+<a href='../S/591.html#L9'>bool</a>                9 src/tests/lib.c bool quiet = false;
+<a href='../S/529.html#L10'>bool</a>               10 src/tests/lib.h extern bool quiet;
+<a href='../S/493.html#L111'>bool</a>              111 src/tests/userprog/no-vm/multi-oom.c   bool is_at_root = (n == 0);
+<a href='../S/360.html#L18'>bool</a>               18 src/tests/vm/qsort.c static bool
+<a href='../S/360.html#L99'>bool</a>               99 src/tests/vm/qsort.c static bool
+<a href='../S/156.html#L46'>bool</a>               46 src/threads/init.c static bool format_filesys;
+<a href='../S/156.html#L172'>bool</a>              172 src/threads/init.c       bool in_kernel_text = &amp;_start &lt;= vaddr &amp;&amp; vaddr &lt; &amp;_end_kernel_text;
+<a href='../S/168.html#L47'>bool</a>               47 src/threads/interrupt.c static bool in_external_intr;   /* Are we processing an external interrupt? */
+<a href='../S/168.html#L48'>bool</a>               48 src/threads/interrupt.c static bool yield_on_return;    /* Should we yield on interrupt return? */
+<a href='../S/168.html#L211'>bool</a>              211 src/threads/interrupt.c bool
+<a href='../S/168.html#L347'>bool</a>              347 src/threads/interrupt.c   bool external;
+<a href='../S/150.html#L64'>bool</a>               64 src/threads/interrupt.h bool intr_context (void);
+<a href='../S/160.html#L41'>bool</a>               41 src/threads/palloc.c static bool page_from_pool (const struct pool *, void *page);
+<a href='../S/160.html#L174'>bool</a>              174 src/threads/palloc.c static bool
+<a href='../S/167.html#L83'>bool</a>               83 src/threads/synch.c bool
+<a href='../S/167.html#L87'>bool</a>               87 src/threads/synch.c   bool success;
+<a href='../S/167.html#L209'>bool</a>              209 src/threads/synch.c bool
+<a href='../S/167.html#L212'>bool</a>              212 src/threads/synch.c   bool success;
+<a href='../S/167.html#L241'>bool</a>              241 src/threads/synch.c bool
+<a href='../S/155.html#L16'>bool</a>               16 src/threads/synch.h bool sema_try_down (struct semaphore *);
+<a href='../S/155.html#L29'>bool</a>               29 src/threads/synch.h bool lock_try_acquire (struct lock *);
+<a href='../S/155.html#L31'>bool</a>               31 src/threads/synch.h bool lock_held_by_current_thread (const struct lock *);
+<a href='../S/163.html#L60'>bool</a>               60 src/threads/thread.c bool thread_mlfqs;
+<a href='../S/163.html#L68'>bool</a>               68 src/threads/thread.c static bool is_thread (struct thread *) UNUSED;
+<a href='../S/163.html#L451'>bool</a>              451 src/threads/thread.c static bool
+<a href='../S/164.html#L108'>bool</a>              108 src/threads/thread.h extern bool thread_mlfqs;
+<a href='../S/153.html#L56'>bool</a>               56 src/threads/vaddr.h static inline bool
+<a href='../S/153.html#L63'>bool</a>               63 src/threads/vaddr.h static inline bool
+<a href='../S/64.html#L125'>bool</a>              125 src/userprog/exception.c   bool not_present;  /* True: not-present page, false: writing r/o page. */
+<a href='../S/64.html#L126'>bool</a>              126 src/userprog/exception.c   bool write;        /* True: access was write, false: access was read. */
+<a href='../S/64.html#L127'>bool</a>              127 src/userprog/exception.c   bool user;         /* True: access by user, false: access by kernel. */
+<a href='../S/75.html#L98'>bool</a>               98 src/userprog/pagedir.c bool
+<a href='../S/75.html#L163'>bool</a>              163 src/userprog/pagedir.c bool
+<a href='../S/75.html#L192'>bool</a>              192 src/userprog/pagedir.c bool
+<a href='../S/73.html#L9'>bool</a>                9 src/userprog/pagedir.h bool pagedir_set_page (uint32_t *pd, void *upage, void *kpage, bool rw);
+<a href='../S/73.html#L12'>bool</a>               12 src/userprog/pagedir.h bool pagedir_is_dirty (uint32_t *pd, const void *upage);
+<a href='../S/73.html#L14'>bool</a>               14 src/userprog/pagedir.h bool pagedir_is_accessed (uint32_t *pd, const void *upage);
+<a href='../S/66.html#L22'>bool</a>               22 src/userprog/process.c static bool load (const char *cmdline, void (**eip) (void), void **esp);
+<a href='../S/66.html#L55'>bool</a>               55 src/userprog/process.c   bool success;
+<a href='../S/66.html#L198'>bool</a>              198 src/userprog/process.c static bool setup_stack (void **esp);
+<a href='../S/66.html#L199'>bool</a>              199 src/userprog/process.c static bool validate_segment (const struct Elf32_Phdr *, struct file *);
+<a href='../S/66.html#L200'>bool</a>              200 src/userprog/process.c static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
+<a href='../S/66.html#L208'>bool</a>              208 src/userprog/process.c bool
+<a href='../S/66.html#L215'>bool</a>              215 src/userprog/process.c   bool success = false;
+<a href='../S/66.html#L274'>bool</a>              274 src/userprog/process.c               bool writable = (phdr.p_flags &amp; PF_W) != 0;
+<a href='../S/66.html#L321'>bool</a>              321 src/userprog/process.c static bool install_page (void *upage, void *kpage, bool writable);
+<a href='../S/66.html#L325'>bool</a>              325 src/userprog/process.c static bool
+<a href='../S/66.html#L382'>bool</a>              382 src/userprog/process.c static bool
+<a href='../S/66.html#L429'>bool</a>              429 src/userprog/process.c static bool
+<a href='../S/66.html#L433'>bool</a>              433 src/userprog/process.c   bool success = false;
+<a href='../S/66.html#L456'>bool</a>              456 src/userprog/process.c static bool
+<a href='../S/7.html#L119'>bool</a>              119 src/utils/squish-pty.c       bool active;
+<a href='../S/1.html#L85'>bool</a>               85 src/utils/squish-unix.c static bool
+<a href='../S/1.html#L112'>bool</a>              112 src/utils/squish-unix.c       bool active;
+</pre>
+</body>
+</html>

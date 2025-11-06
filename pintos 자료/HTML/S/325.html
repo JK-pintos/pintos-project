@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>src/tests/vm/page-parallel.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/page-parallel.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Runs 4 child-linear processes at once. */</font></i>
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <font color='darkred'>#define</font> <a href='../R/11.html' title='Multiple refered from 13 places.'>CHILD_CNT</a> 4
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> children[<a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>];
+<a name='L13'>  13   <b>int</b> i;
+<a name='L14'>  14 
+<a name='L15'>  15   <b>for</b> (i = 0; i &lt; <a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>; i++) 
+<a name='L16'>  16     CHECK ((children[i] = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> ("child-linear")) != -1,
+<a name='L17'>  17            "exec \"child-linear\"");
+<a name='L18'>  18 
+<a name='L19'>  19   <b>for</b> (i = 0; i &lt; <a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>; i++) 
+<a name='L20'>  20     CHECK (<a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (children[i]) == 0x42, "wait for child %d", i);
+<a name='L21'>  21 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

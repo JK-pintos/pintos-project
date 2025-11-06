@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>src/tests/arc4.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/arc4.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L6'>[^]</a><a href='#L35'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L6' title='Defined at 6.'>swap_byte</a>
+<li><a href='#L14' title='Defined at 14.'>arc4_init</a>
+<li><a href='#L35' title='Defined at 35.'>arc4_crypt</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Swap bytes. */</font></i>
+<a name='L5'>   5 <b>static</b> <b>inline</b> <b>void</b>
+<a name='L6'>   6 <a href='../R/845.html' title='Multiple refered from 4 places.'>swap_byte</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *a, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *b)
+<a name='L7'>   7 <font color='red'>{</font>
+<a name='L8'>   8   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> t = *a;
+<a name='L9'>   9   *a = *b;
+<a name='L10'>  10   *b = t;
+<a name='L11'>  11 <font color='red'>}</font>
+<a name='L12'>  12 
+<a name='L13'>  13 <b>void</b>
+<a name='L14'>  14 <a href='../R/293.html' title='Multiple refered from 9 places.'>arc4_init</a> (<b>struct</b> arc4 *arc4, <b>const</b> <b>void</b> *key_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size)
+<a name='L15'>  15 <font color='red'>{</font>
+<a name='L16'>  16   <b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *key = key_;
+<a name='L17'>  17   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> key_idx;
+<a name='L18'>  18   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *s;
+<a name='L19'>  19   <b>int</b> i, j;
+<a name='L20'>  20 
+<a name='L21'>  21   s = <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;s;
+<a name='L22'>  22   <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;i = <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;j = 0;
+<a name='L23'>  23   <b>for</b> (i = 0; i &lt; 256; i++)
+<a name='L24'>  24     s[i] = i;
+<a name='L25'>  25   <b>for</b> (key_idx = 0, i = j = 0; i &lt; 256; i++)
+<a name='L26'>  26     <font color='red'>{</font>
+<a name='L27'>  27       j = (j + s[i] + key[key_idx]) &amp; 255;
+<a name='L28'>  28       <a href='../D/958.html' title='Multiple defined in 2 places.'>swap_byte</a> (s + i, s + j);
+<a name='L29'>  29       <b>if</b> (++key_idx &gt;= size)
+<a name='L30'>  30         key_idx = 0;
+<a name='L31'>  31     <font color='red'>}</font>
+<a name='L32'>  32 <font color='red'>}</font>
+<a name='L33'>  33 
+<a name='L34'>  34 <b>void</b>
+<a name='L35'>  35 <a href='../R/292.html' title='Multiple refered from 9 places.'>arc4_crypt</a> (<b>struct</b> arc4 *arc4, <b>void</b> *buf_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size)
+<a name='L36'>  36 <font color='red'>{</font>
+<a name='L37'>  37   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *buf = buf_;
+<a name='L38'>  38   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *s;
+<a name='L39'>  39   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> i, j;
+<a name='L40'>  40 
+<a name='L41'>  41   s = <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;s;
+<a name='L42'>  42   i = <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;i;
+<a name='L43'>  43   j = <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;j;
+<a name='L44'>  44   <b>while</b> (size-- &gt; 0)
+<a name='L45'>  45     <font color='red'>{</font>
+<a name='L46'>  46       i += 1;
+<a name='L47'>  47       j += s[i];
+<a name='L48'>  48       <a href='../D/958.html' title='Multiple defined in 2 places.'>swap_byte</a> (s + i, s + j);
+<a name='L49'>  49       *buf++ ^= s[(s[i] + s[j]) &amp; 255];
+<a name='L50'>  50     <font color='red'>}</font>
+<a name='L51'>  51   <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;i = i;
+<a name='L52'>  52   <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>-&gt;j = j;
+<a name='L53'>  53 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L6'>[^]</a><a href='#L35'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

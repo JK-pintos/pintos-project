@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>src/tests/threads/alarm-zero.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/alarm-zero.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>test_alarm_zero</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tests timer_sleep(0), which should return immediately. */</font></i>
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b>
+<a name='L11'>  11 <a href='../R/861.html' title='Multiple refered from 2 places.'>test_alarm_zero</a> (<b>void</b>) 
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (0);
+<a name='L14'>  14   <a href='../S/568.html#L98' title='Defined at 98 in src/tests/threads/tests.c.'>pass</a> ();
+<a name='L15'>  15 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>src/tests/vm/page-linear.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/page-linear.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L14' title='Defined at 14.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Encrypts, then decrypts, 2 MB of memory and verifies that the</font></i>
+<a name='L2'>   2 <i><font color='green'>   values are as they should be. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../R/194.html' title='Multiple refered from 15 places.'>SIZE</a> (2 * 1024 * 1024)
+<a name='L10'>  10 
+<a name='L11'>  11 <b>static</b> <b>char</b> buf[<a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>];
+<a name='L12'>  12 
+<a name='L13'>  13 <b>void</b>
+<a name='L14'>  14 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L15'>  15 <font color='red'>{</font>
+<a name='L16'>  16   <b>struct</b> <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a> <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>;
+<a name='L17'>  17   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L18'>  18 
+<a name='L19'>  19   <i><font color='green'>/* Initialize to 0x5a. */</font></i>
+<a name='L20'>  20   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("initialize");
+<a name='L21'>  21   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (buf, 0x5a, <b>sizeof</b> buf);
+<a name='L22'>  22 
+<a name='L23'>  23   <i><font color='green'>/* Check that it's all 0x5a. */</font></i>
+<a name='L24'>  24   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("read pass");
+<a name='L25'>  25   <b>for</b> (i = 0; i &lt; <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>; i++)
+<a name='L26'>  26     <b>if</b> (buf[i] != 0x5a)
+<a name='L27'>  27       <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("byte %zu != 0x5a", i);
+<a name='L28'>  28 
+<a name='L29'>  29   <i><font color='green'>/* Encrypt zeros. */</font></i>
+<a name='L30'>  30   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("read/modify/write pass one");
+<a name='L31'>  31   <a href='../S/389.html#L14' title='Defined at 14 in src/tests/arc4.c.'>arc4_init</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, "foobar", 6);
+<a name='L32'>  32   <a href='../S/389.html#L35' title='Defined at 35 in src/tests/arc4.c.'>arc4_crypt</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>);
+<a name='L33'>  33 
+<a name='L34'>  34   <i><font color='green'>/* Decrypt back to zeros. */</font></i>
+<a name='L35'>  35   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("read/modify/write pass two");
+<a name='L36'>  36   <a href='../S/389.html#L14' title='Defined at 14 in src/tests/arc4.c.'>arc4_init</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, "foobar", 6);
+<a name='L37'>  37   <a href='../S/389.html#L35' title='Defined at 35 in src/tests/arc4.c.'>arc4_crypt</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>);
+<a name='L38'>  38 
+<a name='L39'>  39   <i><font color='green'>/* Check that it's all 0x5a. */</font></i>
+<a name='L40'>  40   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("read pass");
+<a name='L41'>  41   <b>for</b> (i = 0; i &lt; <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>; i++)
+<a name='L42'>  42     <b>if</b> (buf[i] != 0x5a)
+<a name='L43'>  43       <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("byte %zu != 0x5a", i);
+<a name='L44'>  44 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L14'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

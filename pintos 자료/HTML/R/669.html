@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>next</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/135.html#L5'>next</a>                5 src/devices/intq.c static int next (int pos);
+<a href='../S/135.html#L31'>next</a>               31 src/devices/intq.c   return next (q-&gt;head) == q-&gt;tail;
+<a href='../S/135.html#L52'>next</a>               52 src/devices/intq.c   q-&gt;tail = next (q-&gt;tail);
+<a href='../S/135.html#L73'>next</a>               73 src/devices/intq.c   q-&gt;head = next (q-&gt;head);
+<a href='../S/113.html#L172'>next</a>              172 src/lib/kernel/hash.c       struct list_elem *elem, *next;
+<a href='../S/113.html#L174'>next</a>              174 src/lib/kernel/hash.c       for (elem = list_begin (bucket); elem != list_end (bucket); elem = next) 
+<a href='../S/113.html#L176'>next</a>              176 src/lib/kernel/hash.c           next = list_next (elem);
+<a href='../S/113.html#L398'>next</a>              398 src/lib/kernel/hash.c       struct list_elem *elem, *next;
+<a href='../S/113.html#L402'>next</a>              402 src/lib/kernel/hash.c            elem != list_end (old_bucket); elem = next) 
+<a href='../S/113.html#L406'>next</a>              406 src/lib/kernel/hash.c           next = list_next (elem);
+<a href='../S/112.html#L41'>next</a>               41 src/lib/kernel/list.c   return elem != NULL &amp;&amp; elem-&gt;prev == NULL &amp;&amp; elem-&gt;next != NULL;
+<a href='../S/112.html#L49'>next</a>               49 src/lib/kernel/list.c   return elem != NULL &amp;&amp; elem-&gt;prev != NULL &amp;&amp; elem-&gt;next != NULL;
+<a href='../S/112.html#L56'>next</a>               56 src/lib/kernel/list.c   return elem != NULL &amp;&amp; elem-&gt;prev != NULL &amp;&amp; elem-&gt;next == NULL;
+<a href='../S/112.html#L65'>next</a>               65 src/lib/kernel/list.c   list-&gt;head.next = &amp;list-&gt;tail;
+<a href='../S/112.html#L67'>next</a>               67 src/lib/kernel/list.c   list-&gt;tail.next = NULL;
+<a href='../S/112.html#L75'>next</a>               75 src/lib/kernel/list.c   return list-&gt;head.next;
+<a href='../S/112.html#L85'>next</a>               85 src/lib/kernel/list.c   return elem-&gt;next;
+<a href='../S/112.html#L175'>next</a>              175 src/lib/kernel/list.c   elem-&gt;next = before;
+<a href='../S/112.html#L176'>next</a>              176 src/lib/kernel/list.c   before-&gt;prev-&gt;next = elem;
+<a href='../S/112.html#L196'>next</a>              196 src/lib/kernel/list.c   first-&gt;prev-&gt;next = last-&gt;next;
+<a href='../S/112.html#L197'>next</a>              197 src/lib/kernel/list.c   last-&gt;next-&gt;prev = first-&gt;prev;
+<a href='../S/112.html#L201'>next</a>              201 src/lib/kernel/list.c   last-&gt;next = before;
+<a href='../S/112.html#L202'>next</a>              202 src/lib/kernel/list.c   before-&gt;prev-&gt;next = first;
+<a href='../S/112.html#L252'>next</a>              252 src/lib/kernel/list.c   elem-&gt;prev-&gt;next = elem-&gt;next;
+<a href='../S/112.html#L253'>next</a>              253 src/lib/kernel/list.c   elem-&gt;next-&gt;prev = elem-&gt;prev;
+<a href='../S/112.html#L254'>next</a>              254 src/lib/kernel/list.c   return elem-&gt;next;
+<a href='../S/112.html#L283'>next</a>              283 src/lib/kernel/list.c   return list-&gt;head.next;
+<a href='../S/112.html#L333'>next</a>              333 src/lib/kernel/list.c         swap (&amp;e-&gt;prev, &amp;e-&gt;next);
+<a href='../S/112.html#L334'>next</a>              334 src/lib/kernel/list.c       swap (&amp;list-&gt;head.next, &amp;list-&gt;tail.prev);
+<a href='../S/112.html#L335'>next</a>              335 src/lib/kernel/list.c       swap (&amp;list-&gt;head.next-&gt;prev, &amp;list-&gt;tail.prev-&gt;next);
+<a href='../S/112.html#L469'>next</a>              469 src/lib/kernel/list.c   struct list_elem *elem, *next;
+<a href='../S/112.html#L477'>next</a>              477 src/lib/kernel/list.c   while ((next = list_next (elem)) != list_end (list))
+<a href='../S/112.html#L478'>next</a>              478 src/lib/kernel/list.c     if (!less (elem, next, aux) &amp;&amp; !less (next, elem, aux)) 
+<a href='../S/112.html#L480'>next</a>              480 src/lib/kernel/list.c         list_remove (next);
+<a href='../S/112.html#L482'>next</a>              482 src/lib/kernel/list.c           list_push_back (duplicates, next);
+<a href='../S/112.html#L485'>next</a>              485 src/lib/kernel/list.c       elem = next;
+<a href='../S/107.html#L93'>next</a>               93 src/lib/kernel/list.h     struct list_elem *next;     /* Next list element. */
+<a href='../S/107.html#L109'>next</a>              109 src/lib/kernel/list.h         ((STRUCT *) ((uint8_t *) &amp;(LIST_ELEM)-&gt;next     \
+<a href='../S/107.html#L110'>next</a>              110 src/lib/kernel/list.h                      - offsetof (STRUCT, MEMBER.next)))
+<a href='../S/146.html#L14'>next</a>               14 src/threads/switch.h     struct thread *next;        /* 24: switch_threads()'s NEXT argument. */
+<a href='../S/163.html#L559'>next</a>              559 src/threads/thread.c   struct thread *next = next_thread_to_run ();
+<a href='../S/163.html#L564'>next</a>              564 src/threads/thread.c   ASSERT (is_thread (next));
+<a href='../S/163.html#L566'>next</a>              566 src/threads/thread.c   if (cur != next)
+<a href='../S/163.html#L567'>next</a>              567 src/threads/thread.c     prev = switch_threads (cur, next);
+</pre>
+</body>
+</html>

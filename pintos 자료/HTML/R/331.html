@@ -1,0 +1,118 @@
+<html>
+<head>
+<title>block</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L28'>block</a>              28 src/devices/block.c static struct block *block_by_role[BLOCK_ROLE_CNT];
+<a href='../S/132.html#L30'>block</a>              30 src/devices/block.c static struct block *list_elem_to_block (struct list_elem *);
+<a href='../S/132.html#L53'>block</a>              53 src/devices/block.c struct block *
+<a href='../S/132.html#L65'>block</a>              65 src/devices/block.c   block_by_role[role] = block;
+<a href='../S/132.html#L70'>block</a>              70 src/devices/block.c struct block *
+<a href='../S/132.html#L78'>block</a>              78 src/devices/block.c struct block *
+<a href='../S/132.html#L81'>block</a>              81 src/devices/block.c   return list_elem_to_block (list_next (&amp;block-&gt;list_elem));
+<a href='../S/132.html#L86'>block</a>              86 src/devices/block.c struct block *
+<a href='../S/132.html#L94'>block</a>              94 src/devices/block.c       struct block *block = list_entry (e, struct block, list_elem);
+<a href='../S/132.html#L95'>block</a>              95 src/devices/block.c       if (!strcmp (name, block-&gt;name))
+<a href='../S/132.html#L96'>block</a>              96 src/devices/block.c         return block;
+<a href='../S/132.html#L107'>block</a>             107 src/devices/block.c   if (sector &gt;= block-&gt;size)
+<a href='../S/132.html#L112'>block</a>             112 src/devices/block.c              "size=%"PRDSNu")\n", block_name (block), sector, block-&gt;size);
+<a href='../S/132.html#L123'>block</a>             123 src/devices/block.c   check_sector (block, sector);
+<a href='../S/132.html#L124'>block</a>             124 src/devices/block.c   block-&gt;ops-&gt;read (block-&gt;aux, sector, buffer);
+<a href='../S/132.html#L125'>block</a>             125 src/devices/block.c   block-&gt;read_cnt++;
+<a href='../S/132.html#L136'>block</a>             136 src/devices/block.c   check_sector (block, sector);
+<a href='../S/132.html#L137'>block</a>             137 src/devices/block.c   ASSERT (block-&gt;type != BLOCK_FOREIGN);
+<a href='../S/132.html#L138'>block</a>             138 src/devices/block.c   block-&gt;ops-&gt;write (block-&gt;aux, sector, buffer);
+<a href='../S/132.html#L139'>block</a>             139 src/devices/block.c   block-&gt;write_cnt++;
+<a href='../S/132.html#L146'>block</a>             146 src/devices/block.c   return block-&gt;size;
+<a href='../S/132.html#L153'>block</a>             153 src/devices/block.c   return block-&gt;name;
+<a href='../S/132.html#L160'>block</a>             160 src/devices/block.c   return block-&gt;type;
+<a href='../S/132.html#L171'>block</a>             171 src/devices/block.c       struct block *block = block_by_role[i];
+<a href='../S/132.html#L172'>block</a>             172 src/devices/block.c       if (block != NULL)
+<a href='../S/132.html#L175'>block</a>             175 src/devices/block.c                   block-&gt;name, block_type_name (block-&gt;type),
+<a href='../S/132.html#L176'>block</a>             176 src/devices/block.c                   block-&gt;read_cnt, block-&gt;write_cnt);
+<a href='../S/132.html#L186'>block</a>             186 src/devices/block.c struct block *
+<a href='../S/132.html#L191'>block</a>             191 src/devices/block.c   struct block *block = malloc (sizeof *block);
+<a href='../S/132.html#L192'>block</a>             192 src/devices/block.c   if (block == NULL)
+<a href='../S/132.html#L195'>block</a>             195 src/devices/block.c   list_push_back (&amp;all_blocks, &amp;block-&gt;list_elem);
+<a href='../S/132.html#L196'>block</a>             196 src/devices/block.c   strlcpy (block-&gt;name, name, sizeof block-&gt;name);
+<a href='../S/132.html#L197'>block</a>             197 src/devices/block.c   block-&gt;type = type;
+<a href='../S/132.html#L198'>block</a>             198 src/devices/block.c   block-&gt;size = size;
+<a href='../S/132.html#L199'>block</a>             199 src/devices/block.c   block-&gt;ops = ops;
+<a href='../S/132.html#L200'>block</a>             200 src/devices/block.c   block-&gt;aux = aux;
+<a href='../S/132.html#L201'>block</a>             201 src/devices/block.c   block-&gt;read_cnt = 0;
+<a href='../S/132.html#L202'>block</a>             202 src/devices/block.c   block-&gt;write_cnt = 0;
+<a href='../S/132.html#L204'>block</a>             204 src/devices/block.c   printf ("%s: %'"PRDSNu" sectors (", block-&gt;name, block-&gt;size);
+<a href='../S/132.html#L205'>block</a>             205 src/devices/block.c   print_human_readable_size ((uint64_t) block-&gt;size * BLOCK_SECTOR_SIZE);
+<a href='../S/132.html#L211'>block</a>             211 src/devices/block.c   return block;
+<a href='../S/132.html#L216'>block</a>             216 src/devices/block.c static struct block *
+<a href='../S/132.html#L220'>block</a>             220 src/devices/block.c           ? list_entry (list_elem, struct block, list_elem)
+<a href='../S/128.html#L23'>block</a>              23 src/devices/block.h struct block;
+<a href='../S/128.html#L45'>block</a>              45 src/devices/block.h struct block *block_get_role (enum block_type);
+<a href='../S/128.html#L47'>block</a>              47 src/devices/block.h struct block *block_get_by_name (const char *name);
+<a href='../S/128.html#L49'>block</a>              49 src/devices/block.h struct block *block_first (void);
+<a href='../S/128.html#L50'>block</a>              50 src/devices/block.h struct block *block_next (struct block *);
+<a href='../S/128.html#L70'>block</a>              70 src/devices/block.h struct block *block_register (const char *name, enum block_type,
+<a href='../S/123.html#L267'>block</a>             267 src/devices/ide.c   struct block *block;
+<a href='../S/123.html#L307'>block</a>             307 src/devices/ide.c   block = block_register (d-&gt;name, BLOCK_RAW, extra_info, capacity,
+<a href='../S/123.html#L309'>block</a>             309 src/devices/ide.c   partition_scan (block);
+<a href='../S/134.html#L12'>block</a>              12 src/devices/partition.c     struct block *block;                /* Underlying block device. */
+<a href='../S/134.html#L31'>block</a>              31 src/devices/partition.c   read_partition_table (block, 0, 0, &amp;part_nr);
+<a href='../S/134.html#L33'>block</a>              33 src/devices/partition.c     printf ("%s: Device contains no partitions\n", block_name (block));
+<a href='../S/134.html#L79'>block</a>              79 src/devices/partition.c   if (sector &gt;= block_size (block))
+<a href='../S/134.html#L82'>block</a>              82 src/devices/partition.c               block_name (block), sector);
+<a href='../S/134.html#L91'>block</a>              91 src/devices/partition.c   block_read (block, 0, pt);
+<a href='../S/134.html#L97'>block</a>              97 src/devices/partition.c         printf ("%s: Invalid partition table signature\n", block_name (block));
+<a href='../S/134.html#L100'>block</a>             100 src/devices/partition.c                 block_name (block), sector);
+<a href='../S/134.html#L120'>block</a>             120 src/devices/partition.c                   block_name (block), sector);
+<a href='../S/134.html#L131'>block</a>             131 src/devices/partition.c             read_partition_table (block, e-&gt;offset, e-&gt;offset, part_nr);
+<a href='../S/134.html#L133'>block</a>             133 src/devices/partition.c             read_partition_table (block, e-&gt;offset + primary_extended_sector,
+<a href='../S/134.html#L140'>block</a>             140 src/devices/partition.c           found_partition (block, e-&gt;type, e-&gt;offset + sector,
+<a href='../S/134.html#L158'>block</a>             158 src/devices/partition.c   if (start &gt;= block_size (block))
+<a href='../S/134.html#L160'>block</a>             160 src/devices/partition.c             block_name (block), part_nr, start);
+<a href='../S/134.html#L161'>block</a>             161 src/devices/partition.c   else if (start + size &lt; start || start + size &gt; block_size (block))
+<a href='../S/134.html#L163'>block</a>             163 src/devices/partition.c             block_name (block), part_nr, start + size, block_size (block));
+<a href='../S/134.html#L178'>block</a>             178 src/devices/partition.c       p-&gt;block = block;
+<a href='../S/134.html#L181'>block</a>             181 src/devices/partition.c       snprintf (name, sizeof name, "%s%d", block_name (block), part_nr);
+<a href='../S/134.html#L307'>block</a>             307 src/devices/partition.c   block_read (p-&gt;block, p-&gt;start + sector, buffer);
+<a href='../S/134.html#L317'>block</a>             317 src/devices/partition.c   block_write (p-&gt;block, p-&gt;start + sector, buffer);
+<a href='../S/129.html#L4'>block</a>               4 src/devices/partition.h struct block;
+<a href='../S/38.html#L11'>block</a>              11 src/filesys/filesys.c struct block *fs_device;
+<a href='../S/33.html#L12'>block</a>              12 src/filesys/filesys.h struct block *fs_device;
+<a href='../S/26.html#L77'>block</a>              77 src/filesys/fsutil.c   struct block *src;
+<a href='../S/26.html#L174'>block</a>             174 src/filesys/fsutil.c   struct block *dst;
+<a href='../S/114.html#L102'>block</a>             102 src/lib/kernel/bitmap.c   struct bitmap *b = block;
+<a href='../S/83.html#L96'>block</a>              96 src/lib/string.c   const unsigned char *block = block_;
+<a href='../S/83.html#L99'>block</a>              99 src/lib/string.c   ASSERT (block != NULL || size == 0);
+<a href='../S/83.html#L101'>block</a>             101 src/lib/string.c   for (; size-- &gt; 0; block++)
+<a href='../S/83.html#L102'>block</a>             102 src/lib/string.c     if (*block == ch)
+<a href='../S/83.html#L103'>block</a>             103 src/lib/string.c       return (void *) block;
+<a href='../S/116.html#L170'>block</a>             170 src/lib/ustar.c     if (*block++ != 0)
+<a href='../S/591.html#L126'>block</a>             126 src/tests/lib.c       char block[512];
+<a href='../S/591.html#L130'>block</a>             130 src/tests/lib.c       if (block_size &gt; sizeof block)
+<a href='../S/591.html#L131'>block</a>             131 src/tests/lib.c         block_size = sizeof block;
+<a href='../S/591.html#L133'>block</a>             133 src/tests/lib.c       ret_val = read (fd, block, block_size);
+<a href='../S/591.html#L138'>block</a>             138 src/tests/lib.c       compare_bytes (block, buf + ofs, block_size, ofs, file_name);
+<a href='../S/156.html#L408'>block</a>             408 src/threads/init.c   struct block *block = NULL;
+<a href='../S/156.html#L412'>block</a>             412 src/threads/init.c       block = block_get_by_name (name);
+<a href='../S/156.html#L413'>block</a>             413 src/threads/init.c       if (block == NULL)
+<a href='../S/156.html#L418'>block</a>             418 src/threads/init.c       for (block = block_first (); block != NULL; block = block_next (block))
+<a href='../S/156.html#L419'>block</a>             419 src/threads/init.c         if (block_type (block) == role)
+<a href='../S/156.html#L423'>block</a>             423 src/threads/init.c   if (block != NULL)
+<a href='../S/156.html#L425'>block</a>             425 src/threads/init.c       printf ("%s: using %s\n", block_type_name (role), block_name (block));
+<a href='../S/156.html#L426'>block</a>             426 src/threads/init.c       block_set_role (role, block);
+<a href='../S/161.html#L68'>block</a>              68 src/threads/malloc.c static struct block *arena_to_block (struct arena *, size_t idx);
+<a href='../S/161.html#L93'>block</a>              93 src/threads/malloc.c   struct block *b;
+<a href='../S/161.html#L143'>block</a>             143 src/threads/malloc.c           struct block *b = arena_to_block (a, i);
+<a href='../S/161.html#L149'>block</a>             149 src/threads/malloc.c   b = list_entry (list_pop_front (&amp;d-&gt;free_list), struct block, free_elem);
+<a href='../S/161.html#L181'>block</a>             181 src/threads/malloc.c   struct block *b = block;
+<a href='../S/161.html#L185'>block</a>             185 src/threads/malloc.c   return d != NULL ? d-&gt;block_size : PGSIZE * a-&gt;free_cnt - pg_ofs (block);
+<a href='../S/161.html#L223'>block</a>             223 src/threads/malloc.c       struct block *b = p;
+<a href='../S/161.html#L249'>block</a>             249 src/threads/malloc.c                   struct block *b = arena_to_block (a, i);
+<a href='../S/161.html#L285'>block</a>             285 src/threads/malloc.c static struct block *
+<a href='../S/161.html#L291'>block</a>             291 src/threads/malloc.c   return (struct block *) ((uint8_t *) a
+</pre>
+</body>
+</html>

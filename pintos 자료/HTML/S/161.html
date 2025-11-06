@@ -1,0 +1,324 @@
+<html>
+<head>
+<title>src/threads/malloc.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/malloc.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L72'>[^]</a><a href='#L286'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L72' title='Defined at 72.'>malloc_init</a>
+<li><a href='#L90' title='Defined at 90.'>malloc</a>
+<li><a href='#L159' title='Defined at 159.'>calloc</a>
+<li><a href='#L179' title='Defined at 179.'>block_size</a>
+<li><a href='#L195' title='Defined at 195.'>realloc</a>
+<li><a href='#L219' title='Defined at 219.'>free</a>
+<li><a href='#L268' title='Defined at 268.'>block_to_arena</a>
+<li><a href='#L286' title='Defined at 286.'>arena_to_block</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='107.html'>list.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='165.html'>threads/palloc.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <i><font color='green'>/* A simple implementation of malloc().</font></i>
+<a name='L13'>  13 <i><font color='green'></font></i>
+<a name='L14'>  14 <i><font color='green'>   The size of each request, in bytes, is rounded up to a power</font></i>
+<a name='L15'>  15 <i><font color='green'>   of 2 and assigned to the "descriptor" that manages blocks of</font></i>
+<a name='L16'>  16 <i><font color='green'>   that size.  The descriptor keeps a list of free blocks.  If</font></i>
+<a name='L17'>  17 <i><font color='green'>   the free list is nonempty, one of its blocks is used to</font></i>
+<a name='L18'>  18 <i><font color='green'>   satisfy the request.</font></i>
+<a name='L19'>  19 <i><font color='green'></font></i>
+<a name='L20'>  20 <i><font color='green'>   Otherwise, a new page of memory, called an "arena", is</font></i>
+<a name='L21'>  21 <i><font color='green'>   obtained from the page allocator (if none is available,</font></i>
+<a name='L22'>  22 <i><font color='green'>   malloc() returns a null pointer).  The new arena is divided</font></i>
+<a name='L23'>  23 <i><font color='green'>   into blocks, all of which are added to the descriptor's free</font></i>
+<a name='L24'>  24 <i><font color='green'>   list.  Then we return one of the new blocks.</font></i>
+<a name='L25'>  25 <i><font color='green'></font></i>
+<a name='L26'>  26 <i><font color='green'>   When we free a block, we add it to its descriptor's free list.</font></i>
+<a name='L27'>  27 <i><font color='green'>   But if the arena that the block was in now has no in-use</font></i>
+<a name='L28'>  28 <i><font color='green'>   blocks, we remove all of the arena's blocks from the free list</font></i>
+<a name='L29'>  29 <i><font color='green'>   and give the arena back to the page allocator.</font></i>
+<a name='L30'>  30 <i><font color='green'></font></i>
+<a name='L31'>  31 <i><font color='green'>   We can't handle blocks bigger than 2 kB using this scheme,</font></i>
+<a name='L32'>  32 <i><font color='green'>   because they're too big to fit in a single page with a</font></i>
+<a name='L33'>  33 <i><font color='green'>   descriptor.  We handle those by allocating contiguous pages</font></i>
+<a name='L34'>  34 <i><font color='green'>   with the page allocator and sticking the allocation size at</font></i>
+<a name='L35'>  35 <i><font color='green'>   the beginning of the allocated block's arena header. */</font></i>
+<a name='L36'>  36 
+<a name='L37'>  37 <i><font color='green'>/* Descriptor. */</font></i>
+<a name='L38'>  38 <b>struct</b> <a href='../R/392.html' title='Multiple refered from 13 places.'>desc</a>
+<a name='L39'>  39   <font color='red'>{</font>
+<a name='L40'>  40     <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;          <i><font color='green'>/* Size of each element in bytes. */</font></i>
+<a name='L41'>  41     <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> blocks_per_arena;    <i><font color='green'>/* Number of blocks in an arena. */</font></i>
+<a name='L42'>  42     <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> free_list;      <i><font color='green'>/* List of free blocks. */</font></i>
+<a name='L43'>  43     <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;           <i><font color='green'>/* Lock. */</font></i>
+<a name='L44'>  44   <font color='red'>}</font>;
+<a name='L45'>  45 
+<a name='L46'>  46 <i><font color='green'>/* Magic number for detecting arena corruption. */</font></i>
+<a name='L47'>  47 <font color='darkred'>#define</font> <a href='../R/2.html' title='Multiple refered from 4 places.'>ARENA_MAGIC</a> 0x9a548eed
+<a name='L48'>  48 
+<a name='L49'>  49 <i><font color='green'>/* Arena. */</font></i>
+<a name='L50'>  50 <b>struct</b> <a href='../R/297.html' title='Multiple refered from 7 places.'>arena</a> 
+<a name='L51'>  51   <font color='red'>{</font>
+<a name='L52'>  52     <b>unsigned</b> magic;             <i><font color='green'>/* Always set to ARENA_MAGIC. */</font></i>
+<a name='L53'>  53     <b>struct</b> <a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> *<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a>;          <i><font color='green'>/* Owning descriptor, null for big block. */</font></i>
+<a name='L54'>  54     <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> free_cnt;            <i><font color='green'>/* Free blocks; pages in big block. */</font></i>
+<a name='L55'>  55   <font color='red'>}</font>;
+<a name='L56'>  56 
+<a name='L57'>  57 <i><font color='green'>/* Free block. */</font></i>
+<a name='L58'>  58 <b>struct</b> <a href='../R/331.html' title='Multiple refered from 107 places.'>block</a> 
+<a name='L59'>  59   <font color='red'>{</font>
+<a name='L60'>  60     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> free_elem; <i><font color='green'>/* Free list element. */</font></i>
+<a name='L61'>  61   <font color='red'>}</font>;
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Our set of descriptors. */</font></i>
+<a name='L64'>  64 <b>static</b> <b>struct</b> <a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> descs[10];   <i><font color='green'>/* Descriptors. */</font></i>
+<a name='L65'>  65 <b>static</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> desc_cnt;         <i><font color='green'>/* Number of descriptors. */</font></i>
+<a name='L66'>  66 
+<a name='L67'>  67 <b>static</b> <b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a> *<a href='../S/161.html#L268' title='Defined at 268 in src/threads/malloc.c.'>block_to_arena</a> (<b>struct</b> block *);
+<a name='L68'>  68 <b>static</b> <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/161.html#L286' title='Defined at 286 in src/threads/malloc.c.'>arena_to_block</a> (<b>struct</b> arena *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx);
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Initializes the malloc() descriptors. */</font></i>
+<a name='L71'>  71 <b>void</b>
+<a name='L72'>  72 <a href='../R/653.html' title='Multiple refered from 2 places.'>malloc_init</a> (<b>void</b>) 
+<a name='L73'>  73 <font color='red'>{</font>
+<a name='L74'>  74   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;
+<a name='L75'>  75 
+<a name='L76'>  76   <b>for</b> (<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = 16; <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> &lt; <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> / 2; <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> *= 2)
+<a name='L77'>  77     <font color='red'>{</font>
+<a name='L78'>  78       <b>struct</b> <a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> *d = &amp;descs[desc_cnt++];
+<a name='L79'>  79       <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (desc_cnt &lt;= <b>sizeof</b> descs / <b>sizeof</b> *descs);
+<a name='L80'>  80       d-&gt;<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;
+<a name='L81'>  81       d-&gt;blocks_per_arena = (<a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> - <b>sizeof</b> (<b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a>)) / <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;
+<a name='L82'>  82       <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (&amp;d-&gt;free_list);
+<a name='L83'>  83       <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;d-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L84'>  84     <font color='red'>}</font>
+<a name='L85'>  85 <font color='red'>}</font>
+<a name='L86'>  86 
+<a name='L87'>  87 <i><font color='green'>/* Obtains and returns a new block of at least SIZE bytes.</font></i>
+<a name='L88'>  88 <i><font color='green'>   Returns a null pointer if memory is not available. */</font></i>
+<a name='L89'>  89 <b>void</b> *
+<a name='L90'>  90 <a href='../R/652.html' title='Multiple refered from 21 places.'>malloc</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L91'>  91 <font color='red'>{</font>
+<a name='L92'>  92   <b>struct</b> <a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> *d;
+<a name='L93'>  93   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *b;
+<a name='L94'>  94   <b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a> *a;
+<a name='L95'>  95 
+<a name='L96'>  96   <i><font color='green'>/* A null pointer satisfies a request for 0 bytes. */</font></i>
+<a name='L97'>  97   <b>if</b> (size == 0)
+<a name='L98'>  98     <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L99'>  99 
+<a name='L100'> 100   <i><font color='green'>/* Find the smallest descriptor that satisfies a SIZE-byte</font></i>
+<a name='L101'> 101 <i><font color='green'>     request. */</font></i>
+<a name='L102'> 102   <b>for</b> (d = descs; d &lt; descs + desc_cnt; d++)
+<a name='L103'> 103     <b>if</b> (d-&gt;<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> &gt;= size)
+<a name='L104'> 104       <b>break</b>;
+<a name='L105'> 105   <b>if</b> (d == descs + desc_cnt) 
+<a name='L106'> 106     <font color='red'>{</font>
+<a name='L107'> 107       <i><font color='green'>/* SIZE is too big for any descriptor.</font></i>
+<a name='L108'> 108 <i><font color='green'>         Allocate enough pages to hold SIZE plus an arena. */</font></i>
+<a name='L109'> 109       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt = <a href='../S/79.html#L10' title='Defined at 10 in src/lib/round.h.'>DIV_ROUND_UP</a> (size + <b>sizeof</b> *a, <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a>);
+<a name='L110'> 110       a = <a href='../S/160.html#L71' title='Defined at 71 in src/threads/palloc.c.'>palloc_get_multiple</a> (0, page_cnt);
+<a name='L111'> 111       <b>if</b> (a == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L112'> 112         <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L113'> 113 
+<a name='L114'> 114       <i><font color='green'>/* Initialize the arena to indicate a big block of PAGE_CNT</font></i>
+<a name='L115'> 115 <i><font color='green'>         pages, and return it. */</font></i>
+<a name='L116'> 116       a-&gt;magic = <a href='../S/161.html#L47' title='Defined at 47 in src/threads/malloc.c.'>ARENA_MAGIC</a>;
+<a name='L117'> 117       a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L118'> 118       a-&gt;free_cnt = page_cnt;
+<a name='L119'> 119       <b>return</b> a + 1;
+<a name='L120'> 120     <font color='red'>}</font>
+<a name='L121'> 121 
+<a name='L122'> 122   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;d-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L123'> 123 
+<a name='L124'> 124   <i><font color='green'>/* If the free list is empty, create a new arena. */</font></i>
+<a name='L125'> 125   <b>if</b> (<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (&amp;d-&gt;free_list))
+<a name='L126'> 126     <font color='red'>{</font>
+<a name='L127'> 127       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L128'> 128 
+<a name='L129'> 129       <i><font color='green'>/* Allocate a page. */</font></i>
+<a name='L130'> 130       a = <a href='../S/160.html#L111' title='Defined at 111 in src/threads/palloc.c.'>palloc_get_page</a> (0);
+<a name='L131'> 131       <b>if</b> (a == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L132'> 132         <font color='red'>{</font>
+<a name='L133'> 133           <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;d-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L134'> 134           <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>; 
+<a name='L135'> 135         <font color='red'>}</font>
+<a name='L136'> 136 
+<a name='L137'> 137       <i><font color='green'>/* Initialize arena and add its blocks to the free list. */</font></i>
+<a name='L138'> 138       a-&gt;magic = <a href='../S/161.html#L47' title='Defined at 47 in src/threads/malloc.c.'>ARENA_MAGIC</a>;
+<a name='L139'> 139       a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> = d;
+<a name='L140'> 140       a-&gt;free_cnt = d-&gt;blocks_per_arena;
+<a name='L141'> 141       <b>for</b> (i = 0; i &lt; d-&gt;blocks_per_arena; i++) 
+<a name='L142'> 142         <font color='red'>{</font>
+<a name='L143'> 143           <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *b = <a href='../S/161.html#L286' title='Defined at 286 in src/threads/malloc.c.'>arena_to_block</a> (a, i);
+<a name='L144'> 144           <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (&amp;d-&gt;free_list, &amp;b-&gt;free_elem);
+<a name='L145'> 145         <font color='red'>}</font>
+<a name='L146'> 146     <font color='red'>}</font>
+<a name='L147'> 147 
+<a name='L148'> 148   <i><font color='green'>/* Get a block from free list and return it. */</font></i>
+<a name='L149'> 149   b = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (<a href='../S/112.html#L260' title='Defined at 260 in src/lib/kernel/list.c.'>list_pop_front</a> (&amp;d-&gt;free_list), <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, free_elem);
+<a name='L150'> 150   a = <a href='../S/161.html#L268' title='Defined at 268 in src/threads/malloc.c.'>block_to_arena</a> (b);
+<a name='L151'> 151   a-&gt;free_cnt--;
+<a name='L152'> 152   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;d-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L153'> 153   <b>return</b> b;
+<a name='L154'> 154 <font color='red'>}</font>
+<a name='L155'> 155 
+<a name='L156'> 156 <i><font color='green'>/* Allocates and return A times B bytes initialized to zeroes.</font></i>
+<a name='L157'> 157 <i><font color='green'>   Returns a null pointer if memory is not available. */</font></i>
+<a name='L158'> 158 <b>void</b> *
+<a name='L159'> 159 <a href='../R/358.html' title='Multiple refered from 4 places.'>calloc</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> a, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> b) 
+<a name='L160'> 160 <font color='red'>{</font>
+<a name='L161'> 161   <b>void</b> *p;
+<a name='L162'> 162   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size;
+<a name='L163'> 163 
+<a name='L164'> 164   <i><font color='green'>/* Calculate block size and make sure it fits in size_t. */</font></i>
+<a name='L165'> 165   size = a * b;
+<a name='L166'> 166   <b>if</b> (size &lt; a || size &lt; b)
+<a name='L167'> 167     <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L168'> 168 
+<a name='L169'> 169   <i><font color='green'>/* Allocate and zero memory. */</font></i>
+<a name='L170'> 170   p = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (size);
+<a name='L171'> 171   <b>if</b> (p != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L172'> 172     <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (p, 0, size);
+<a name='L173'> 173 
+<a name='L174'> 174   <b>return</b> p;
+<a name='L175'> 175 <font color='red'>}</font>
+<a name='L176'> 176 
+<a name='L177'> 177 <i><font color='green'>/* Returns the number of bytes allocated for BLOCK. */</font></i>
+<a name='L178'> 178 <b>static</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L179'> 179 <a href='../R/343.html' title='Multiple refered from 41 places.'>block_size</a> (<b>void</b> *block) 
+<a name='L180'> 180 <font color='red'>{</font>
+<a name='L181'> 181   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *b = <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L182'> 182   <b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a> *a = <a href='../S/161.html#L268' title='Defined at 268 in src/threads/malloc.c.'>block_to_arena</a> (b);
+<a name='L183'> 183   <b>struct</b> <a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> *d = a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a>;
+<a name='L184'> 184 
+<a name='L185'> 185   <b>return</b> d != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> ? d-&gt;<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> : <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> * a-&gt;free_cnt - <a href='../S/153.html#L24' title='Defined at 24 in src/threads/vaddr.h.'>pg_ofs</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>);
+<a name='L186'> 186 <font color='red'>}</font>
+<a name='L187'> 187 
+<a name='L188'> 188 <i><font color='green'>/* Attempts to resize OLD_BLOCK to NEW_SIZE bytes, possibly</font></i>
+<a name='L189'> 189 <i><font color='green'>   moving it in the process.</font></i>
+<a name='L190'> 190 <i><font color='green'>   If successful, returns the new block; on failure, returns a</font></i>
+<a name='L191'> 191 <i><font color='green'>   null pointer.</font></i>
+<a name='L192'> 192 <i><font color='green'>   A call with null OLD_BLOCK is equivalent to malloc(NEW_SIZE).</font></i>
+<a name='L193'> 193 <i><font color='green'>   A call with zero NEW_SIZE is equivalent to free(OLD_BLOCK). */</font></i>
+<a name='L194'> 194 <b>void</b> *
+<a name='L195'> 195 <a href='../S/149.html#L10' title='Refered from 10 in src/threads/malloc.h.'>realloc</a> (<b>void</b> *old_block, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> new_size) 
+<a name='L196'> 196 <font color='red'>{</font>
+<a name='L197'> 197   <b>if</b> (new_size == 0) 
+<a name='L198'> 198     <font color='red'>{</font>
+<a name='L199'> 199       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (old_block);
+<a name='L200'> 200       <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L201'> 201     <font color='red'>}</font>
+<a name='L202'> 202   <b>else</b> 
+<a name='L203'> 203     <font color='red'>{</font>
+<a name='L204'> 204       <b>void</b> *new_block = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (new_size);
+<a name='L205'> 205       <b>if</b> (old_block != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; new_block != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L206'> 206         <font color='red'>{</font>
+<a name='L207'> 207           <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> old_size = <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> (old_block);
+<a name='L208'> 208           <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> min_size = new_size &lt; old_size ? new_size : old_size;
+<a name='L209'> 209           <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (new_block, old_block, min_size);
+<a name='L210'> 210           <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (old_block);
+<a name='L211'> 211         <font color='red'>}</font>
+<a name='L212'> 212       <b>return</b> new_block;
+<a name='L213'> 213     <font color='red'>}</font>
+<a name='L214'> 214 <font color='red'>}</font>
+<a name='L215'> 215 
+<a name='L216'> 216 <i><font color='green'>/* Frees block P, which must have been previously allocated with</font></i>
+<a name='L217'> 217 <i><font color='green'>   malloc(), calloc(), or realloc(). */</font></i>
+<a name='L218'> 218 <b>void</b>
+<a name='L219'> 219 <a href='../R/455.html' title='Multiple refered from 24 places.'>free</a> (<b>void</b> *p) 
+<a name='L220'> 220 <font color='red'>{</font>
+<a name='L221'> 221   <b>if</b> (p != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L222'> 222     <font color='red'>{</font>
+<a name='L223'> 223       <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *b = p;
+<a name='L224'> 224       <b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a> *a = <a href='../S/161.html#L268' title='Defined at 268 in src/threads/malloc.c.'>block_to_arena</a> (b);
+<a name='L225'> 225       <b>struct</b> <a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> *d = a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a>;
+<a name='L226'> 226       
+<a name='L227'> 227       <b>if</b> (d != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L228'> 228         <font color='red'>{</font>
+<a name='L229'> 229           <i><font color='green'>/* It's a normal block.  We handle it here. */</font></i>
+<a name='L230'> 230 
+<a name='L231'> 231 <font color='darkred'>#ifndef</font> <a href='../D/133.html' title='Multiple defined in 3 places.'>NDEBUG</a>
+<a name='L232'> 232           <i><font color='green'>/* Clear the block to help detect use-after-free bugs. */</font></i>
+<a name='L233'> 233           <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (b, 0xcc, d-&gt;<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>);
+<a name='L234'> 234 <font color='darkred'>#endif</font>
+<a name='L235'> 235   
+<a name='L236'> 236           <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;d-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L237'> 237 
+<a name='L238'> 238           <i><font color='green'>/* Add block to free list. */</font></i>
+<a name='L239'> 239           <a href='../S/112.html#L209' title='Defined at 209 in src/lib/kernel/list.c.'>list_push_front</a> (&amp;d-&gt;free_list, &amp;b-&gt;free_elem);
+<a name='L240'> 240 
+<a name='L241'> 241           <i><font color='green'>/* If the arena is now entirely unused, free it. */</font></i>
+<a name='L242'> 242           <b>if</b> (++a-&gt;free_cnt &gt;= d-&gt;blocks_per_arena) 
+<a name='L243'> 243             <font color='red'>{</font>
+<a name='L244'> 244               <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L245'> 245 
+<a name='L246'> 246               <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a-&gt;free_cnt == d-&gt;blocks_per_arena);
+<a name='L247'> 247               <b>for</b> (i = 0; i &lt; d-&gt;blocks_per_arena; i++) 
+<a name='L248'> 248                 <font color='red'>{</font>
+<a name='L249'> 249                   <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *b = <a href='../S/161.html#L286' title='Defined at 286 in src/threads/malloc.c.'>arena_to_block</a> (a, i);
+<a name='L250'> 250                   <a href='../S/112.html#L249' title='Defined at 249 in src/lib/kernel/list.c.'>list_remove</a> (&amp;b-&gt;free_elem);
+<a name='L251'> 251                 <font color='red'>}</font>
+<a name='L252'> 252               <a href='../S/160.html#L146' title='Defined at 146 in src/threads/palloc.c.'>palloc_free_page</a> (a);
+<a name='L253'> 253             <font color='red'>}</font>
+<a name='L254'> 254 
+<a name='L255'> 255           <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;d-&gt;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L256'> 256         <font color='red'>}</font>
+<a name='L257'> 257       <b>else</b>
+<a name='L258'> 258         <font color='red'>{</font>
+<a name='L259'> 259           <i><font color='green'>/* It's a big block.  Free its pages. */</font></i>
+<a name='L260'> 260           <a href='../S/160.html#L118' title='Defined at 118 in src/threads/palloc.c.'>palloc_free_multiple</a> (a, a-&gt;free_cnt);
+<a name='L261'> 261           <b>return</b>;
+<a name='L262'> 262         <font color='red'>}</font>
+<a name='L263'> 263     <font color='red'>}</font>
+<a name='L264'> 264 <font color='red'>}</font>
+<a name='L265'> 265 
+<a name='L266'> 266 <i><font color='green'>/* Returns the arena that block B is inside. */</font></i>
+<a name='L267'> 267 <b>static</b> <b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a> *
+<a name='L268'> 268 <a href='../R/345.html' title='Multiple refered from 4 places.'>block_to_arena</a> (<b>struct</b> block *b)
+<a name='L269'> 269 <font color='red'>{</font>
+<a name='L270'> 270   <b>struct</b> <a href='../S/161.html#L50' title='Defined at 50 in src/threads/malloc.c.'>arena</a> *a = <a href='../S/153.html#L39' title='Defined at 39 in src/threads/vaddr.h.'>pg_round_down</a> (b);
+<a name='L271'> 271 
+<a name='L272'> 272   <i><font color='green'>/* Check that the arena is valid. */</font></i>
+<a name='L273'> 273   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L274'> 274   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a-&gt;magic == <a href='../S/161.html#L47' title='Defined at 47 in src/threads/malloc.c.'>ARENA_MAGIC</a>);
+<a name='L275'> 275 
+<a name='L276'> 276   <i><font color='green'>/* Check that the block is properly aligned for the arena. */</font></i>
+<a name='L277'> 277   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>
+<a name='L278'> 278           || (<a href='../S/153.html#L24' title='Defined at 24 in src/threads/vaddr.h.'>pg_ofs</a> (b) - <b>sizeof</b> *a) % a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a>-&gt;<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> == 0);
+<a name='L279'> 279   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || <a href='../S/153.html#L24' title='Defined at 24 in src/threads/vaddr.h.'>pg_ofs</a> (b) == <b>sizeof</b> *a);
+<a name='L280'> 280 
+<a name='L281'> 281   <b>return</b> a;
+<a name='L282'> 282 <font color='red'>}</font>
+<a name='L283'> 283 
+<a name='L284'> 284 <i><font color='green'>/* Returns the (IDX - 1)'th block within arena A. */</font></i>
+<a name='L285'> 285 <b>static</b> <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *
+<a name='L286'> 286 <a href='../R/298.html' title='Multiple refered from 3 places.'>arena_to_block</a> (<b>struct</b> arena *a, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx) 
+<a name='L287'> 287 <font color='red'>{</font>
+<a name='L288'> 288   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L289'> 289   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a-&gt;magic == <a href='../S/161.html#L47' title='Defined at 47 in src/threads/malloc.c.'>ARENA_MAGIC</a>);
+<a name='L290'> 290   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (idx &lt; a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a>-&gt;blocks_per_arena);
+<a name='L291'> 291   <b>return</b> (<b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *) ((<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *) a
+<a name='L292'> 292                            + <b>sizeof</b> *a
+<a name='L293'> 293                            + idx * a-&gt;<a href='../S/161.html#L38' title='Defined at 38 in src/threads/malloc.c.'>desc</a>-&gt;<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>);
+<a name='L294'> 294 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L72'>[^]</a><a href='#L286'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

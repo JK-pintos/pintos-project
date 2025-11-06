@@ -1,0 +1,109 @@
+<html>
+<head>
+<title>src/lib/random.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/random.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L25'>[^]</a><a href='#L78'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L25' title='Defined at 25.'>swap_byte</a>
+<li><a href='#L34' title='Defined at 34.'>random_init</a>
+<li><a href='#L54' title='Defined at 54.'>random_bytes</a>
+<li><a href='#L78' title='Defined at 78.'>random_ulong</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='102.html'>random.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='104.html'>debug.h</a>"
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* RC4-based pseudo-random number generator (PRNG).</font></i>
+<a name='L7'>   7 <i><font color='green'></font></i>
+<a name='L8'>   8 <i><font color='green'>   RC4 is a stream cipher.  We're not using it here for its</font></i>
+<a name='L9'>   9 <i><font color='green'>   cryptographic properties, but because it is easy to implement</font></i>
+<a name='L10'>  10 <i><font color='green'>   and its output is plenty random for non-cryptographic</font></i>
+<a name='L11'>  11 <i><font color='green'>   purposes.</font></i>
+<a name='L12'>  12 <i><font color='green'></font></i>
+<a name='L13'>  13 <i><font color='green'>   See http://en.wikipedia.org/wiki/RC4_(cipher) for information</font></i>
+<a name='L14'>  14 <i><font color='green'>   on RC4.*/</font></i>
+<a name='L15'>  15 
+<a name='L16'>  16 <i><font color='green'>/* RC4 state. */</font></i>
+<a name='L17'>  17 <b>static</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> s[256];          <i><font color='green'>/* S[]. */</font></i>
+<a name='L18'>  18 <b>static</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> s_i, s_j;        <i><font color='green'>/* i, j. */</font></i>
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Already initialized? */</font></i>
+<a name='L21'>  21 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> inited;     
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* Swaps the bytes pointed to by A and B. */</font></i>
+<a name='L24'>  24 <b>static</b> <b>inline</b> <b>void</b>
+<a name='L25'>  25 <a href='../R/845.html' title='Multiple refered from 4 places.'>swap_byte</a> (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *a, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *b) 
+<a name='L26'>  26 <font color='red'>{</font>
+<a name='L27'>  27   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> t = *a;
+<a name='L28'>  28   *a = *b;
+<a name='L29'>  29   *b = t;
+<a name='L30'>  30 <font color='red'>}</font>
+<a name='L31'>  31 
+<a name='L32'>  32 <i><font color='green'>/* Initializes or reinitializes the PRNG with the given SEED. */</font></i>
+<a name='L33'>  33 <b>void</b>
+<a name='L34'>  34 <a href='../R/748.html' title='Multiple refered from 11 places.'>random_init</a> (<b>unsigned</b> seed)
+<a name='L35'>  35 <font color='red'>{</font>
+<a name='L36'>  36   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *seedp = (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *) &amp;seed;
+<a name='L37'>  37   <b>int</b> i;
+<a name='L38'>  38   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> j;
+<a name='L39'>  39 
+<a name='L40'>  40   <b>for</b> (i = 0; i &lt; 256; i++) 
+<a name='L41'>  41     s[i] = i;
+<a name='L42'>  42   <b>for</b> (i = j = 0; i &lt; 256; i++) 
+<a name='L43'>  43     <font color='red'>{</font>
+<a name='L44'>  44       j += s[i] + seedp[i % <b>sizeof</b> seed];
+<a name='L45'>  45       <a href='../D/958.html' title='Multiple defined in 2 places.'>swap_byte</a> (s + i, s + j);
+<a name='L46'>  46     <font color='red'>}</font>
+<a name='L47'>  47 
+<a name='L48'>  48   s_i = s_j = 0;
+<a name='L49'>  49   inited = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L50'>  50 <font color='red'>}</font>
+<a name='L51'>  51 
+<a name='L52'>  52 <i><font color='green'>/* Writes SIZE random bytes into BUF. */</font></i>
+<a name='L53'>  53 <b>void</b>
+<a name='L54'>  54 <a href='../R/747.html' title='Multiple refered from 12 places.'>random_bytes</a> (<b>void</b> *buf_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L55'>  55 <font color='red'>{</font>
+<a name='L56'>  56   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *buf;
+<a name='L57'>  57 
+<a name='L58'>  58   <b>if</b> (!inited)
+<a name='L59'>  59     <a href='../S/85.html#L34' title='Defined at 34 in src/lib/random.c.'>random_init</a> (0);
+<a name='L60'>  60 
+<a name='L61'>  61   <b>for</b> (buf = buf_; size-- &gt; 0; buf++)
+<a name='L62'>  62     <font color='red'>{</font>
+<a name='L63'>  63       <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> s_k;
+<a name='L64'>  64       
+<a name='L65'>  65       s_i++;
+<a name='L66'>  66       s_j += s[s_i];
+<a name='L67'>  67       <a href='../D/958.html' title='Multiple defined in 2 places.'>swap_byte</a> (s + s_i, s + s_j);
+<a name='L68'>  68 
+<a name='L69'>  69       s_k = s[s_i] + s[s_j];
+<a name='L70'>  70       *buf = s[s_k];
+<a name='L71'>  71     <font color='red'>}</font>
+<a name='L72'>  72 <font color='red'>}</font>
+<a name='L73'>  73 
+<a name='L74'>  74 <i><font color='green'>/* Returns a pseudo-random unsigned long.</font></i>
+<a name='L75'>  75 <i><font color='green'>   Use random_ulong() % n to obtain a random number in the range</font></i>
+<a name='L76'>  76 <i><font color='green'>   0...n (exclusive). */</font></i>
+<a name='L77'>  77 <b>unsigned</b> <b>long</b>
+<a name='L78'>  78 <a href='../R/749.html' title='Multiple refered from 9 places.'>random_ulong</a> (<b>void</b>) 
+<a name='L79'>  79 <font color='red'>{</font>
+<a name='L80'>  80   <b>unsigned</b> <b>long</b> ul;
+<a name='L81'>  81   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (&amp;ul, <b>sizeof</b> ul);
+<a name='L82'>  82   <b>return</b> ul;
+<a name='L83'>  83 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L25'>[^]</a><a href='#L78'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>src/threads/kernel.lds.S</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/kernel.lds.S</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L2'>   2 
+<a name='L3'>   3 OUTPUT_FORMAT("elf32-i386")
+<a name='L4'>   4 OUTPUT_ARCH("i386")
+<a name='L5'>   5 ENTRY(<a href='../R/827.html' title='Multiple refered from 55 places.'>start</a>)                    <i><font color='green'>/* Kernel starts at "start" symbol. */</font></i>
+<a name='L6'>   6 SECTIONS
+<a name='L7'>   7 <font color='red'>{</font>
+<a name='L8'>   8   <i><font color='green'>/* Specify the kernel base address. */</font></i>
+<a name='L9'>   9   _start = LOADER_PHYS_BASE + LOADER_KERN_BASE;
+<a name='L10'>  10 
+<a name='L11'>  11   <i><font color='green'>/* Make room for the ELF headers. */</font></i>
+<a name='L12'>  12   . = _start + SIZEOF_HEADERS;
+<a name='L13'>  13 
+<a name='L14'>  14   <i><font color='green'>/* Kernel starts with code, followed by read-only data and writable data. */</font></i>
+<a name='L15'>  15   .text : <font color='red'>{</font> *(.start) *(.text) <font color='red'>}</font> = 0x90
+<a name='L16'>  16   .rodata : <font color='red'>{</font> *(.rodata) *(.rodata.*) 
+<a name='L17'>  17               . = ALIGN(0x1000); 
+<a name='L18'>  18               _end_kernel_text = .; <font color='red'>}</font>
+<a name='L19'>  19   .data : <font color='red'>{</font> *(.data) 
+<a name='L20'>  20             _signature = .; LONG(0xaa55aa55) <font color='red'>}</font>
+<a name='L21'>  21 
+<a name='L22'>  22   <i><font color='green'>/* BSS (zero-initialized data) is after everything else. */</font></i>
+<a name='L23'>  23   _start_bss = .;
+<a name='L24'>  24   .bss : <font color='red'>{</font> *(.bss) <font color='red'>}</font>
+<a name='L25'>  25   _end_bss = .;
+<a name='L26'>  26 
+<a name='L27'>  27   _end = .;
+<a name='L28'>  28 
+<a name='L29'>  29   ASSERT (_end - _start &lt;= 512K, "Kernel image is too big.")
+<a name='L30'>  30 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<html>
+<head>
+<title>src/filesys/free-map.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/free-map.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L73'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L13' title='Defined at 13.'>free_map_init</a>
+<li><a href='#L28' title='Defined at 28.'>free_map_allocate</a>
+<li><a href='#L45' title='Defined at 45.'>free_map_release</a>
+<li><a href='#L54' title='Defined at 54.'>free_map_open</a>
+<li><a href='#L65' title='Defined at 65.'>free_map_close</a>
+<li><a href='#L73' title='Defined at 73.'>free_map_create</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='27.html'>filesys/free-map.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='111.html'>bitmap.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='36.html'>filesys/file.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='34.html'>filesys/inode.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>static</b> <b>struct</b> <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a> *free_map_file;   <i><font color='green'>/* Free map file. */</font></i>
+<a name='L9'>   9 <b>static</b> <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> *free_map;      <i><font color='green'>/* Free map, one bit per sector. */</font></i>
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Initializes the free map. */</font></i>
+<a name='L12'>  12 <b>void</b>
+<a name='L13'>  13 <a href='../R/459.html' title='Multiple refered from 2 places.'>free_map_init</a> (<b>void</b>) 
+<a name='L14'>  14 <font color='red'>{</font>
+<a name='L15'>  15   free_map = <a href='../S/114.html#L79' title='Defined at 79 in src/lib/kernel/bitmap.c.'>bitmap_create</a> (<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> (fs_device));
+<a name='L16'>  16   <b>if</b> (free_map == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L17'>  17     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("bitmap creation failed--file system device is too large");
+<a name='L18'>  18   <a href='../S/114.html#L158' title='Defined at 158 in src/lib/kernel/bitmap.c.'>bitmap_mark</a> (free_map, <a href='../S/33.html#L8' title='Defined at 8 in src/filesys/filesys.h.'>FREE_MAP_SECTOR</a>);
+<a name='L19'>  19   <a href='../S/114.html#L158' title='Defined at 158 in src/lib/kernel/bitmap.c.'>bitmap_mark</a> (free_map, <a href='../S/33.html#L9' title='Defined at 9 in src/filesys/filesys.h.'>ROOT_DIR_SECTOR</a>);
+<a name='L20'>  20 <font color='red'>}</font>
+<a name='L21'>  21 
+<a name='L22'>  22 <i><font color='green'>/* Allocates CNT consecutive sectors from the free map and stores</font></i>
+<a name='L23'>  23 <i><font color='green'>   the first into *SECTORP.</font></i>
+<a name='L24'>  24 <i><font color='green'>   Returns true if successful, false if not enough consecutive</font></i>
+<a name='L25'>  25 <i><font color='green'>   sectors were available or if the free_map file could not be</font></i>
+<a name='L26'>  26 <i><font color='green'>   written. */</font></i>
+<a name='L27'>  27 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L28'>  28 <a href='../R/456.html' title='Multiple refered from 3 places.'>free_map_allocate</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> *sectorp)
+<a name='L29'>  29 <font color='red'>{</font>
+<a name='L30'>  30   <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector = <a href='../S/114.html#L321' title='Defined at 321 in src/lib/kernel/bitmap.c.'>bitmap_scan_and_flip</a> (free_map, 0, cnt, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L31'>  31   <b>if</b> (sector != <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>
+<a name='L32'>  32       &amp;&amp; free_map_file != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>
+<a name='L33'>  33       &amp;&amp; !<a href='../S/114.html#L357' title='Defined at 357 in src/lib/kernel/bitmap.c.'>bitmap_write</a> (free_map, free_map_file))
+<a name='L34'>  34     <font color='red'>{</font>
+<a name='L35'>  35       <a href='../S/114.html#L219' title='Defined at 219 in src/lib/kernel/bitmap.c.'>bitmap_set_multiple</a> (free_map, sector, cnt, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>); 
+<a name='L36'>  36       sector = <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>;
+<a name='L37'>  37     <font color='red'>}</font>
+<a name='L38'>  38   <b>if</b> (sector != <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>)
+<a name='L39'>  39     *sectorp = sector;
+<a name='L40'>  40   <b>return</b> sector != <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>;
+<a name='L41'>  41 <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Makes CNT sectors starting at SECTOR available for use. */</font></i>
+<a name='L44'>  44 <b>void</b>
+<a name='L45'>  45 <a href='../R/461.html' title='Multiple refered from 4 places.'>free_map_release</a> (<a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt)
+<a name='L46'>  46 <font color='red'>{</font>
+<a name='L47'>  47   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/114.html#L285' title='Defined at 285 in src/lib/kernel/bitmap.c.'>bitmap_all</a> (free_map, sector, cnt));
+<a name='L48'>  48   <a href='../S/114.html#L219' title='Defined at 219 in src/lib/kernel/bitmap.c.'>bitmap_set_multiple</a> (free_map, sector, cnt, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L49'>  49   <a href='../S/114.html#L357' title='Defined at 357 in src/lib/kernel/bitmap.c.'>bitmap_write</a> (free_map, free_map_file);
+<a name='L50'>  50 <font color='red'>}</font>
+<a name='L51'>  51 
+<a name='L52'>  52 <i><font color='green'>/* Opens the free map file and reads it from disk. */</font></i>
+<a name='L53'>  53 <b>void</b>
+<a name='L54'>  54 <a href='../R/460.html' title='Multiple refered from 2 places.'>free_map_open</a> (<b>void</b>) 
+<a name='L55'>  55 <font color='red'>{</font>
+<a name='L56'>  56   free_map_file = <a href='../S/29.html#L18' title='Defined at 18 in src/filesys/file.c.'>file_open</a> (<a href='../S/35.html#L112' title='Defined at 112 in src/filesys/inode.c.'>inode_open</a> (<a href='../S/33.html#L8' title='Defined at 8 in src/filesys/filesys.h.'>FREE_MAP_SECTOR</a>));
+<a name='L57'>  57   <b>if</b> (free_map_file == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L58'>  58     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("can't open free map");
+<a name='L59'>  59   <b>if</b> (!<a href='../S/114.html#L342' title='Defined at 342 in src/lib/kernel/bitmap.c.'>bitmap_read</a> (free_map, free_map_file))
+<a name='L60'>  60     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("can't read free map");
+<a name='L61'>  61 <font color='red'>}</font>
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Writes the free map to disk and closes the free map file. */</font></i>
+<a name='L64'>  64 <b>void</b>
+<a name='L65'>  65 <a href='../R/457.html' title='Multiple refered from 3 places.'>free_map_close</a> (<b>void</b>) 
+<a name='L66'>  66 <font color='red'>{</font>
+<a name='L67'>  67   <a href='../S/29.html#L46' title='Defined at 46 in src/filesys/file.c.'>file_close</a> (free_map_file);
+<a name='L68'>  68 <font color='red'>}</font>
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Creates a new free map file on disk and writes the free map to</font></i>
+<a name='L71'>  71 <i><font color='green'>   it. */</font></i>
+<a name='L72'>  72 <b>void</b>
+<a name='L73'>  73 <a href='../R/458.html' title='Multiple refered from 2 places.'>free_map_create</a> (<b>void</b>) 
+<a name='L74'>  74 <font color='red'>{</font>
+<a name='L75'>  75   <i><font color='green'>/* Create inode. */</font></i>
+<a name='L76'>  76   <b>if</b> (!<a href='../S/35.html#L73' title='Defined at 73 in src/filesys/inode.c.'>inode_create</a> (<a href='../S/33.html#L8' title='Defined at 8 in src/filesys/filesys.h.'>FREE_MAP_SECTOR</a>, <a href='../S/114.html#L334' title='Defined at 334 in src/lib/kernel/bitmap.c.'>bitmap_file_size</a> (free_map)))
+<a name='L77'>  77     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("free map creation failed");
+<a name='L78'>  78 
+<a name='L79'>  79   <i><font color='green'>/* Write bitmap to file. */</font></i>
+<a name='L80'>  80   free_map_file = <a href='../S/29.html#L18' title='Defined at 18 in src/filesys/file.c.'>file_open</a> (<a href='../S/35.html#L112' title='Defined at 112 in src/filesys/inode.c.'>inode_open</a> (<a href='../S/33.html#L8' title='Defined at 8 in src/filesys/filesys.h.'>FREE_MAP_SECTOR</a>));
+<a name='L81'>  81   <b>if</b> (free_map_file == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L82'>  82     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("can't open free map");
+<a name='L83'>  83   <b>if</b> (!<a href='../S/114.html#L357' title='Defined at 357 in src/lib/kernel/bitmap.c.'>bitmap_write</a> (free_map, free_map_file))
+<a name='L84'>  84     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("can't write free map");
+<a name='L85'>  85 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L73'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

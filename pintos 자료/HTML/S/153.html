@@ -1,0 +1,121 @@
+<html>
+<head>
+<title>src/threads/vaddr.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/vaddr.h</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L24'>[^]</a><a href='#L82'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/312.html' title='Multiple included from 11 places.'>INCLUDED FROM</a></h2>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L24' title='Defined at 24.'>pg_ofs</a>
+<li><a href='#L29' title='Defined at 29.'>pg_no</a>
+<li><a href='#L34' title='Defined at 34.'>pg_round_up</a>
+<li><a href='#L39' title='Defined at 39.'>pg_round_down</a>
+<li><a href='#L57' title='Defined at 57.'>is_user_vaddr</a>
+<li><a href='#L64' title='Defined at 64.'>is_kernel_vaddr</a>
+<li><a href='#L72' title='Defined at 72.'>ptov</a>
+<li><a href='#L82' title='Defined at 82.'>vtop</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/153.html#L2' title='Defined at 2 in src/threads/vaddr.h.'>THREADS_VADDR_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/153.html#L1' title='Refered from 1 in src/threads/vaddr.h.'>THREADS_VADDR_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L7'>   7 
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Functions and macros for working with virtual addresses.</font></i>
+<a name='L11'>  11 <i><font color='green'></font></i>
+<a name='L12'>  12 <i><font color='green'>   See pte.h for functions and macros specifically for x86</font></i>
+<a name='L13'>  13 <i><font color='green'>   hardware page tables. */</font></i>
+<a name='L14'>  14 
+<a name='L15'>  15 <font color='darkred'>#define</font> <a href='../R/6.html' title='Multiple refered from 3 places.'>BITMASK</a>(SHIFT, CNT) (((1ul &lt;&lt; (CNT)) - 1) &lt;&lt; (SHIFT))
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Page offset (bits 0:12). */</font></i>
+<a name='L18'>  18 <font color='darkred'>#define</font> <a href='../S/153.html#L21' title='Refered from 21 in src/threads/vaddr.h.'>PGSHIFT</a> 0                          <i><font color='green'>/* Index of first offset bit. */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../R/125.html' title='Multiple refered from 5 places.'>PGBITS</a>  12                         <i><font color='green'>/* Number of offset bits. */</font></i>
+<a name='L20'>  20 <font color='darkred'>#define</font> <a href='../R/128.html' title='Multiple refered from 32 places.'>PGSIZE</a>  (1 &lt;&lt; <a href='../S/153.html#L19' title='Defined at 19 in src/threads/vaddr.h.'>PGBITS</a>)              <i><font color='green'>/* Bytes in a page. */</font></i>
+<a name='L21'>  21 <font color='darkred'>#define</font> <a href='../R/126.html' title='Multiple refered from 7 places.'>PGMASK</a>  <a href='../S/153.html#L15' title='Defined at 15 in src/threads/vaddr.h.'>BITMASK</a>(<a href='../S/153.html#L18' title='Defined at 18 in src/threads/vaddr.h.'>PGSHIFT</a>, <a href='../S/153.html#L19' title='Defined at 19 in src/threads/vaddr.h.'>PGBITS</a>)   <i><font color='green'>/* Page offset bits (0:12). */</font></i>
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* Offset within a page. */</font></i>
+<a name='L24'>  24 <b>static</b> <b>inline</b> <b>unsigned</b> <a href='../R/714.html' title='Multiple refered from 11 places.'>pg_ofs</a> (<b>const</b> <b>void</b> *va) <font color='red'>{</font>
+<a name='L25'>  25   <b>return</b> (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) va &amp; <a href='../S/153.html#L21' title='Defined at 21 in src/threads/vaddr.h.'>PGMASK</a>;
+<a name='L26'>  26 <font color='red'>}</font>
+<a name='L27'>  27 
+<a name='L28'>  28 <i><font color='green'>/* Virtual page number. */</font></i>
+<a name='L29'>  29 <b>static</b> <b>inline</b> <a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> <a href='../R/713.html' title='Multiple refered from 3 places.'>pg_no</a> (<b>const</b> <b>void</b> *va) <font color='red'>{</font>
+<a name='L30'>  30   <b>return</b> (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) va &gt;&gt; <a href='../S/153.html#L19' title='Defined at 19 in src/threads/vaddr.h.'>PGBITS</a>;
+<a name='L31'>  31 <font color='red'>}</font>
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Round up to nearest page boundary. */</font></i>
+<a name='L34'>  34 <b>static</b> <b>inline</b> <b>void</b> *pg_round_up (<b>const</b> <b>void</b> *va) <font color='red'>{</font>
+<a name='L35'>  35   <b>return</b> (<b>void</b> *) (((<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) va + <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> - 1) &amp; ~<a href='../S/153.html#L21' title='Defined at 21 in src/threads/vaddr.h.'>PGMASK</a>);
+<a name='L36'>  36 <font color='red'>}</font>
+<a name='L37'>  37 
+<a name='L38'>  38 <i><font color='green'>/* Round down to nearest page boundary. */</font></i>
+<a name='L39'>  39 <b>static</b> <b>inline</b> <b>void</b> *<a href='../R/715.html' title='Multiple refered from 2 places.'>pg_round_down</a> (<b>const</b> <b>void</b> *va) <font color='red'>{</font>
+<a name='L40'>  40   <b>return</b> (<b>void</b> *) ((<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) va &amp; ~<a href='../S/153.html#L21' title='Defined at 21 in src/threads/vaddr.h.'>PGMASK</a>);
+<a name='L41'>  41 <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Base address of the 1:1 physical-to-virtual mapping.  Physical</font></i>
+<a name='L44'>  44 <i><font color='green'>   memory is mapped starting at this virtual address.  Thus,</font></i>
+<a name='L45'>  45 <i><font color='green'>   physical address 0 is accessible at PHYS_BASE, physical</font></i>
+<a name='L46'>  46 <i><font color='green'>   address address 0x1234 at (uint8_t *) PHYS_BASE + 0x1234, and</font></i>
+<a name='L47'>  47 <i><font color='green'>   so on.</font></i>
+<a name='L48'>  48 <i><font color='green'></font></i>
+<a name='L49'>  49 <i><font color='green'>   This address also marks the end of user programs' address</font></i>
+<a name='L50'>  50 <i><font color='green'>   space.  Up to this point in memory, user programs are allowed</font></i>
+<a name='L51'>  51 <i><font color='green'>   to map whatever they like.  At this point and above, the</font></i>
+<a name='L52'>  52 <i><font color='green'>   virtual address space belongs to the kernel. */</font></i>
+<a name='L53'>  53 <font color='darkred'>#define</font> <a href='../R/129.html' title='Multiple refered from 12 places.'>PHYS_BASE</a> ((<b>void</b> *) <a href='../S/152.html#L13' title='Defined at 13 in src/threads/loader.h.'>LOADER_PHYS_BASE</a>)
+<a name='L54'>  54 
+<a name='L55'>  55 <i><font color='green'>/* Returns true if VADDR is a user virtual address. */</font></i>
+<a name='L56'>  56 <b>static</b> <b>inline</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L57'>  57 <a href='../R/570.html' title='Multiple refered from 6 places.'>is_user_vaddr</a> (<b>const</b> <b>void</b> *vaddr) 
+<a name='L58'>  58 <font color='red'>{</font>
+<a name='L59'>  59   <b>return</b> vaddr &lt; <a href='../S/153.html#L53' title='Defined at 53 in src/threads/vaddr.h.'>PHYS_BASE</a>;
+<a name='L60'>  60 <font color='red'>}</font>
+<a name='L61'>  61 
+<a name='L62'>  62 <i><font color='green'>/* Returns true if VADDR is a kernel virtual address. */</font></i>
+<a name='L63'>  63 <b>static</b> <b>inline</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L64'>  64 <a href='../S/153.html#L84' title='Refered from 84 in src/threads/vaddr.h.'>is_kernel_vaddr</a> (<b>const</b> <b>void</b> *vaddr) 
+<a name='L65'>  65 <font color='red'>{</font>
+<a name='L66'>  66   <b>return</b> vaddr &gt;= <a href='../S/153.html#L53' title='Defined at 53 in src/threads/vaddr.h.'>PHYS_BASE</a>;
+<a name='L67'>  67 <font color='red'>}</font>
+<a name='L68'>  68 
+<a name='L69'>  69 <i><font color='green'>/* Returns kernel virtual address at which physical address PADDR</font></i>
+<a name='L70'>  70 <i><font color='green'>   is mapped. */</font></i>
+<a name='L71'>  71 <b>static</b> <b>inline</b> <b>void</b> *
+<a name='L72'>  72 <a href='../R/739.html' title='Multiple refered from 9 places.'>ptov</a> (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> paddr)
+<a name='L73'>  73 <font color='red'>{</font>
+<a name='L74'>  74   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> ((<b>void</b> *) paddr &lt; <a href='../S/153.html#L53' title='Defined at 53 in src/threads/vaddr.h.'>PHYS_BASE</a>);
+<a name='L75'>  75 
+<a name='L76'>  76   <b>return</b> (<b>void</b> *) (paddr + <a href='../S/153.html#L53' title='Defined at 53 in src/threads/vaddr.h.'>PHYS_BASE</a>);
+<a name='L77'>  77 <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79 <i><font color='green'>/* Returns physical address at which kernel virtual address VADDR</font></i>
+<a name='L80'>  80 <i><font color='green'>   is mapped. */</font></i>
+<a name='L81'>  81 <b>static</b> <b>inline</b> <a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>
+<a name='L82'>  82 <a href='../R/969.html' title='Multiple refered from 5 places.'>vtop</a> (<b>const</b> <b>void</b> *vaddr)
+<a name='L83'>  83 <font color='red'>{</font>
+<a name='L84'>  84   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/153.html#L64' title='Defined at 64 in src/threads/vaddr.h.'>is_kernel_vaddr</a> (vaddr));
+<a name='L85'>  85 
+<a name='L86'>  86   <b>return</b> (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) vaddr - (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) <a href='../S/153.html#L53' title='Defined at 53 in src/threads/vaddr.h.'>PHYS_BASE</a>;
+<a name='L87'>  87 <font color='red'>}</font>
+<a name='L88'>  88 
+<a name='L89'>  89 <font color='darkred'>#endif</font> <i><font color='green'>/* threads/vaddr.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L24'>[^]</a><a href='#L82'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

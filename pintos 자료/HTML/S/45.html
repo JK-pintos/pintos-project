@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>src/examples/recursor.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/recursor.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L6'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L6' title='Defined at 6.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L4'>   4 
+<a name='L5'>   5 <b>int</b>
+<a name='L6'>   6 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[])
+<a name='L7'>   7 <font color='red'>{</font>
+<a name='L8'>   8   <b>char</b> buffer[128];
+<a name='L9'>   9   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> pid;
+<a name='L10'>  10   <b>int</b> retval = 0;
+<a name='L11'>  11 
+<a name='L12'>  12   <b>if</b> (argc != 4) 
+<a name='L13'>  13     <font color='red'>{</font>
+<a name='L14'>  14       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("usage: recursor &lt;string&gt; &lt;depth&gt; &lt;waitp&gt;\n");
+<a name='L15'>  15       <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (1);
+<a name='L16'>  16     <font color='red'>}</font>
+<a name='L17'>  17 
+<a name='L18'>  18   <i><font color='green'>/* Print args. */</font></i>
+<a name='L19'>  19   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s %s %s %s\n", argv[0], argv[1], argv[2], argv[3]);
+<a name='L20'>  20 
+<a name='L21'>  21   <i><font color='green'>/* Execute child and wait for it to finish if requested. */</font></i>
+<a name='L22'>  22   <b>if</b> (<a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[2]) != 0) 
+<a name='L23'>  23     <font color='red'>{</font>
+<a name='L24'>  24       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (buffer, <b>sizeof</b> buffer,
+<a name='L25'>  25                 "recursor %s %d %s", argv[1], <a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[2]) - 1, argv[3]);
+<a name='L26'>  26       pid = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> (buffer);
+<a name='L27'>  27       <b>if</b> (<a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[3]))
+<a name='L28'>  28         retval = <a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (pid);
+<a name='L29'>  29     <font color='red'>}</font>
+<a name='L30'>  30   
+<a name='L31'>  31   <i><font color='green'>/* Done. */</font></i>
+<a name='L32'>  32   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s %s: dying, retval=%d\n", argv[1], argv[2], retval);
+<a name='L33'>  33   <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (retval);
+<a name='L34'>  34 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L6'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

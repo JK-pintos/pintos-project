@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>src/devices/intq.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/intq.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/8.html' title='Multiple included from 3 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/130.html#L2' title='Defined at 2 in src/devices/intq.h.'>DEVICES_INTQ_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/130.html#L1' title='Refered from 1 in src/devices/intq.h.'>DEVICES_INTQ_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* An "interrupt queue", a circular buffer shared between</font></i>
+<a name='L8'>   8 <i><font color='green'>   kernel threads and external interrupt handlers.</font></i>
+<a name='L9'>   9 <i><font color='green'></font></i>
+<a name='L10'>  10 <i><font color='green'>   Interrupt queue functions can be called from kernel threads or</font></i>
+<a name='L11'>  11 <i><font color='green'>   from external interrupt handlers.  Except for intq_init(),</font></i>
+<a name='L12'>  12 <i><font color='green'>   interrupts must be off in either case.</font></i>
+<a name='L13'>  13 <i><font color='green'></font></i>
+<a name='L14'>  14 <i><font color='green'>   The interrupt queue has the structure of a "monitor".  Locks</font></i>
+<a name='L15'>  15 <i><font color='green'>   and condition variables from threads/synch.h cannot be used in</font></i>
+<a name='L16'>  16 <i><font color='green'>   this case, as they normally would, because they can only</font></i>
+<a name='L17'>  17 <i><font color='green'>   protect kernel threads from one another, not from interrupt</font></i>
+<a name='L18'>  18 <i><font color='green'>   handlers. */</font></i>
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Queue buffer size, in bytes. */</font></i>
+<a name='L21'>  21 <font color='darkred'>#define</font> <a href='../R/77.html' title='Multiple refered from 2 places.'>INTQ_BUFSIZE</a> 64
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* A circular queue of bytes. */</font></i>
+<a name='L24'>  24 <b>struct</b> <a href='../R/538.html' title='Multiple refered from 2 places.'>intq</a>
+<a name='L25'>  25   <font color='red'>{</font>
+<a name='L26'>  26     <i><font color='green'>/* Waiting threads. */</font></i>
+<a name='L27'>  27     <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;           <i><font color='green'>/* Only one thread may wait at once. */</font></i>
+<a name='L28'>  28     <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a> *not_full;    <i><font color='green'>/* Thread waiting for not-full condition. */</font></i>
+<a name='L29'>  29     <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a> *not_empty;   <i><font color='green'>/* Thread waiting for not-empty condition. */</font></i>
+<a name='L30'>  30 
+<a name='L31'>  31     <i><font color='green'>/* Queue. */</font></i>
+<a name='L32'>  32     <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> buf[<a href='../S/130.html#L21' title='Defined at 21 in src/devices/intq.h.'>INTQ_BUFSIZE</a>];  <i><font color='green'>/* Buffer. */</font></i>
+<a name='L33'>  33     <b>int</b> head;                   <i><font color='green'>/* New data is written here. */</font></i>
+<a name='L34'>  34     <b>int</b> tail;                   <i><font color='green'>/* Old data is read here. */</font></i>
+<a name='L35'>  35   <font color='red'>}</font>;
+<a name='L36'>  36 
+<a name='L37'>  37 <b>void</b> <a href='../S/135.html#L11' title='Defined at 11 in src/devices/intq.c.'>intq_init</a> (<b>struct</b> intq *);
+<a name='L38'>  38 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/135.html#L20' title='Defined at 20 in src/devices/intq.c.'>intq_empty</a> (<b>const</b> <b>struct</b> intq *);
+<a name='L39'>  39 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/135.html#L28' title='Defined at 28 in src/devices/intq.c.'>intq_full</a> (<b>const</b> <b>struct</b> intq *);
+<a name='L40'>  40 <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> <a href='../S/135.html#L38' title='Defined at 38 in src/devices/intq.c.'>intq_getc</a> (<b>struct</b> intq *);
+<a name='L41'>  41 <b>void</b> <a href='../S/135.html#L61' title='Defined at 61 in src/devices/intq.c.'>intq_putc</a> (<b>struct</b> intq *, <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a>);
+<a name='L42'>  42 
+<a name='L43'>  43 <font color='darkred'>#endif</font> <i><font color='green'>/* devices/intq.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/syn-rw.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/syn-rw.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Grows a file in chunks while subprocesses read the growing</font></i>
+<a name='L2'>   2 <i><font color='green'>   file. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='256.html'>tests/filesys/extended/syn-rw.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>char</b> buf[<a href='../D/9.html' title='Multiple defined in 3 places.'>BUF_SIZE</a>];
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/11.html' title='Multiple refered from 13 places.'>CHILD_CNT</a> 4
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b>
+<a name='L15'>  15 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> children[<a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>];
+<a name='L18'>  18   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs;
+<a name='L19'>  19   <b>int</b> fd;
+<a name='L20'>  20 
+<a name='L21'>  21   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (file_name, 0), "create \"%s\"", file_name);
+<a name='L22'>  22   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a name='L23'>  23 
+<a name='L24'>  24   <a href='../S/591.html#L80' title='Defined at 80 in src/tests/lib.c.'>exec_children</a> ("child-syn-rw", children, <a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>);
+<a name='L25'>  25 
+<a name='L26'>  26   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (buf, <b>sizeof</b> buf);
+<a name='L27'>  27   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L28'>  28   <b>for</b> (ofs = 0; ofs &lt; <a href='../D/9.html' title='Multiple defined in 3 places.'>BUF_SIZE</a>; ofs += <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>)
+<a name='L29'>  29     CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, buf + ofs, <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>) &gt; 0,
+<a name='L30'>  30            "write %d bytes at offset %zu in \"%s\"",
+<a name='L31'>  31            (<b>int</b>) <a href='../D/16.html' title='Multiple defined in 4 places.'>CHUNK_SIZE</a>, ofs, file_name);
+<a name='L32'>  32   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L33'>  33 
+<a name='L34'>  34   <a href='../S/591.html#L94' title='Defined at 94 in src/tests/lib.c.'>wait_children</a> (children, <a href='../D/14.html' title='Multiple defined in 6 places.'>CHILD_CNT</a>);
+<a name='L35'>  35 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L15'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

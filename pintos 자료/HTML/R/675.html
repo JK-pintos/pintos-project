@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>outb</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/123.html#L178'>outb</a>              178 src/devices/ide.c       outb (reg_nsect (c), 0x55);
+<a href='../S/123.html#L179'>outb</a>              179 src/devices/ide.c       outb (reg_lbal (c), 0xaa);
+<a href='../S/123.html#L181'>outb</a>              181 src/devices/ide.c       outb (reg_nsect (c), 0xaa);
+<a href='../S/123.html#L182'>outb</a>              182 src/devices/ide.c       outb (reg_lbal (c), 0x55);
+<a href='../S/123.html#L184'>outb</a>              184 src/devices/ide.c       outb (reg_nsect (c), 0x55);
+<a href='../S/123.html#L185'>outb</a>              185 src/devices/ide.c       outb (reg_lbal (c), 0xaa);
+<a href='../S/123.html#L193'>outb</a>              193 src/devices/ide.c   outb (reg_ctl (c), 0);
+<a href='../S/123.html#L195'>outb</a>              195 src/devices/ide.c   outb (reg_ctl (c), CTL_SRST);
+<a href='../S/123.html#L197'>outb</a>              197 src/devices/ide.c   outb (reg_ctl (c), 0);
+<a href='../S/123.html#L396'>outb</a>              396 src/devices/ide.c   outb (reg_nsect (c), 1);
+<a href='../S/123.html#L397'>outb</a>              397 src/devices/ide.c   outb (reg_lbal (c), sec_no);
+<a href='../S/123.html#L398'>outb</a>              398 src/devices/ide.c   outb (reg_lbam (c), sec_no &gt;&gt; 8);
+<a href='../S/123.html#L399'>outb</a>              399 src/devices/ide.c   outb (reg_lbah (c), (sec_no &gt;&gt; 16));
+<a href='../S/123.html#L400'>outb</a>              400 src/devices/ide.c   outb (reg_device (c),
+<a href='../S/123.html#L414'>outb</a>              414 src/devices/ide.c   outb (reg_command (c), command);
+<a href='../S/123.html#L490'>outb</a>              490 src/devices/ide.c   outb (reg_device (c), dev);
+<a href='../S/118.html#L79'>outb</a>               79 src/devices/pit.c   outb (PIT_PORT_CONTROL, (channel &lt;&lt; 6) | 0x30 | (mode &lt;&lt; 1));
+<a href='../S/118.html#L80'>outb</a>               80 src/devices/pit.c   outb (PIT_PORT_COUNTER (channel), count);
+<a href='../S/118.html#L81'>outb</a>               81 src/devices/pit.c   outb (PIT_PORT_COUNTER (channel), count &gt;&gt; 8);
+<a href='../S/126.html#L110'>outb</a>              110 src/devices/rtc.c   outb (CMOS_REG_SET, index);
+<a href='../S/142.html#L70'>outb</a>               70 src/devices/serial.c   outb (IER_REG, 0);                    /* Turn off all interrupts. */
+<a href='../S/142.html#L71'>outb</a>               71 src/devices/serial.c   outb (FCR_REG, 0);                    /* Disable FIFO. */
+<a href='../S/142.html#L73'>outb</a>               73 src/devices/serial.c   outb (MCR_REG, MCR_OUT2);             /* Required to enable interrupts. */
+<a href='../S/142.html#L165'>outb</a>              165 src/devices/serial.c   outb (LCR_REG, LCR_N81 | LCR_DLAB);
+<a href='../S/142.html#L168'>outb</a>              168 src/devices/serial.c   outb (LS_REG, divisor &amp; 0xff);
+<a href='../S/142.html#L169'>outb</a>              169 src/devices/serial.c   outb (MS_REG, divisor &gt;&gt; 8);
+<a href='../S/142.html#L172'>outb</a>              172 src/devices/serial.c   outb (LCR_REG, LCR_N81);
+<a href='../S/142.html#L193'>outb</a>              193 src/devices/serial.c   outb (IER_REG, ier);
+<a href='../S/142.html#L205'>outb</a>              205 src/devices/serial.c   outb (THR_REG, byte);
+<a href='../S/142.html#L224'>outb</a>              224 src/devices/serial.c     outb (THR_REG, intq_getc (&amp;txq));
+<a href='../S/136.html#L80'>outb</a>               80 src/devices/shutdown.c       outb (CONTROL_REG, 0xfe);
+<a href='../S/136.html#L105'>outb</a>              105 src/devices/shutdown.c     outb (0x8900, *p);
+<a href='../S/143.html#L25'>outb</a>               25 src/devices/speaker.c       outb (SPEAKER_PORT_GATE, inb (SPEAKER_PORT_GATE) | SPEAKER_GATE_ENABLE);
+<a href='../S/143.html#L42'>outb</a>               42 src/devices/speaker.c   outb (SPEAKER_PORT_GATE, inb (SPEAKER_PORT_GATE) &amp; ~SPEAKER_GATE_ENABLE);
+<a href='../S/131.html#L164'>outb</a>              164 src/devices/vga.c   outb (0x3d4, 0x0e);
+<a href='../S/131.html#L167'>outb</a>              167 src/devices/vga.c   outb (0x3d4, 0x0f);
+<a href='../S/168.html#L241'>outb</a>              241 src/threads/interrupt.c   outb (PIC0_DATA, 0xff);
+<a href='../S/168.html#L242'>outb</a>              242 src/threads/interrupt.c   outb (PIC1_DATA, 0xff);
+<a href='../S/168.html#L245'>outb</a>              245 src/threads/interrupt.c   outb (PIC0_CTRL, 0x11); /* ICW1: single mode, edge triggered, expect ICW4. */
+<a href='../S/168.html#L246'>outb</a>              246 src/threads/interrupt.c   outb (PIC0_DATA, 0x20); /* ICW2: line IR0...7 -&gt; irq 0x20...0x27. */
+<a href='../S/168.html#L247'>outb</a>              247 src/threads/interrupt.c   outb (PIC0_DATA, 0x04); /* ICW3: slave PIC on line IR2. */
+<a href='../S/168.html#L248'>outb</a>              248 src/threads/interrupt.c   outb (PIC0_DATA, 0x01); /* ICW4: 8086 mode, normal EOI, non-buffered. */
+<a href='../S/168.html#L251'>outb</a>              251 src/threads/interrupt.c   outb (PIC1_CTRL, 0x11); /* ICW1: single mode, edge triggered, expect ICW4. */
+<a href='../S/168.html#L252'>outb</a>              252 src/threads/interrupt.c   outb (PIC1_DATA, 0x28); /* ICW2: line IR0...7 -&gt; irq 0x28...0x2f. */
+<a href='../S/168.html#L253'>outb</a>              253 src/threads/interrupt.c   outb (PIC1_DATA, 0x02); /* ICW3: slave ID is 2. */
+<a href='../S/168.html#L254'>outb</a>              254 src/threads/interrupt.c   outb (PIC1_DATA, 0x01); /* ICW4: 8086 mode, normal EOI, non-buffered. */
+<a href='../S/168.html#L257'>outb</a>              257 src/threads/interrupt.c   outb (PIC0_DATA, 0x00);
+<a href='../S/168.html#L258'>outb</a>              258 src/threads/interrupt.c   outb (PIC1_DATA, 0x00);
+<a href='../S/168.html#L270'>outb</a>              270 src/threads/interrupt.c   outb (0x20, 0x20);
+<a href='../S/168.html#L274'>outb</a>              274 src/threads/interrupt.c     outb (0xa0, 0x20);
+</pre>
+</body>
+</html>

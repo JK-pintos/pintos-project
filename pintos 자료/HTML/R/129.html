@@ -1,0 +1,23 @@
+<html>
+<head>
+<title>PHYS_BASE</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/493.html#L70'>PHYS_BASE</a>          70 src/tests/userprog/no-vm/multi-oom.c   int *PHYS_BASE = (int *)0xC0000000;
+<a href='../S/493.html#L81'>PHYS_BASE</a>          81 src/tests/userprog/no-vm/multi-oom.c         return *PHYS_BASE;
+<a href='../S/493.html#L84'>PHYS_BASE</a>          84 src/tests/userprog/no-vm/multi-oom.c         *PHYS_BASE = 42;
+<a href='../S/493.html#L87'>PHYS_BASE</a>          87 src/tests/userprog/no-vm/multi-oom.c         open ((char *)PHYS_BASE);
+<a href='../S/153.html#L59'>PHYS_BASE</a>          59 src/threads/vaddr.h   return vaddr &lt; PHYS_BASE;
+<a href='../S/153.html#L66'>PHYS_BASE</a>          66 src/threads/vaddr.h   return vaddr &gt;= PHYS_BASE;
+<a href='../S/153.html#L74'>PHYS_BASE</a>          74 src/threads/vaddr.h   ASSERT ((void *) paddr &lt; PHYS_BASE);
+<a href='../S/153.html#L76'>PHYS_BASE</a>          76 src/threads/vaddr.h   return (void *) (paddr + PHYS_BASE);
+<a href='../S/153.html#L86'>PHYS_BASE</a>          86 src/threads/vaddr.h   return (uintptr_t) vaddr - (uintptr_t) PHYS_BASE;
+<a href='../S/75.html#L36'>PHYS_BASE</a>          36 src/userprog/pagedir.c   for (pde = pd; pde &lt; pd + pd_no (PHYS_BASE); pde++)
+<a href='../S/66.html#L438'>PHYS_BASE</a>         438 src/userprog/process.c       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
+<a href='../S/66.html#L440'>PHYS_BASE</a>         440 src/userprog/process.c         *esp = PHYS_BASE;
+</pre>
+</body>
+</html>

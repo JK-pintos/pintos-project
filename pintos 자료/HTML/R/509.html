@@ -1,0 +1,100 @@
+<html>
+<head>
+<title>inode</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/32.html#L12'>inode</a>              12 src/filesys/directory.c     struct inode *inode;                /* Backing store. */
+<a href='../S/32.html#L38'>inode</a>              38 src/filesys/directory.c   if (inode != NULL &amp;&amp; dir != NULL)
+<a href='../S/32.html#L40'>inode</a>              40 src/filesys/directory.c       dir-&gt;inode = inode;
+<a href='../S/32.html#L46'>inode</a>              46 src/filesys/directory.c       inode_close (inode);
+<a href='../S/32.html#L65'>inode</a>              65 src/filesys/directory.c   return dir_open (inode_reopen (dir-&gt;inode));
+<a href='../S/32.html#L74'>inode</a>              74 src/filesys/directory.c       inode_close (dir-&gt;inode);
+<a href='../S/32.html#L80'>inode</a>              80 src/filesys/directory.c struct inode *
+<a href='../S/32.html#L83'>inode</a>              83 src/filesys/directory.c   return dir-&gt;inode;
+<a href='../S/32.html#L101'>inode</a>             101 src/filesys/directory.c   for (ofs = 0; inode_read_at (dir-&gt;inode, &amp;e, sizeof e, ofs) == sizeof e;
+<a href='../S/32.html#L128'>inode</a>             128 src/filesys/directory.c     *inode = inode_open (e.inode_sector);
+<a href='../S/32.html#L130'>inode</a>             130 src/filesys/directory.c     *inode = NULL;
+<a href='../S/32.html#L132'>inode</a>             132 src/filesys/directory.c   return *inode != NULL;
+<a href='../S/32.html#L166'>inode</a>             166 src/filesys/directory.c   for (ofs = 0; inode_read_at (dir-&gt;inode, &amp;e, sizeof e, ofs) == sizeof e;
+<a href='../S/32.html#L175'>inode</a>             175 src/filesys/directory.c   success = inode_write_at (dir-&gt;inode, &amp;e, sizeof e, ofs) == sizeof e;
+<a href='../S/32.html#L188'>inode</a>             188 src/filesys/directory.c   struct inode *inode = NULL;
+<a href='../S/32.html#L200'>inode</a>             200 src/filesys/directory.c   inode = inode_open (e.inode_sector);
+<a href='../S/32.html#L201'>inode</a>             201 src/filesys/directory.c   if (inode == NULL)
+<a href='../S/32.html#L206'>inode</a>             206 src/filesys/directory.c   if (inode_write_at (dir-&gt;inode, &amp;e, sizeof e, ofs) != sizeof e) 
+<a href='../S/32.html#L210'>inode</a>             210 src/filesys/directory.c   inode_remove (inode);
+<a href='../S/32.html#L214'>inode</a>             214 src/filesys/directory.c   inode_close (inode);
+<a href='../S/32.html#L226'>inode</a>             226 src/filesys/directory.c   while (inode_read_at (dir-&gt;inode, &amp;e, sizeof e, dir-&gt;pos) == sizeof e) 
+<a href='../S/28.html#L14'>inode</a>              14 src/filesys/directory.h struct inode;
+<a href='../S/28.html#L22'>inode</a>              22 src/filesys/directory.h struct inode *dir_get_inode (struct dir *);
+<a href='../S/29.html#L9'>inode</a>               9 src/filesys/file.c     struct inode *inode;        /* File's inode. */
+<a href='../S/29.html#L21'>inode</a>              21 src/filesys/file.c   if (inode != NULL &amp;&amp; file != NULL)
+<a href='../S/29.html#L23'>inode</a>              23 src/filesys/file.c       file-&gt;inode = inode;
+<a href='../S/29.html#L30'>inode</a>              30 src/filesys/file.c       inode_close (inode);
+<a href='../S/29.html#L41'>inode</a>              41 src/filesys/file.c   return file_open (inode_reopen (file-&gt;inode));
+<a href='../S/29.html#L51'>inode</a>              51 src/filesys/file.c       inode_close (file-&gt;inode);
+<a href='../S/29.html#L57'>inode</a>              57 src/filesys/file.c struct inode *
+<a href='../S/29.html#L60'>inode</a>              60 src/filesys/file.c   return file-&gt;inode;
+<a href='../S/29.html#L71'>inode</a>              71 src/filesys/file.c   off_t bytes_read = inode_read_at (file-&gt;inode, buffer, size, file-&gt;pos);
+<a href='../S/29.html#L84'>inode</a>              84 src/filesys/file.c   return inode_read_at (file-&gt;inode, buffer, size, file_ofs);
+<a href='../S/29.html#L97'>inode</a>              97 src/filesys/file.c   off_t bytes_written = inode_write_at (file-&gt;inode, buffer, size, file-&gt;pos);
+<a href='../S/29.html#L113'>inode</a>             113 src/filesys/file.c   return inode_write_at (file-&gt;inode, buffer, size, file_ofs);
+<a href='../S/29.html#L125'>inode</a>             125 src/filesys/file.c       inode_deny_write (file-&gt;inode);
+<a href='../S/29.html#L139'>inode</a>             139 src/filesys/file.c       inode_allow_write (file-&gt;inode);
+<a href='../S/29.html#L148'>inode</a>             148 src/filesys/file.c   return inode_length (file-&gt;inode);
+<a href='../S/36.html#L6'>inode</a>               6 src/filesys/file.h struct inode;
+<a href='../S/36.html#L12'>inode</a>              12 src/filesys/file.h struct inode *file_get_inode (struct file *);
+<a href='../S/38.html#L70'>inode</a>              70 src/filesys/filesys.c   struct inode *inode = NULL;
+<a href='../S/38.html#L73'>inode</a>              73 src/filesys/filesys.c     dir_lookup (dir, name, &amp;inode);
+<a href='../S/38.html#L76'>inode</a>              76 src/filesys/filesys.c   return file_open (inode);
+<a href='../S/35.html#L49'>inode</a>              49 src/filesys/inode.c   ASSERT (inode != NULL);
+<a href='../S/35.html#L50'>inode</a>              50 src/filesys/inode.c   if (pos &lt; inode-&gt;data.length)
+<a href='../S/35.html#L51'>inode</a>              51 src/filesys/inode.c     return inode-&gt;data.start + pos / BLOCK_SECTOR_SIZE;
+<a href='../S/35.html#L111'>inode</a>             111 src/filesys/inode.c struct inode *
+<a href='../S/35.html#L115'>inode</a>             115 src/filesys/inode.c   struct inode *inode;
+<a href='../S/35.html#L121'>inode</a>             121 src/filesys/inode.c       inode = list_entry (e, struct inode, elem);
+<a href='../S/35.html#L122'>inode</a>             122 src/filesys/inode.c       if (inode-&gt;sector == sector) 
+<a href='../S/35.html#L124'>inode</a>             124 src/filesys/inode.c           inode_reopen (inode);
+<a href='../S/35.html#L125'>inode</a>             125 src/filesys/inode.c           return inode; 
+<a href='../S/35.html#L130'>inode</a>             130 src/filesys/inode.c   inode = malloc (sizeof *inode);
+<a href='../S/35.html#L131'>inode</a>             131 src/filesys/inode.c   if (inode == NULL)
+<a href='../S/35.html#L135'>inode</a>             135 src/filesys/inode.c   list_push_front (&amp;open_inodes, &amp;inode-&gt;elem);
+<a href='../S/35.html#L136'>inode</a>             136 src/filesys/inode.c   inode-&gt;sector = sector;
+<a href='../S/35.html#L137'>inode</a>             137 src/filesys/inode.c   inode-&gt;open_cnt = 1;
+<a href='../S/35.html#L138'>inode</a>             138 src/filesys/inode.c   inode-&gt;deny_write_cnt = 0;
+<a href='../S/35.html#L139'>inode</a>             139 src/filesys/inode.c   inode-&gt;removed = false;
+<a href='../S/35.html#L140'>inode</a>             140 src/filesys/inode.c   block_read (fs_device, inode-&gt;sector, &amp;inode-&gt;data);
+<a href='../S/35.html#L141'>inode</a>             141 src/filesys/inode.c   return inode;
+<a href='../S/35.html#L145'>inode</a>             145 src/filesys/inode.c struct inode *
+<a href='../S/35.html#L148'>inode</a>             148 src/filesys/inode.c   if (inode != NULL)
+<a href='../S/35.html#L149'>inode</a>             149 src/filesys/inode.c     inode-&gt;open_cnt++;
+<a href='../S/35.html#L150'>inode</a>             150 src/filesys/inode.c   return inode;
+<a href='../S/35.html#L157'>inode</a>             157 src/filesys/inode.c   return inode-&gt;sector;
+<a href='../S/35.html#L167'>inode</a>             167 src/filesys/inode.c   if (inode == NULL)
+<a href='../S/35.html#L171'>inode</a>             171 src/filesys/inode.c   if (--inode-&gt;open_cnt == 0)
+<a href='../S/35.html#L174'>inode</a>             174 src/filesys/inode.c       list_remove (&amp;inode-&gt;elem);
+<a href='../S/35.html#L177'>inode</a>             177 src/filesys/inode.c       if (inode-&gt;removed) 
+<a href='../S/35.html#L179'>inode</a>             179 src/filesys/inode.c           free_map_release (inode-&gt;sector, 1);
+<a href='../S/35.html#L180'>inode</a>             180 src/filesys/inode.c           free_map_release (inode-&gt;data.start,
+<a href='../S/35.html#L181'>inode</a>             181 src/filesys/inode.c                             bytes_to_sectors (inode-&gt;data.length)); 
+<a href='../S/35.html#L184'>inode</a>             184 src/filesys/inode.c       free (inode); 
+<a href='../S/35.html#L193'>inode</a>             193 src/filesys/inode.c   ASSERT (inode != NULL);
+<a href='../S/35.html#L194'>inode</a>             194 src/filesys/inode.c   inode-&gt;removed = true;
+<a href='../S/35.html#L210'>inode</a>             210 src/filesys/inode.c       block_sector_t sector_idx = byte_to_sector (inode, offset);
+<a href='../S/35.html#L214'>inode</a>             214 src/filesys/inode.c       off_t inode_left = inode_length (inode) - offset;
+<a href='../S/35.html#L265'>inode</a>             265 src/filesys/inode.c   if (inode-&gt;deny_write_cnt)
+<a href='../S/35.html#L271'>inode</a>             271 src/filesys/inode.c       block_sector_t sector_idx = byte_to_sector (inode, offset);
+<a href='../S/35.html#L275'>inode</a>             275 src/filesys/inode.c       off_t inode_left = inode_length (inode) - offset;
+<a href='../S/35.html#L325'>inode</a>             325 src/filesys/inode.c   inode-&gt;deny_write_cnt++;
+<a href='../S/35.html#L326'>inode</a>             326 src/filesys/inode.c   ASSERT (inode-&gt;deny_write_cnt &lt;= inode-&gt;open_cnt);
+<a href='../S/35.html#L335'>inode</a>             335 src/filesys/inode.c   ASSERT (inode-&gt;deny_write_cnt &gt; 0);
+<a href='../S/35.html#L336'>inode</a>             336 src/filesys/inode.c   ASSERT (inode-&gt;deny_write_cnt &lt;= inode-&gt;open_cnt);
+<a href='../S/35.html#L337'>inode</a>             337 src/filesys/inode.c   inode-&gt;deny_write_cnt--;
+<a href='../S/35.html#L344'>inode</a>             344 src/filesys/inode.c   return inode-&gt;data.length;
+<a href='../S/34.html#L12'>inode</a>              12 src/filesys/inode.h struct inode *inode_open (block_sector_t);
+<a href='../S/34.html#L13'>inode</a>              13 src/filesys/inode.h struct inode *inode_reopen (struct inode *);
+</pre>
+</body>
+</html>

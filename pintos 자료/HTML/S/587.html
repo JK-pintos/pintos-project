@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>src/tests/threads/priority-donate-lower.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/priority-donate-lower.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L43'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>test_priority_donate_lower</a>
+<li><a href='#L43' title='Defined at 43.'>acquire_thread_func</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* The main thread acquires a lock.  Then it creates a</font></i>
+<a name='L2'>   2 <i><font color='green'>   higher-priority thread that blocks acquiring the lock, causing</font></i>
+<a name='L3'>   3 <i><font color='green'>   it to donate their priorities to the main thread.  The main</font></i>
+<a name='L4'>   4 <i><font color='green'>   thread attempts to lower its priority, which should not take</font></i>
+<a name='L5'>   5 <i><font color='green'>   effect until the donation is released. */</font></i>
+<a name='L6'>   6 
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L12'>  12 
+<a name='L13'>  13 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../S/587.html#L43' title='Defined at 43 in src/tests/threads/priority-donate-lower.c.'>acquire_thread_func</a>;
+<a name='L14'>  14 
+<a name='L15'>  15 <b>void</b>
+<a name='L16'>  16 <a href='../R/877.html' title='Multiple refered from 2 places.'>test_priority_donate_lower</a> (<b>void</b>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;
+<a name='L19'>  19 
+<a name='L20'>  20   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L21'>  21   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L22'>  22 
+<a name='L23'>  23   <i><font color='green'>/* Make sure our priority is the default. */</font></i>
+<a name='L24'>  24   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> () == <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a>);
+<a name='L25'>  25 
+<a name='L26'>  26   <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L27'>  27   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L28'>  28   <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> ("acquire", <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> + 10, <a href='../S/587.html#L43' title='Defined at 43 in src/tests/threads/priority-donate-lower.c.'>acquire_thread_func</a>, &amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L29'>  29   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread should have priority %d.  Actual priority: %d.",
+<a name='L30'>  30        <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> + 10, <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L31'>  31 
+<a name='L32'>  32   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Lowering base priority...");
+<a name='L33'>  33   <a href='../S/163.html#L344' title='Defined at 344 in src/threads/thread.c.'>thread_set_priority</a> (<a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> - 10);
+<a name='L34'>  34   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread should have priority %d.  Actual priority: %d.",
+<a name='L35'>  35        <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> + 10, <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L36'>  36   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L37'>  37   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("acquire must already have finished.");
+<a name='L38'>  38   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread should have priority %d.  Actual priority: %d.",
+<a name='L39'>  39        <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> - 10, <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L40'>  40 <font color='red'>}</font>
+<a name='L41'>  41 
+<a name='L42'>  42 <b>static</b> <b>void</b>
+<a name='L43'>  43 <a href='../R/284.html' title='Multiple refered from 2 places.'>acquire_thread_func</a> (<b>void</b> *lock_) 
+<a name='L44'>  44 <font color='red'>{</font>
+<a name='L45'>  45   <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> *<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> = lock_;
+<a name='L46'>  46 
+<a name='L47'>  47   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L48'>  48   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("acquire: got the lock");
+<a name='L49'>  49   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L50'>  50   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("acquire: done");
+<a name='L51'>  51 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L43'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

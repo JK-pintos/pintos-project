@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>src/tests/threads/priority-change.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/priority-change.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L26'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L13' title='Defined at 13.'>test_priority_change</a>
+<li><a href='#L26' title='Defined at 26.'>changing_thread</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Verifies that lowering a thread's priority so that it is no</font></i>
+<a name='L2'>   2 <i><font color='green'>   longer the highest-priority thread in the system causes it to</font></i>
+<a name='L3'>   3 <i><font color='green'>   yield immediately. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../S/585.html#L26' title='Defined at 26 in src/tests/threads/priority-change.c.'>changing_thread</a>;
+<a name='L11'>  11 
+<a name='L12'>  12 <b>void</b>
+<a name='L13'>  13 <a href='../R/874.html' title='Multiple refered from 2 places.'>test_priority_change</a> (<b>void</b>) 
+<a name='L14'>  14 <font color='red'>{</font>
+<a name='L15'>  15   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L16'>  16   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L17'>  17 
+<a name='L18'>  18   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Creating a high-priority thread 2.");
+<a name='L19'>  19   <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> ("thread 2", <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> + 1, <a href='../S/585.html#L26' title='Defined at 26 in src/tests/threads/priority-change.c.'>changing_thread</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L20'>  20   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread 2 should have just lowered its priority.");
+<a name='L21'>  21   <a href='../S/163.html#L344' title='Defined at 344 in src/threads/thread.c.'>thread_set_priority</a> (<a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> - 2);
+<a name='L22'>  22   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread 2 should have just exited.");
+<a name='L23'>  23 <font color='red'>}</font>
+<a name='L24'>  24 
+<a name='L25'>  25 <b>static</b> <b>void</b>
+<a name='L26'>  26 <a href='../R/359.html' title='Multiple refered from 2 places.'>changing_thread</a> (<b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L27'>  27 <font color='red'>{</font>
+<a name='L28'>  28   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread 2 now lowering priority.");
+<a name='L29'>  29   <a href='../S/163.html#L344' title='Defined at 344 in src/threads/thread.c.'>thread_set_priority</a> (<a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> - 1);
+<a name='L30'>  30   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread 2 exiting.");
+<a name='L31'>  31 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L26'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

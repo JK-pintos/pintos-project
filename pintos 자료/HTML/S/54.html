@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>src/examples/matmult.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/matmult.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L36' title='Defined at 36.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* matmult.c </font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Test program to do matrix multiplication on large arrays.</font></i>
+<a name='L4'>   4 <i><font color='green'> </font></i>
+<a name='L5'>   5 <i><font color='green'>   Intended to stress virtual memory system.</font></i>
+<a name='L6'>   6 <i><font color='green'>   </font></i>
+<a name='L7'>   7 <i><font color='green'>   Ideally, we could read the matrices off of the file system,</font></i>
+<a name='L8'>   8 <i><font color='green'>   and store the result back to the file system!</font></i>
+<a name='L9'>   9 <i><font color='green'> */</font></i>
+<a name='L10'>  10 
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* You should define DIM to be large enough that the arrays</font></i>
+<a name='L15'>  15 <i><font color='green'>   don't fit in physical memory.</font></i>
+<a name='L16'>  16 <i><font color='green'></font></i>
+<a name='L17'>  17 <i><font color='green'>    Dim       Memory</font></i>
+<a name='L18'>  18 <i><font color='green'> ------     --------</font></i>
+<a name='L19'>  19 <i><font color='green'>     16         3 kB</font></i>
+<a name='L20'>  20 <i><font color='green'>     64        48 kB</font></i>
+<a name='L21'>  21 <i><font color='green'>    128       192 kB</font></i>
+<a name='L22'>  22 <i><font color='green'>    256       768 kB</font></i>
+<a name='L23'>  23 <i><font color='green'>    512     3,072 kB</font></i>
+<a name='L24'>  24 <i><font color='green'>  1,024    12,288 kB</font></i>
+<a name='L25'>  25 <i><font color='green'>  2,048    49,152 kB</font></i>
+<a name='L26'>  26 <i><font color='green'>  4,096   196,608 kB</font></i>
+<a name='L27'>  27 <i><font color='green'>  8,192   786,432 kB</font></i>
+<a name='L28'>  28 <i><font color='green'> 16,384 3,145,728 kB */</font></i>
+<a name='L29'>  29 <font color='darkred'>#define</font> <a href='../R/40.html' title='Multiple refered from 9 places.'>DIM</a> 128
+<a name='L30'>  30 
+<a name='L31'>  31 <b>int</b> A[<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>][<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>];
+<a name='L32'>  32 <b>int</b> B[<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>][<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>];
+<a name='L33'>  33 <b>int</b> C[<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>][<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>];
+<a name='L34'>  34 
+<a name='L35'>  35 <b>int</b>
+<a name='L36'>  36 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>void</b>)
+<a name='L37'>  37 <font color='red'>{</font>
+<a name='L38'>  38   <b>int</b> i, j, k;
+<a name='L39'>  39 
+<a name='L40'>  40   <i><font color='green'>/* Initialize the matrices. */</font></i>
+<a name='L41'>  41   <b>for</b> (i = 0; i &lt; <a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>; i++)
+<a name='L42'>  42     <b>for</b> (j = 0; j &lt; <a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>; j++)
+<a name='L43'>  43       <font color='red'>{</font>
+<a name='L44'>  44         A[i][j] = i;
+<a name='L45'>  45         B[i][j] = j;
+<a name='L46'>  46         C[i][j] = 0;
+<a name='L47'>  47       <font color='red'>}</font>
+<a name='L48'>  48 
+<a name='L49'>  49   <i><font color='green'>/* Multiply matrices. */</font></i>
+<a name='L50'>  50   <b>for</b> (i = 0; i &lt; <a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>; i++)     
+<a name='L51'>  51     <b>for</b> (j = 0; j &lt; <a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>; j++)
+<a name='L52'>  52       <b>for</b> (k = 0; k &lt; <a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a>; k++)
+<a name='L53'>  53         C[i][j] += A[i][k] * B[k][j];
+<a name='L54'>  54 
+<a name='L55'>  55   <i><font color='green'>/* Done. */</font></i>
+<a name='L56'>  56   <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (C[<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a> - 1][<a href='../S/54.html#L29' title='Defined at 29 in src/examples/matmult.c.'>DIM</a> - 1]);
+<a name='L57'>  57 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L36'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

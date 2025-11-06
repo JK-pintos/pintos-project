@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>start</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/134.html#L13'>start</a>              13 src/devices/partition.c     block_sector_t start;               /* First sector within device. */
+<a href='../S/134.html#L158'>start</a>             158 src/devices/partition.c   if (start &gt;= block_size (block))
+<a href='../S/134.html#L160'>start</a>             160 src/devices/partition.c             block_name (block), part_nr, start);
+<a href='../S/134.html#L161'>start</a>             161 src/devices/partition.c   else if (start + size &lt; start || start + size &gt; block_size (block))
+<a href='../S/134.html#L163'>start</a>             163 src/devices/partition.c             block_name (block), part_nr, start + size, block_size (block));
+<a href='../S/134.html#L179'>start</a>             179 src/devices/partition.c       p-&gt;start = start;
+<a href='../S/134.html#L307'>start</a>             307 src/devices/partition.c   block_read (p-&gt;block, p-&gt;start + sector, buffer);
+<a href='../S/134.html#L317'>start</a>             317 src/devices/partition.c   block_write (p-&gt;block, p-&gt;start + sector, buffer);
+<a href='../S/125.html#L92'>start</a>              92 src/devices/timer.c   int64_t start = timer_ticks ();
+<a href='../S/125.html#L95'>start</a>              95 src/devices/timer.c   while (timer_elapsed (start) &lt; ticks) 
+<a href='../S/125.html#L183'>start</a>             183 src/devices/timer.c   int64_t start = ticks;
+<a href='../S/125.html#L184'>start</a>             184 src/devices/timer.c   while (ticks == start)
+<a href='../S/125.html#L188'>start</a>             188 src/devices/timer.c   start = ticks;
+<a href='../S/125.html#L193'>start</a>             193 src/devices/timer.c   return start != ticks;
+<a href='../S/55.html#L13'>start</a>              13 src/examples/insult.c char *start[] =
+<a href='../S/55.html#L179'>start</a>             179 src/examples/insult.c   daGrammar[0] = start;
+<a href='../S/35.html#L17'>start</a>              17 src/filesys/inode.c     block_sector_t start;               /* First data sector. */
+<a href='../S/35.html#L51'>start</a>              51 src/filesys/inode.c     return inode-&gt;data.start + pos / BLOCK_SECTOR_SIZE;
+<a href='../S/35.html#L90'>start</a>              90 src/filesys/inode.c       if (free_map_allocate (sectors, &amp;disk_inode-&gt;start)) 
+<a href='../S/35.html#L99'>start</a>              99 src/filesys/inode.c                 block_write (fs_device, disk_inode-&gt;start + i, zeros);
+<a href='../S/35.html#L180'>start</a>             180 src/filesys/inode.c           free_map_release (inode-&gt;data.start,
+<a href='../S/114.html#L224'>start</a>             224 src/lib/kernel/bitmap.c   ASSERT (start &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L225'>start</a>             225 src/lib/kernel/bitmap.c   ASSERT (start + cnt &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L228'>start</a>             228 src/lib/kernel/bitmap.c     bitmap_set (b, start + i, value);
+<a href='../S/114.html#L239'>start</a>             239 src/lib/kernel/bitmap.c   ASSERT (start &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L240'>start</a>             240 src/lib/kernel/bitmap.c   ASSERT (start + cnt &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L244'>start</a>             244 src/lib/kernel/bitmap.c     if (bitmap_test (b, start + i) == value)
+<a href='../S/114.html#L257'>start</a>             257 src/lib/kernel/bitmap.c   ASSERT (start &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L258'>start</a>             258 src/lib/kernel/bitmap.c   ASSERT (start + cnt &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L261'>start</a>             261 src/lib/kernel/bitmap.c     if (bitmap_test (b, start + i) == value)
+<a href='../S/114.html#L271'>start</a>             271 src/lib/kernel/bitmap.c   return bitmap_contains (b, start, cnt, true);
+<a href='../S/114.html#L279'>start</a>             279 src/lib/kernel/bitmap.c   return !bitmap_contains (b, start, cnt, true);
+<a href='../S/114.html#L287'>start</a>             287 src/lib/kernel/bitmap.c   return !bitmap_contains (b, start, cnt, false);
+<a href='../S/114.html#L300'>start</a>             300 src/lib/kernel/bitmap.c   ASSERT (start &lt;= b-&gt;bit_cnt);
+<a href='../S/114.html#L306'>start</a>             306 src/lib/kernel/bitmap.c       for (i = start; i &lt;= last; i++)
+<a href='../S/114.html#L323'>start</a>             323 src/lib/kernel/bitmap.c   size_t idx = bitmap_scan (b, start, cnt, value);
+<a href='../S/115.html#L600'>start</a>             600 src/lib/stdio.c       size_t start, end, n;
+<a href='../S/115.html#L604'>start</a>             604 src/lib/stdio.c       start = ofs % per_line;
+<a href='../S/115.html#L606'>start</a>             606 src/lib/stdio.c       if (end - start &gt; size)
+<a href='../S/115.html#L607'>start</a>             607 src/lib/stdio.c         end = start + size;
+<a href='../S/115.html#L608'>start</a>             608 src/lib/stdio.c       n = end - start;
+<a href='../S/115.html#L612'>start</a>             612 src/lib/stdio.c       for (i = 0; i &lt; start; i++)
+<a href='../S/115.html#L616'>start</a>             616 src/lib/stdio.c                 buf[i - start], i == per_line / 2 - 1? '-' : ' ');
+<a href='../S/115.html#L622'>start</a>             622 src/lib/stdio.c           for (i = 0; i &lt; start; i++)
+<a href='../S/115.html#L626'>start</a>             626 src/lib/stdio.c                     isprint (buf[i - start]) ? buf[i - start] : '.');
+<a href='../S/569.html#L24'>start</a>              24 src/tests/threads/alarm-simultaneous.c     int64_t start;              /* Current time at start of test. */
+<a href='../S/569.html#L52'>start</a>              52 src/tests/threads/alarm-simultaneous.c   test.start = timer_ticks () + 100;
+<a href='../S/569.html#L89'>start</a>              89 src/tests/threads/alarm-simultaneous.c       int64_t sleep_until = test-&gt;start + i * 10;
+<a href='../S/569.html#L91'>start</a>              91 src/tests/threads/alarm-simultaneous.c       *test-&gt;output_pos++ = timer_ticks () - test-&gt;start;
+<a href='../S/586.html#L30'>start</a>              30 src/tests/threads/alarm-wait.c     int64_t start;              /* Current time at start of test. */
+<a href='../S/586.html#L75'>start</a>              75 src/tests/threads/alarm-wait.c   test.start = timer_ticks () + 100;
+<a href='../S/586.html#L146'>start</a>             146 src/tests/threads/alarm-wait.c       int64_t sleep_until = test-&gt;start + i * t-&gt;duration;
+<a href='../S/383.html#L11'>start</a>              11 src/tests/vm/mmap-overlap.c   char *start = (char *) 0x10000000;
+<a href='../S/383.html#L15'>start</a>              15 src/tests/vm/mmap-overlap.c   CHECK (mmap (fd[0], start) != MAP_FAILED, "mmap \"zeros\"");
+<a href='../S/383.html#L18'>start</a>              18 src/tests/vm/mmap-overlap.c   CHECK (mmap (fd[1], start + 4096) == MAP_FAILED,
+</pre>
+</body>
+</html>

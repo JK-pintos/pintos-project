@@ -1,0 +1,15 @@
+<html>
+<head>
+<title>PTSHIFT</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/162.html#L24'>PTSHIFT</a>            24 src/threads/pte.h #define PTMASK  BITMASK(PTSHIFT, PTBITS)   /* Page table bits (12:21). */
+<a href='../S/162.html#L27'>PTSHIFT</a>            27 src/threads/pte.h #define PDSHIFT (PTSHIFT + PTBITS)         /* First page directory bit. */
+<a href='../S/162.html#L33'>PTSHIFT</a>            33 src/threads/pte.h   return ((uintptr_t) va &amp; PTMASK) &gt;&gt; PTSHIFT;
+<a href='../S/75.html#L106'>PTSHIFT</a>           106 src/userprog/pagedir.c   ASSERT (vtop (kpage) &gt;&gt; PTSHIFT &lt; init_ram_pages);
+</pre>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<html>
+<head>
+<title>src/tests/threads/priority-donate-chain.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/priority-donate-chain.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L45'>[^]</a><a href='#L109'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L45' title='Defined at 45.'>test_priority_donate_chain</a>
+<li><a href='#L86' title='Defined at 86.'>donor_thread_func</a>
+<li><a href='#L109' title='Defined at 109.'>interloper_thread_func</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* The main thread set its priority to PRI_MIN and creates 7 threads </font></i>
+<a name='L2'>   2 <i><font color='green'>   (thread 1..7) with priorities PRI_MIN + 3, 6, 9, 12, ...</font></i>
+<a name='L3'>   3 <i><font color='green'>   The main thread initializes 8 locks: lock 0..7 and acquires lock 0.</font></i>
+<a name='L4'>   4 <i><font color='green'></font></i>
+<a name='L5'>   5 <i><font color='green'>   When thread[i] starts, it first acquires lock[i] (unless i == 7.)</font></i>
+<a name='L6'>   6 <i><font color='green'>   Subsequently, thread[i] attempts to acquire lock[i-1], which is held by</font></i>
+<a name='L7'>   7 <i><font color='green'>   thread[i-1], except for lock[0], which is held by the main thread.</font></i>
+<a name='L8'>   8 <i><font color='green'>   Because the lock is held, thread[i] donates its priority to thread[i-1],</font></i>
+<a name='L9'>   9 <i><font color='green'>   which donates to thread[i-2], and so on until the main thread</font></i>
+<a name='L10'>  10 <i><font color='green'>   receives the donation.</font></i>
+<a name='L11'>  11 <i><font color='green'></font></i>
+<a name='L12'>  12 <i><font color='green'>   After threads[1..7] have been created and are blocked on locks[0..7],</font></i>
+<a name='L13'>  13 <i><font color='green'>   the main thread releases lock[0], unblocking thread[1], and being</font></i>
+<a name='L14'>  14 <i><font color='green'>   preempted by it.</font></i>
+<a name='L15'>  15 <i><font color='green'>   Thread[1] then completes acquiring lock[0], then releases lock[0],</font></i>
+<a name='L16'>  16 <i><font color='green'>   then releases lock[1], unblocking thread[2], etc.</font></i>
+<a name='L17'>  17 <i><font color='green'>   Thread[7] finally acquires &amp; releases lock[7] and exits, allowing </font></i>
+<a name='L18'>  18 <i><font color='green'>   thread[6], then thread[5] etc. to run and exit until finally the </font></i>
+<a name='L19'>  19 <i><font color='green'>   main thread exits.</font></i>
+<a name='L20'>  20 <i><font color='green'></font></i>
+<a name='L21'>  21 <i><font color='green'>   In addition, interloper threads are created at priority levels</font></i>
+<a name='L22'>  22 <i><font color='green'>   p = PRI_MIN + 2, 5, 8, 11, ... which should not be run until the </font></i>
+<a name='L23'>  23 <i><font color='green'>   corresponding thread with priority p + 1 has finished.</font></i>
+<a name='L24'>  24 <i><font color='green'>  </font></i>
+<a name='L25'>  25 <i><font color='green'>   Written by Godmar Back &lt;gback@cs.vt.edu&gt; */</font></i> 
+<a name='L26'>  26 
+<a name='L27'>  27 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L28'>  28 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L29'>  29 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L30'>  30 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L31'>  31 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L32'>  32 
+<a name='L33'>  33 <font color='darkred'>#define</font> <a href='../R/113.html' title='Multiple refered from 6 places.'>NESTING_DEPTH</a> 8
+<a name='L34'>  34 
+<a name='L35'>  35 <b>struct</b> <a href='../R/632.html' title='Multiple refered from 2 places.'>lock_pair</a>
+<a name='L36'>  36   <font color='red'>{</font>
+<a name='L37'>  37     <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> *second;
+<a name='L38'>  38     <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> *first;
+<a name='L39'>  39   <font color='red'>}</font>;
+<a name='L40'>  40 
+<a name='L41'>  41 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../S/548.html#L86' title='Defined at 86 in src/tests/threads/priority-donate-chain.c.'>donor_thread_func</a>;
+<a name='L42'>  42 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../S/548.html#L109' title='Defined at 109 in src/tests/threads/priority-donate-chain.c.'>interloper_thread_func</a>;
+<a name='L43'>  43 
+<a name='L44'>  44 <b>void</b>
+<a name='L45'>  45 <a href='../R/876.html' title='Multiple refered from 2 places.'>test_priority_donate_chain</a> (<b>void</b>) 
+<a name='L46'>  46 <font color='red'>{</font>
+<a name='L47'>  47   <b>int</b> i;  
+<a name='L48'>  48   <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>[<a href='../S/548.html#L33' title='Defined at 33 in src/tests/threads/priority-donate-chain.c.'>NESTING_DEPTH</a> - 1];
+<a name='L49'>  49   <b>struct</b> <a href='../S/548.html#L35' title='Defined at 35 in src/tests/threads/priority-donate-chain.c.'>lock_pair</a> lock_pairs[<a href='../S/548.html#L33' title='Defined at 33 in src/tests/threads/priority-donate-chain.c.'>NESTING_DEPTH</a>];
+<a name='L50'>  50 
+<a name='L51'>  51   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L52'>  52   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L53'>  53 
+<a name='L54'>  54   <a href='../S/163.html#L344' title='Defined at 344 in src/threads/thread.c.'>thread_set_priority</a> (<a href='../S/164.html#L23' title='Defined at 23 in src/threads/thread.h.'>PRI_MIN</a>);
+<a name='L55'>  55 
+<a name='L56'>  56   <b>for</b> (i = 0; i &lt; <a href='../S/548.html#L33' title='Defined at 33 in src/tests/threads/priority-donate-chain.c.'>NESTING_DEPTH</a> - 1; i++)
+<a name='L57'>  57     <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>[i]);
+<a name='L58'>  58 
+<a name='L59'>  59   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>[0]);
+<a name='L60'>  60   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s got lock.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L61'>  61 
+<a name='L62'>  62   <b>for</b> (i = 1; i &lt; <a href='../S/548.html#L33' title='Defined at 33 in src/tests/threads/priority-donate-chain.c.'>NESTING_DEPTH</a>; i++)
+<a name='L63'>  63     <font color='red'>{</font>
+<a name='L64'>  64       <b>char</b> name[16];
+<a name='L65'>  65       <b>int</b> thread_priority;
+<a name='L66'>  66 
+<a name='L67'>  67       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (name, <b>sizeof</b> name, "thread %d", i);
+<a name='L68'>  68       thread_priority = <a href='../S/164.html#L23' title='Defined at 23 in src/threads/thread.h.'>PRI_MIN</a> + i * 3;
+<a name='L69'>  69       lock_pairs[i].first = i &lt; <a href='../S/548.html#L33' title='Defined at 33 in src/tests/threads/priority-donate-chain.c.'>NESTING_DEPTH</a> - 1 ? <a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a> + i: <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L70'>  70       lock_pairs[i].second = <a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a> + i - 1;
+<a name='L71'>  71 
+<a name='L72'>  72       <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> (name, thread_priority, <a href='../S/548.html#L86' title='Defined at 86 in src/tests/threads/priority-donate-chain.c.'>donor_thread_func</a>, lock_pairs + i);
+<a name='L73'>  73       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s should have priority %d.  Actual priority: %d.",
+<a name='L74'>  74           <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> (), thread_priority, <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L75'>  75 
+<a name='L76'>  76       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (name, <b>sizeof</b> name, "interloper %d", i);
+<a name='L77'>  77       <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> (name, thread_priority - 1, <a href='../S/548.html#L109' title='Defined at 109 in src/tests/threads/priority-donate-chain.c.'>interloper_thread_func</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L78'>  78     <font color='red'>}</font>
+<a name='L79'>  79 
+<a name='L80'>  80   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>[0]);
+<a name='L81'>  81   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s finishing with priority %d.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> (),
+<a name='L82'>  82                                          <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L83'>  83 <font color='red'>}</font>
+<a name='L84'>  84 
+<a name='L85'>  85 <b>static</b> <b>void</b>
+<a name='L86'>  86 <a href='../R/414.html' title='Multiple refered from 2 places.'>donor_thread_func</a> (<b>void</b> *locks_) 
+<a name='L87'>  87 <font color='red'>{</font>
+<a name='L88'>  88   <b>struct</b> <a href='../S/548.html#L35' title='Defined at 35 in src/tests/threads/priority-donate-chain.c.'>lock_pair</a> *<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a> = locks_;
+<a name='L89'>  89 
+<a name='L90'>  90   <b>if</b> (<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>-&gt;first)
+<a name='L91'>  91     <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>-&gt;first);
+<a name='L92'>  92 
+<a name='L93'>  93   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>-&gt;second);
+<a name='L94'>  94   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s got lock", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L95'>  95 
+<a name='L96'>  96   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>-&gt;second);
+<a name='L97'>  97   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s should have priority %d. Actual priority: %d", 
+<a name='L98'>  98         <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> (), (<a href='../S/548.html#L33' title='Defined at 33 in src/tests/threads/priority-donate-chain.c.'>NESTING_DEPTH</a> - 1) * 3,
+<a name='L99'>  99         <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L100'> 100 
+<a name='L101'> 101   <b>if</b> (<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>-&gt;first)
+<a name='L102'> 102     <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (<a href='../S/533.html#L18' title='Defined at 18 in src/tests/threads/priority-donate-nest.c.'>locks</a>-&gt;first);
+<a name='L103'> 103 
+<a name='L104'> 104   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s finishing with priority %d.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> (),
+<a name='L105'> 105                                          <a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> ());
+<a name='L106'> 106 <font color='red'>}</font>
+<a name='L107'> 107 
+<a name='L108'> 108 <b>static</b> <b>void</b>
+<a name='L109'> 109 <a href='../R/535.html' title='Multiple refered from 2 places.'>interloper_thread_func</a> (<b>void</b> *arg_ <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>)
+<a name='L110'> 110 <font color='red'>{</font>
+<a name='L111'> 111   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%s finished.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L112'> 112 <font color='red'>}</font>
+<a name='L113'> 113 
+<a name='L114'> 114 <i><font color='green'>// vim: sw=2</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L45'>[^]</a><a href='#L109'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

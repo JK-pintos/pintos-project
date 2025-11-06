@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>PANIC</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/132.html#L111'>PANIC</a>             111 src/devices/block.c       PANIC ("Access past end of device %s (sector=%"PRDSNu", "
+<a href='../S/132.html#L193'>PANIC</a>             193 src/devices/block.c     PANIC ("Failed to allocate memory for block device descriptor");
+<a href='../S/123.html#L354'>PANIC</a>             354 src/devices/ide.c     PANIC ("%s: disk read failed, sector=%"PRDSNu, d-&gt;name, sec_no);
+<a href='../S/123.html#L373'>PANIC</a>             373 src/devices/ide.c     PANIC ("%s: disk write failed, sector=%"PRDSNu, d-&gt;name, sec_no);
+<a href='../S/134.html#L90'>PANIC</a>              90 src/devices/partition.c     PANIC ("Failed to allocate memory for partition table.");
+<a href='../S/134.html#L177'>PANIC</a>             177 src/devices/partition.c         PANIC ("Failed to allocate memory for partition descriptor");
+<a href='../S/38.html#L22'>PANIC</a>              22 src/filesys/filesys.c     PANIC ("No file system device found, can't initialize file system.");
+<a href='../S/38.html#L100'>PANIC</a>             100 src/filesys/filesys.c     PANIC ("root directory creation failed");
+<a href='../S/25.html#L17'>PANIC</a>              17 src/filesys/free-map.c     PANIC ("bitmap creation failed--file system device is too large");
+<a href='../S/25.html#L58'>PANIC</a>              58 src/filesys/free-map.c     PANIC ("can't open free map");
+<a href='../S/25.html#L60'>PANIC</a>              60 src/filesys/free-map.c     PANIC ("can't read free map");
+<a href='../S/25.html#L77'>PANIC</a>              77 src/filesys/free-map.c     PANIC ("free map creation failed");
+<a href='../S/25.html#L82'>PANIC</a>              82 src/filesys/free-map.c     PANIC ("can't open free map");
+<a href='../S/25.html#L84'>PANIC</a>              84 src/filesys/free-map.c     PANIC ("can't write free map");
+<a href='../S/26.html#L24'>PANIC</a>              24 src/filesys/fsutil.c     PANIC ("root dir open failed");
+<a href='../S/26.html#L44'>PANIC</a>              44 src/filesys/fsutil.c     PANIC ("%s: open failed", file_name);
+<a href='../S/26.html#L67'>PANIC</a>              67 src/filesys/fsutil.c     PANIC ("%s: delete failed\n", file_name);
+<a href='../S/26.html#L84'>PANIC</a>              84 src/filesys/fsutil.c     PANIC ("couldn't allocate buffers");
+<a href='../S/26.html#L89'>PANIC</a>              89 src/filesys/fsutil.c     PANIC ("couldn't open scratch device");
+<a href='../S/26.html#L105'>PANIC</a>             105 src/filesys/fsutil.c         PANIC ("bad ustar header in sector %"PRDSNu" (%s)", sector - 1, error);
+<a href='../S/26.html#L122'>PANIC</a>             122 src/filesys/fsutil.c             PANIC ("%s: create failed", file_name);
+<a href='../S/26.html#L125'>PANIC</a>             125 src/filesys/fsutil.c             PANIC ("%s: open failed", file_name);
+<a href='../S/26.html#L135'>PANIC</a>             135 src/filesys/fsutil.c                 PANIC ("%s: write failed with %d bytes unwritten",
+<a href='../S/26.html#L182'>PANIC</a>             182 src/filesys/fsutil.c     PANIC ("couldn't allocate buffer");
+<a href='../S/26.html#L187'>PANIC</a>             187 src/filesys/fsutil.c     PANIC ("%s: open failed", file_name);
+<a href='../S/26.html#L193'>PANIC</a>             193 src/filesys/fsutil.c     PANIC ("couldn't open scratch device");
+<a href='../S/26.html#L197'>PANIC</a>             197 src/filesys/fsutil.c     PANIC ("%s: name too long for ustar format", file_name);
+<a href='../S/26.html#L205'>PANIC</a>             205 src/filesys/fsutil.c         PANIC ("%s: out of space on scratch device", file_name);
+<a href='../S/26.html#L207'>PANIC</a>             207 src/filesys/fsutil.c         PANIC ("%s: read failed with %"PROTd" bytes unread", file_name, size);
+<a href='../S/104.html#L33'>PANIC</a>              33 src/lib/debug.h                 PANIC ("assertion `%s' failed.", #CONDITION);   \
+<a href='../S/104.html#L35'>PANIC</a>              35 src/lib/debug.h #define NOT_REACHED() PANIC ("executed an unreachable statement");
+<a href='../S/569.html#L49'>PANIC</a>              49 src/tests/threads/alarm-simultaneous.c     PANIC ("couldn't allocate memory for test");
+<a href='../S/586.html#L72'>PANIC</a>              72 src/tests/threads/alarm-wait.c     PANIC ("couldn't allocate memory for test");
+<a href='../S/568.html#L60'>PANIC</a>              60 src/tests/threads/tests.c   PANIC ("no test named \"%s\"", name);
+<a href='../S/568.html#L93'>PANIC</a>              93 src/tests/threads/tests.c   PANIC ("test failed");
+<a href='../S/156.html#L207'>PANIC</a>             207 src/threads/init.c         PANIC ("command line arguments overflow");
+<a href='../S/156.html#L264'>PANIC</a>             264 src/threads/init.c         PANIC ("unknown option `%s' (use -h for help)", name);
+<a href='../S/156.html#L330'>PANIC</a>             330 src/threads/init.c           PANIC ("unknown action `%s' (use -h for help)", *argv);
+<a href='../S/156.html#L337'>PANIC</a>             337 src/threads/init.c           PANIC ("action `%s' requires %d argument(s)", *argv, a-&gt;argc - 1);
+<a href='../S/156.html#L414'>PANIC</a>             414 src/threads/init.c         PANIC ("No such block device \"%s\"", name);
+<a href='../S/160.html#L97'>PANIC</a>              97 src/threads/palloc.c         PANIC ("palloc_get: out of pages");
+<a href='../S/160.html#L161'>PANIC</a>             161 src/threads/palloc.c     PANIC ("Not enough memory in %s for bitmap.", name);
+<a href='../S/64.html#L100'>PANIC</a>             100 src/userprog/exception.c       PANIC ("Kernel bug - unexpected interrupt in kernel"); 
+</pre>
+</body>
+</html>

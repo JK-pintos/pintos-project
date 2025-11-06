@@ -1,0 +1,33 @@
+<html>
+<head>
+<title>thread_current</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/135.html#L94'>thread_current</a>     94 src/devices/intq.c   *waiter = thread_current ();
+<a href='../S/109.html#L80'>thread_current</a>     80 src/lib/kernel/debug.c   if (t == thread_current()) 
+<a href='../S/167.html#L71'>thread_current</a>     71 src/threads/synch.c       list_push_back (&amp;sema-&gt;waiters, &amp;thread_current ()-&gt;elem);
+<a href='../S/167.html#L200'>thread_current</a>    200 src/threads/synch.c   lock-&gt;holder = thread_current ();
+<a href='../S/167.html#L219'>thread_current</a>    219 src/threads/synch.c     lock-&gt;holder = thread_current ();
+<a href='../S/167.html#L246'>thread_current</a>    246 src/threads/synch.c   return lock-&gt;holder == thread_current ();
+<a href='../S/163.html#L125'>thread_current</a>    125 src/threads/thread.c   struct thread *t = thread_current ();
+<a href='../S/163.html#L227'>thread_current</a>    227 src/threads/thread.c   thread_current ()-&gt;status = THREAD_BLOCKED;
+<a href='../S/163.html#L257'>thread_current</a>    257 src/threads/thread.c   return thread_current ()-&gt;name;
+<a href='../S/163.html#L283'>thread_current</a>    283 src/threads/thread.c   return thread_current ()-&gt;tid;
+<a href='../S/163.html#L301'>thread_current</a>    301 src/threads/thread.c   list_remove (&amp;thread_current()-&gt;allelem);
+<a href='../S/163.html#L302'>thread_current</a>    302 src/threads/thread.c   thread_current ()-&gt;status = THREAD_DYING;
+<a href='../S/163.html#L312'>thread_current</a>    312 src/threads/thread.c   struct thread *cur = thread_current ();
+<a href='../S/163.html#L346'>thread_current</a>    346 src/threads/thread.c   thread_current ()-&gt;priority = new_priority;
+<a href='../S/163.html#L353'>thread_current</a>    353 src/threads/thread.c   return thread_current ()-&gt;priority;
+<a href='../S/163.html#L400'>thread_current</a>    400 src/threads/thread.c   idle_thread = thread_current ();
+<a href='../S/164.html#L122'>thread_current</a>    122 src/threads/thread.h struct thread *thread_current (void);
+<a href='../S/66.html#L98'>thread_current</a>     98 src/userprog/process.c   struct thread *cur = thread_current ();
+<a href='../S/66.html#L125'>thread_current</a>    125 src/userprog/process.c   struct thread *t = thread_current ();
+<a href='../S/66.html#L211'>thread_current</a>    211 src/userprog/process.c   struct thread *t = thread_current ();
+<a href='../S/66.html#L459'>thread_current</a>    459 src/userprog/process.c   struct thread *t = thread_current ();
+<a href='../S/72.html#L105'>thread_current</a>    105 src/userprog/tss.c   tss-&gt;esp0 = (uint8_t *) thread_current () + PGSIZE;
+</pre>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<html>
+<head>
+<title>src/devices/block.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/block.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/2.html' title='Multiple included from 8 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/128.html#L2' title='Defined at 2 in src/devices/block.h.'>DEVICES_BLOCK_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/128.html#L1' title='Refered from 1 in src/devices/block.h.'>DEVICES_BLOCK_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Size of a block device sector in bytes.</font></i>
+<a name='L8'>   8 <i><font color='green'>   All IDE disks use this sector size, as do most USB and SCSI</font></i>
+<a name='L9'>   9 <i><font color='green'>   disks.  It's not worth it to try to cater to other sector</font></i>
+<a name='L10'>  10 <i><font color='green'>   sizes in Pintos (yet). */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> <a href='../R/7.html' title='Multiple refered from 28 places.'>BLOCK_SECTOR_SIZE</a> 512
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* Index of a block device sector.</font></i>
+<a name='L14'>  14 <i><font color='green'>   Good enough for devices up to 2 TB. */</font></i>
+<a name='L15'>  15 <b>typedef</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> <a href='../R/341.html' title='Multiple refered from 50 places.'>block_sector_t</a>;
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Format specifier for printf(), e.g.:</font></i>
+<a name='L18'>  18 <i><font color='green'>   printf ("sector=%"PRDSNu"\n", sector); */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../R/139.html' title='Multiple refered from 11 places.'>PRDSNu</a> <a href='../S/81.html#L23' title='Defined at 23 in src/lib/inttypes.h.'>PRIu32</a>
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Higher-level interface for file systems, etc. */</font></i>
+<a name='L22'>  22 
+<a name='L23'>  23 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L24'>  24 
+<a name='L25'>  25 <i><font color='green'>/* Type of a block device. */</font></i>
+<a name='L26'>  26 <b>enum</b> <a href='../R/346.html' title='Multiple refered from 5 places.'>block_type</a>
+<a name='L27'>  27   <font color='red'>{</font>
+<a name='L28'>  28     <i><font color='green'>/* Block device types that play a role in Pintos. */</font></i>
+<a name='L29'>  29     BLOCK_KERNEL,                <i><font color='green'>/* Pintos OS kernel. */</font></i>
+<a name='L30'>  30     BLOCK_FILESYS,               <i><font color='green'>/* File system. */</font></i>
+<a name='L31'>  31     BLOCK_SCRATCH,               <i><font color='green'>/* Scratch. */</font></i>
+<a name='L32'>  32     BLOCK_SWAP,                  <i><font color='green'>/* Swap. */</font></i>
+<a name='L33'>  33     BLOCK_ROLE_CNT,
+<a name='L34'>  34 
+<a name='L35'>  35     <i><font color='green'>/* Other kinds of block devices that Pintos may see but does</font></i>
+<a name='L36'>  36 <i><font color='green'>       not interact with. */</font></i>
+<a name='L37'>  37     BLOCK_RAW = BLOCK_ROLE_CNT,  <i><font color='green'>/* "Raw" device with unidentified contents. */</font></i>
+<a name='L38'>  38     BLOCK_FOREIGN,               <i><font color='green'>/* Owned by non-Pintos operating system. */</font></i>
+<a name='L39'>  39     BLOCK_CNT                    <i><font color='green'>/* Number of Pintos block types. */</font></i>
+<a name='L40'>  40   <font color='red'>}</font>;
+<a name='L41'>  41 
+<a name='L42'>  42 <b>const</b> <b>char</b> *<a href='../S/132.html#L35' title='Defined at 35 in src/devices/block.c.'>block_type_name</a> (<b>enum</b> block_type);
+<a name='L43'>  43 
+<a name='L44'>  44 <i><font color='green'>/* Finding block devices. */</font></i>
+<a name='L45'>  45 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/132.html#L54' title='Defined at 54 in src/devices/block.c.'>block_get_role</a> (<b>enum</b> block_type);
+<a name='L46'>  46 <b>void</b> <a href='../S/132.html#L62' title='Defined at 62 in src/devices/block.c.'>block_set_role</a> (<b>enum</b> block_type, <b>struct</b> block *);
+<a name='L47'>  47 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/132.html#L87' title='Defined at 87 in src/devices/block.c.'>block_get_by_name</a> (<b>const</b> <b>char</b> *name);
+<a name='L48'>  48 
+<a name='L49'>  49 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/132.html#L71' title='Defined at 71 in src/devices/block.c.'>block_first</a> (<b>void</b>);
+<a name='L50'>  50 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/132.html#L79' title='Defined at 79 in src/devices/block.c.'>block_next</a> (<b>struct</b> block *);
+<a name='L51'>  51 
+<a name='L52'>  52 <i><font color='green'>/* Block device operations. */</font></i>
+<a name='L53'>  53 <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> (<b>struct</b> block *);
+<a name='L54'>  54 <b>void</b> <a href='../S/132.html#L121' title='Defined at 121 in src/devices/block.c.'>block_read</a> (<b>struct</b> block *, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>, <b>void</b> *);
+<a name='L55'>  55 <b>void</b> <a href='../S/132.html#L134' title='Defined at 134 in src/devices/block.c.'>block_write</a> (<b>struct</b> block *, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>, <b>const</b> <b>void</b> *);
+<a name='L56'>  56 <b>const</b> <b>char</b> *<a href='../S/132.html#L151' title='Defined at 151 in src/devices/block.c.'>block_name</a> (<b>struct</b> block *);
+<a name='L57'>  57 <b>enum</b> <a href='../D/430.html' title='Multiple defined in 2 places.'>block_type</a> <a href='../D/430.html' title='Multiple defined in 2 places.'>block_type</a> (<b>struct</b> block *);
+<a name='L58'>  58 
+<a name='L59'>  59 <i><font color='green'>/* Statistics. */</font></i>
+<a name='L60'>  60 <b>void</b> <a href='../S/132.html#L165' title='Defined at 165 in src/devices/block.c.'>block_print_stats</a> (<b>void</b>);
+<a name='L61'>  61 
+<a name='L62'>  62 <i><font color='green'>/* Lower-level interface to block device drivers. */</font></i>
+<a name='L63'>  63 
+<a name='L64'>  64 <b>struct</b> <a href='../R/337.html' title='Multiple refered from 5 places.'>block_operations</a>
+<a name='L65'>  65   <font color='red'>{</font>
+<a name='L66'>  66     <b>void</b> (*<a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a>) (<b>void</b> *aux, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>, <b>void</b> *buffer);
+<a name='L67'>  67     <b>void</b> (*<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a>) (<b>void</b> *aux, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>, <b>const</b> <b>void</b> *buffer);
+<a name='L68'>  68   <font color='red'>}</font>;
+<a name='L69'>  69 
+<a name='L70'>  70 <b>struct</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> *<a href='../S/132.html#L187' title='Defined at 187 in src/devices/block.c.'>block_register</a> (<b>const</b> <b>char</b> *name, <b>enum</b> block_type,
+<a name='L71'>  71                               <b>const</b> <b>char</b> *extra_info, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> size,
+<a name='L72'>  72                               <b>const</b> <b>struct</b> block_operations *, <b>void</b> *aux);
+<a name='L73'>  73 
+<a name='L74'>  74 <font color='darkred'>#endif</font> <i><font color='green'>/* devices/block.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>src/lib/ctype.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/ctype.h</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L4'>[^]</a><a href='#L26'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/59.html' title='Multiple included from 8 places.'>INCLUDED FROM</a></h2>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L4' title='Defined at 4.'>islower</a>
+<li><a href='#L5' title='Defined at 5.'>isupper</a>
+<li><a href='#L6' title='Defined at 6.'>isalpha</a>
+<li><a href='#L7' title='Defined at 7.'>isdigit</a>
+<li><a href='#L8' title='Defined at 8.'>isalnum</a>
+<li><a href='#L9' title='Defined at 9.'>isxdigit</a>
+<li><a href='#L12' title='Defined at 12.'>isspace</a>
+<li><a href='#L16' title='Defined at 16.'>isblank</a>
+<li><a href='#L17' title='Defined at 17.'>isgraph</a>
+<li><a href='#L18' title='Defined at 18.'>isprint</a>
+<li><a href='#L19' title='Defined at 19.'>iscntrl</a>
+<li><a href='#L20' title='Defined at 20.'>isascii</a>
+<li><a href='#L21' title='Defined at 21.'>ispunct</a>
+<li><a href='#L25' title='Defined at 25.'>tolower</a>
+<li><a href='#L26' title='Defined at 26.'>toupper</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/93.html#L2' title='Defined at 2 in src/lib/ctype.h.'>__LIB_CTYPE_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/93.html#L1' title='Refered from 1 in src/lib/ctype.h.'>__LIB_CTYPE_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <b>static</b> <b>inline</b> <b>int</b> <a href='../R/575.html' title='Multiple refered from 2 places.'>islower</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> c &gt;= 'a' &amp;&amp; c &lt;= 'z'; <font color='red'>}</font>
+<a name='L5'>   5 <b>static</b> <b>inline</b> <b>int</b> <a href='../R/580.html' title='Multiple refered from 2 places.'>isupper</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> c &gt;= 'A' &amp;&amp; c &lt;= 'Z'; <font color='red'>}</font>
+<a name='L6'>   6 <b>static</b> <b>inline</b> <b>int</b> <a href='../S/93.html#L8' title='Refered from 8 in src/lib/ctype.h.'>isalpha</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> <a href='../S/93.html#L4' title='Defined at 4 in src/lib/ctype.h.'>islower</a> (c) || <a href='../S/93.html#L5' title='Defined at 5 in src/lib/ctype.h.'>isupper</a> (c); <font color='red'>}</font>
+<a name='L7'>   7 <b>static</b> <b>inline</b> <b>int</b> <a href='../R/573.html' title='Multiple refered from 8 places.'>isdigit</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> c &gt;= '0' &amp;&amp; c &lt;= '9'; <font color='red'>}</font>
+<a name='L8'>   8 <b>static</b> <b>inline</b> <b>int</b> <a href='../S/93.html#L22' title='Refered from 22 in src/lib/ctype.h.'>isalnum</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> <a href='../S/93.html#L6' title='Defined at 6 in src/lib/ctype.h.'>isalpha</a> (c) || <a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (c); <font color='red'>}</font>
+<a name='L9'>   9 <b>static</b> <b>inline</b> <b>int</b> isxdigit (<b>int</b> c) <font color='red'>{</font>
+<a name='L10'>  10   <b>return</b> <a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (c) || (c &gt;= 'a' &amp;&amp; c &lt;= 'f') || (c &gt;= 'A' &amp;&amp; c &lt;= 'F');
+<a name='L11'>  11 <font color='red'>}</font>
+<a name='L12'>  12 <b>static</b> <b>inline</b> <b>int</b> <a href='../R/578.html' title='Multiple refered from 3 places.'>isspace</a> (<b>int</b> c) <font color='red'>{</font>
+<a name='L13'>  13   <b>return</b> (c == ' ' || c == '\f' || c == '\n'
+<a name='L14'>  14           || c == '\r' || c == '\t' || c == '\v');
+<a name='L15'>  15 <font color='red'>}</font>
+<a name='L16'>  16 <b>static</b> <b>inline</b> <b>int</b> isblank (<b>int</b> c) <font color='red'>{</font> <b>return</b> c == ' ' || c == '\t'; <font color='red'>}</font>
+<a name='L17'>  17 <b>static</b> <b>inline</b> <b>int</b> isgraph (<b>int</b> c) <font color='red'>{</font> <b>return</b> c &gt; 32 &amp;&amp; c &lt; 127; <font color='red'>}</font>
+<a name='L18'>  18 <b>static</b> <b>inline</b> <b>int</b> <a href='../R/576.html' title='Multiple refered from 2 places.'>isprint</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> c &gt;= 32 &amp;&amp; c &lt; 127; <font color='red'>}</font>
+<a name='L19'>  19 <b>static</b> <b>inline</b> <b>int</b> iscntrl (<b>int</b> c) <font color='red'>{</font> <b>return</b> (c &gt;= 0 &amp;&amp; c &lt; 32) || c == 127; <font color='red'>}</font>
+<a name='L20'>  20 <b>static</b> <b>inline</b> <b>int</b> isascii (<b>int</b> c) <font color='red'>{</font> <b>return</b> c &gt;= 0 &amp;&amp; c &lt; 128; <font color='red'>}</font>
+<a name='L21'>  21 <b>static</b> <b>inline</b> <b>int</b> <a href='../S/55.html#L361' title='Refered from 361 in src/examples/insult.c.'>ispunct</a> (<b>int</b> c) <font color='red'>{</font>
+<a name='L22'>  22   <b>return</b> <a href='../S/93.html#L18' title='Defined at 18 in src/lib/ctype.h.'>isprint</a> (c) &amp;&amp; !<a href='../S/93.html#L8' title='Defined at 8 in src/lib/ctype.h.'>isalnum</a> (c) &amp;&amp; !<a href='../S/93.html#L12' title='Defined at 12 in src/lib/ctype.h.'>isspace</a> (c);
+<a name='L23'>  23 <font color='red'>}</font>
+<a name='L24'>  24 
+<a name='L25'>  25 <b>static</b> <b>inline</b> <b>int</b> <a href='../S/122.html#L148' title='Refered from 148 in src/devices/kbd.c.'>tolower</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> <a href='../S/93.html#L5' title='Defined at 5 in src/lib/ctype.h.'>isupper</a> (c) ? c - 'A' + 'a' : c; <font color='red'>}</font>
+<a name='L26'>  26 <b>static</b> <b>inline</b> <b>int</b> <a href='../S/50.html#L36' title='Refered from 36 in src/examples/lineup.c.'>toupper</a> (<b>int</b> c) <font color='red'>{</font> <b>return</b> <a href='../S/93.html#L4' title='Defined at 4 in src/lib/ctype.h.'>islower</a> (c) ? c - 'a' + 'A' : c; <font color='red'>}</font>
+<a name='L27'>  27 
+<a name='L28'>  28 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/ctype.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L4'>[^]</a><a href='#L26'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

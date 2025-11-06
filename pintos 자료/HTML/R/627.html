@@ -1,0 +1,133 @@
+<html>
+<head>
+<title>lock</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/123.html#L70'>lock</a>               70 src/devices/ide.c     struct lock lock;           /* Must acquire to access the controller. */
+<a href='../S/123.html#L126'>lock</a>              126 src/devices/ide.c       lock_init (&amp;c-&gt;lock);
+<a href='../S/123.html#L349'>lock</a>              349 src/devices/ide.c   lock_acquire (&amp;c-&gt;lock);
+<a href='../S/123.html#L356'>lock</a>              356 src/devices/ide.c   lock_release (&amp;c-&gt;lock);
+<a href='../S/123.html#L369'>lock</a>              369 src/devices/ide.c   lock_acquire (&amp;c-&gt;lock);
+<a href='../S/123.html#L376'>lock</a>              376 src/devices/ide.c   lock_release (&amp;c-&gt;lock);
+<a href='../S/135.html#L13'>lock</a>               13 src/devices/intq.c   lock_init (&amp;q-&gt;lock);
+<a href='../S/135.html#L46'>lock</a>               46 src/devices/intq.c       lock_acquire (&amp;q-&gt;lock);
+<a href='../S/135.html#L48'>lock</a>               48 src/devices/intq.c       lock_release (&amp;q-&gt;lock);
+<a href='../S/135.html#L67'>lock</a>               67 src/devices/intq.c       lock_acquire (&amp;q-&gt;lock);
+<a href='../S/135.html#L69'>lock</a>               69 src/devices/intq.c       lock_release (&amp;q-&gt;lock);
+<a href='../S/130.html#L27'>lock</a>               27 src/devices/intq.h     struct lock lock;           /* Only one thread may wait at once. */
+<a href='../S/105.html#L18'>lock</a>               18 src/lib/kernel/console.c static struct lock console_lock;
+<a href='../S/586.html#L34'>lock</a>               34 src/tests/threads/alarm-wait.c     struct lock output_lock;    /* Lock protecting output buffer. */
+<a href='../S/575.html#L26'>lock</a>               26 src/tests/threads/mlfqs-block.c   struct lock lock;
+<a href='../S/575.html#L31'>lock</a>               31 src/tests/threads/mlfqs-block.c   lock_init (&amp;lock);
+<a href='../S/575.html#L32'>lock</a>               32 src/tests/threads/mlfqs-block.c   lock_acquire (&amp;lock);
+<a href='../S/575.html#L35'>lock</a>               35 src/tests/threads/mlfqs-block.c   thread_create ("block", PRI_DEFAULT, block_thread, &amp;lock);
+<a href='../S/575.html#L44'>lock</a>               44 src/tests/threads/mlfqs-block.c   lock_release (&amp;lock);
+<a href='../S/575.html#L52'>lock</a>               52 src/tests/threads/mlfqs-block.c   struct lock *lock = lock_;
+<a href='../S/575.html#L61'>lock</a>               61 src/tests/threads/mlfqs-block.c   lock_acquire (lock);
+<a href='../S/581.html#L13'>lock</a>               13 src/tests/threads/priority-condvar.c static struct lock lock;
+<a href='../S/581.html#L24'>lock</a>               24 src/tests/threads/priority-condvar.c   lock_init (&amp;lock);
+<a href='../S/581.html#L38'>lock</a>               38 src/tests/threads/priority-condvar.c       lock_acquire (&amp;lock);
+<a href='../S/581.html#L40'>lock</a>               40 src/tests/threads/priority-condvar.c       cond_signal (&amp;condition, &amp;lock);
+<a href='../S/581.html#L41'>lock</a>               41 src/tests/threads/priority-condvar.c       lock_release (&amp;lock);
+<a href='../S/581.html#L49'>lock</a>               49 src/tests/threads/priority-condvar.c   lock_acquire (&amp;lock);
+<a href='../S/581.html#L50'>lock</a>               50 src/tests/threads/priority-condvar.c   cond_wait (&amp;condition, &amp;lock);
+<a href='../S/581.html#L52'>lock</a>               52 src/tests/threads/priority-condvar.c   lock_release (&amp;lock);
+<a href='../S/548.html#L37'>lock</a>               37 src/tests/threads/priority-donate-chain.c     struct lock *second;
+<a href='../S/548.html#L38'>lock</a>               38 src/tests/threads/priority-donate-chain.c     struct lock *first;
+<a href='../S/548.html#L48'>lock</a>               48 src/tests/threads/priority-donate-chain.c   struct lock locks[NESTING_DEPTH - 1];
+<a href='../S/587.html#L18'>lock</a>               18 src/tests/threads/priority-donate-lower.c   struct lock lock;
+<a href='../S/587.html#L26'>lock</a>               26 src/tests/threads/priority-donate-lower.c   lock_init (&amp;lock);
+<a href='../S/587.html#L27'>lock</a>               27 src/tests/threads/priority-donate-lower.c   lock_acquire (&amp;lock);
+<a href='../S/587.html#L28'>lock</a>               28 src/tests/threads/priority-donate-lower.c   thread_create ("acquire", PRI_DEFAULT + 10, acquire_thread_func, &amp;lock);
+<a href='../S/587.html#L36'>lock</a>               36 src/tests/threads/priority-donate-lower.c   lock_release (&amp;lock);
+<a href='../S/587.html#L45'>lock</a>               45 src/tests/threads/priority-donate-lower.c   struct lock *lock = lock_;
+<a href='../S/587.html#L47'>lock</a>               47 src/tests/threads/priority-donate-lower.c   lock_acquire (lock);
+<a href='../S/587.html#L49'>lock</a>               49 src/tests/threads/priority-donate-lower.c   lock_release (lock);
+<a href='../S/579.html#L24'>lock</a>               24 src/tests/threads/priority-donate-multiple.c   struct lock a, b;
+<a href='../S/579.html#L60'>lock</a>               60 src/tests/threads/priority-donate-multiple.c   struct lock *lock = lock_;
+<a href='../S/579.html#L62'>lock</a>               62 src/tests/threads/priority-donate-multiple.c   lock_acquire (lock);
+<a href='../S/579.html#L64'>lock</a>               64 src/tests/threads/priority-donate-multiple.c   lock_release (lock);
+<a href='../S/579.html#L71'>lock</a>               71 src/tests/threads/priority-donate-multiple.c   struct lock *lock = lock_;
+<a href='../S/579.html#L73'>lock</a>               73 src/tests/threads/priority-donate-multiple.c   lock_acquire (lock);
+<a href='../S/579.html#L75'>lock</a>               75 src/tests/threads/priority-donate-multiple.c   lock_release (lock);
+<a href='../S/576.html#L30'>lock</a>               30 src/tests/threads/priority-donate-multiple2.c   struct lock a, b;
+<a href='../S/576.html#L67'>lock</a>               67 src/tests/threads/priority-donate-multiple2.c   struct lock *lock = lock_;
+<a href='../S/576.html#L69'>lock</a>               69 src/tests/threads/priority-donate-multiple2.c   lock_acquire (lock);
+<a href='../S/576.html#L71'>lock</a>               71 src/tests/threads/priority-donate-multiple2.c   lock_release (lock);
+<a href='../S/576.html#L78'>lock</a>               78 src/tests/threads/priority-donate-multiple2.c   struct lock *lock = lock_;
+<a href='../S/576.html#L80'>lock</a>               80 src/tests/threads/priority-donate-multiple2.c   lock_acquire (lock);
+<a href='../S/576.html#L82'>lock</a>               82 src/tests/threads/priority-donate-multiple2.c   lock_release (lock);
+<a href='../S/533.html#L20'>lock</a>               20 src/tests/threads/priority-donate-nest.c     struct lock *a;
+<a href='../S/533.html#L21'>lock</a>               21 src/tests/threads/priority-donate-nest.c     struct lock *b;
+<a href='../S/533.html#L30'>lock</a>               30 src/tests/threads/priority-donate-nest.c   struct lock a, b;
+<a href='../S/533.html#L88'>lock</a>               88 src/tests/threads/priority-donate-nest.c   struct lock *lock = lock_;
+<a href='../S/533.html#L90'>lock</a>               90 src/tests/threads/priority-donate-nest.c   lock_acquire (lock);
+<a href='../S/533.html#L92'>lock</a>               92 src/tests/threads/priority-donate-nest.c   lock_release (lock);
+<a href='../S/554.html#L24'>lock</a>               24 src/tests/threads/priority-donate-one.c   struct lock lock;
+<a href='../S/554.html#L32'>lock</a>               32 src/tests/threads/priority-donate-one.c   lock_init (&amp;lock);
+<a href='../S/554.html#L33'>lock</a>               33 src/tests/threads/priority-donate-one.c   lock_acquire (&amp;lock);
+<a href='../S/554.html#L34'>lock</a>               34 src/tests/threads/priority-donate-one.c   thread_create ("acquire1", PRI_DEFAULT + 1, acquire1_thread_func, &amp;lock);
+<a href='../S/554.html#L37'>lock</a>               37 src/tests/threads/priority-donate-one.c   thread_create ("acquire2", PRI_DEFAULT + 2, acquire2_thread_func, &amp;lock);
+<a href='../S/554.html#L40'>lock</a>               40 src/tests/threads/priority-donate-one.c   lock_release (&amp;lock);
+<a href='../S/554.html#L48'>lock</a>               48 src/tests/threads/priority-donate-one.c   struct lock *lock = lock_;
+<a href='../S/554.html#L50'>lock</a>               50 src/tests/threads/priority-donate-one.c   lock_acquire (lock);
+<a href='../S/554.html#L52'>lock</a>               52 src/tests/threads/priority-donate-one.c   lock_release (lock);
+<a href='../S/554.html#L59'>lock</a>               59 src/tests/threads/priority-donate-one.c   struct lock *lock = lock_;
+<a href='../S/554.html#L61'>lock</a>               61 src/tests/threads/priority-donate-one.c   lock_acquire (lock);
+<a href='../S/554.html#L63'>lock</a>               63 src/tests/threads/priority-donate-one.c   lock_release (lock);
+<a href='../S/544.html#L21'>lock</a>               21 src/tests/threads/priority-donate-sema.c     struct lock lock;
+<a href='../S/544.html#L40'>lock</a>               40 src/tests/threads/priority-donate-sema.c   lock_init (&amp;ls.lock);
+<a href='../S/544.html#L54'>lock</a>               54 src/tests/threads/priority-donate-sema.c   lock_acquire (&amp;ls-&gt;lock);
+<a href='../S/544.html#L58'>lock</a>               58 src/tests/threads/priority-donate-sema.c   lock_release (&amp;ls-&gt;lock);
+<a href='../S/544.html#L76'>lock</a>               76 src/tests/threads/priority-donate-sema.c   lock_acquire (&amp;ls-&gt;lock);
+<a href='../S/544.html#L80'>lock</a>               80 src/tests/threads/priority-donate-sema.c   lock_release (&amp;ls-&gt;lock);
+<a href='../S/559.html#L22'>lock</a>               22 src/tests/threads/priority-fifo.c     struct lock *lock;          /* Lock on output. */
+<a href='../S/559.html#L35'>lock</a>               35 src/tests/threads/priority-fifo.c   struct lock lock;
+<a href='../S/559.html#L51'>lock</a>               51 src/tests/threads/priority-fifo.c   lock_init (&amp;lock);
+<a href='../S/559.html#L61'>lock</a>               61 src/tests/threads/priority-fifo.c       d-&gt;lock = &amp;lock;
+<a href='../S/559.html#L68'>lock</a>               68 src/tests/threads/priority-fifo.c   ASSERT (lock.holder == NULL);
+<a href='../S/559.html#L94'>lock</a>               94 src/tests/threads/priority-fifo.c       lock_acquire (data-&gt;lock);
+<a href='../S/559.html#L96'>lock</a>               96 src/tests/threads/priority-fifo.c       lock_release (data-&gt;lock);
+<a href='../S/161.html#L43'>lock</a>               43 src/threads/malloc.c     struct lock lock;           /* Lock. */
+<a href='../S/161.html#L83'>lock</a>               83 src/threads/malloc.c       lock_init (&amp;d-&gt;lock);
+<a href='../S/161.html#L122'>lock</a>              122 src/threads/malloc.c   lock_acquire (&amp;d-&gt;lock);
+<a href='../S/161.html#L133'>lock</a>              133 src/threads/malloc.c           lock_release (&amp;d-&gt;lock);
+<a href='../S/161.html#L152'>lock</a>              152 src/threads/malloc.c   lock_release (&amp;d-&gt;lock);
+<a href='../S/161.html#L236'>lock</a>              236 src/threads/malloc.c           lock_acquire (&amp;d-&gt;lock);
+<a href='../S/161.html#L255'>lock</a>              255 src/threads/malloc.c           lock_release (&amp;d-&gt;lock);
+<a href='../S/160.html#L31'>lock</a>               31 src/threads/palloc.c     struct lock lock;                   /* Mutual exclusion. */
+<a href='../S/160.html#L80'>lock</a>               80 src/threads/palloc.c   lock_acquire (&amp;pool-&gt;lock);
+<a href='../S/160.html#L82'>lock</a>               82 src/threads/palloc.c   lock_release (&amp;pool-&gt;lock);
+<a href='../S/160.html#L167'>lock</a>              167 src/threads/palloc.c   lock_init (&amp;p-&gt;lock);
+<a href='../S/167.html#L178'>lock</a>              178 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L180'>lock</a>              180 src/threads/synch.c   lock-&gt;holder = NULL;
+<a href='../S/167.html#L181'>lock</a>              181 src/threads/synch.c   sema_init (&amp;lock-&gt;semaphore, 1);
+<a href='../S/167.html#L195'>lock</a>              195 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L197'>lock</a>              197 src/threads/synch.c   ASSERT (!lock_held_by_current_thread (lock));
+<a href='../S/167.html#L199'>lock</a>              199 src/threads/synch.c   sema_down (&amp;lock-&gt;semaphore);
+<a href='../S/167.html#L200'>lock</a>              200 src/threads/synch.c   lock-&gt;holder = thread_current ();
+<a href='../S/167.html#L214'>lock</a>              214 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L215'>lock</a>              215 src/threads/synch.c   ASSERT (!lock_held_by_current_thread (lock));
+<a href='../S/167.html#L217'>lock</a>              217 src/threads/synch.c   success = sema_try_down (&amp;lock-&gt;semaphore);
+<a href='../S/167.html#L219'>lock</a>              219 src/threads/synch.c     lock-&gt;holder = thread_current ();
+<a href='../S/167.html#L231'>lock</a>              231 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L232'>lock</a>              232 src/threads/synch.c   ASSERT (lock_held_by_current_thread (lock));
+<a href='../S/167.html#L234'>lock</a>              234 src/threads/synch.c   lock-&gt;holder = NULL;
+<a href='../S/167.html#L235'>lock</a>              235 src/threads/synch.c   sema_up (&amp;lock-&gt;semaphore);
+<a href='../S/167.html#L244'>lock</a>              244 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L246'>lock</a>              246 src/threads/synch.c   return lock-&gt;holder == thread_current ();
+<a href='../S/167.html#L293'>lock</a>              293 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L295'>lock</a>              295 src/threads/synch.c   ASSERT (lock_held_by_current_thread (lock));
+<a href='../S/167.html#L299'>lock</a>              299 src/threads/synch.c   lock_release (lock);
+<a href='../S/167.html#L301'>lock</a>              301 src/threads/synch.c   lock_acquire (lock);
+<a href='../S/167.html#L315'>lock</a>              315 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L317'>lock</a>              317 src/threads/synch.c   ASSERT (lock_held_by_current_thread (lock));
+<a href='../S/167.html#L334'>lock</a>              334 src/threads/synch.c   ASSERT (lock != NULL);
+<a href='../S/167.html#L337'>lock</a>              337 src/threads/synch.c     cond_signal (cond, lock);
+<a href='../S/163.html#L38'>lock</a>               38 src/threads/thread.c static struct lock tid_lock;
+</pre>
+</body>
+</html>

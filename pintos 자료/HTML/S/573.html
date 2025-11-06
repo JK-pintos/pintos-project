@@ -1,0 +1,65 @@
+<html>
+<head>
+<title>src/tests/threads/priority-preempt.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/priority-preempt.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L18'>[^]</a><a href='#L31'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L18' title='Defined at 18.'>test_priority_preempt</a>
+<li><a href='#L31' title='Defined at 31.'>simple_thread_func</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Ensures that a high-priority thread really preempts.</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Based on a test originally submitted for Stanford's CS 140 in</font></i>
+<a name='L4'>   4 <i><font color='green'>   winter 1999 by by Matt Franklin</font></i>
+<a name='L5'>   5 <i><font color='green'>   &lt;startled@leland.stanford.edu&gt;, Greg Hutchins</font></i>
+<a name='L6'>   6 <i><font color='green'>   &lt;gmh@leland.stanford.edu&gt;, Yu Ping Hu &lt;yph@cs.stanford.edu&gt;.</font></i>
+<a name='L7'>   7 <i><font color='green'>   Modified by arens. */</font></i>
+<a name='L8'>   8 
+<a name='L9'>   9 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L12'>  12 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L14'>  14 
+<a name='L15'>  15 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../D/924.html' title='Multiple defined in 2 places.'>simple_thread_func</a>;
+<a name='L16'>  16 
+<a name='L17'>  17 <b>void</b>
+<a name='L18'>  18 <a href='../R/884.html' title='Multiple refered from 2 places.'>test_priority_preempt</a> (<b>void</b>) 
+<a name='L19'>  19 <font color='red'>{</font>
+<a name='L20'>  20   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L21'>  21   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L22'>  22 
+<a name='L23'>  23   <i><font color='green'>/* Make sure our priority is the default. */</font></i>
+<a name='L24'>  24   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/163.html#L351' title='Defined at 351 in src/threads/thread.c.'>thread_get_priority</a> () == <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a>);
+<a name='L25'>  25 
+<a name='L26'>  26   <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> ("high-priority", <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> + 1, <a href='../D/924.html' title='Multiple defined in 2 places.'>simple_thread_func</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L27'>  27   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("The high-priority thread should have already completed.");
+<a name='L28'>  28 <font color='red'>}</font>
+<a name='L29'>  29 
+<a name='L30'>  30 <b>static</b> <b>void</b> 
+<a name='L31'>  31 <a href='../R/814.html' title='Multiple refered from 4 places.'>simple_thread_func</a> (<b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L32'>  32 <font color='red'>{</font>
+<a name='L33'>  33   <b>int</b> i;
+<a name='L34'>  34   
+<a name='L35'>  35   <b>for</b> (i = 0; i &lt; 5; i++) 
+<a name='L36'>  36     <font color='red'>{</font>
+<a name='L37'>  37       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread %s iteration %d", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> (), i);
+<a name='L38'>  38       <a href='../S/163.html#L310' title='Defined at 310 in src/threads/thread.c.'>thread_yield</a> ();
+<a name='L39'>  39     <font color='red'>}</font>
+<a name='L40'>  40   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread %s done!", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L41'>  41 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L18'>[^]</a><a href='#L31'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

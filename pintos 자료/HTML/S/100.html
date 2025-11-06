@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>src/lib/user/syscall.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/601.html'>user</a>/syscall.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/94.html' title='Multiple included from 118 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/100.html#L2' title='Defined at 2 in src/lib/user/syscall.h.'>__LIB_USER_SYSCALL_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/100.html#L1' title='Refered from 1 in src/lib/user/syscall.h.'>__LIB_USER_SYSCALL_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Process identifier. */</font></i>
+<a name='L8'>   8 <b>typedef</b> <b>int</b> <a href='../R/719.html' title='Multiple refered from 27 places.'>pid_t</a>;
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../R/134.html' title='Multiple refered from 2 places.'>PID_ERROR</a> ((<a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a>) -1)
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Map region identifier. */</font></i>
+<a name='L12'>  12 <b>typedef</b> <b>int</b> <a href='../R/655.html' title='Multiple refered from 13 places.'>mapid_t</a>;
+<a name='L13'>  13 <font color='darkred'>#define</font> <a href='../R/103.html' title='Multiple refered from 22 places.'>MAP_FAILED</a> ((<a href='../S/100.html#L12' title='Defined at 12 in src/lib/user/syscall.h.'>mapid_t</a>) -1)
+<a name='L14'>  14 
+<a name='L15'>  15 <i><font color='green'>/* Maximum characters in a filename written by readdir(). */</font></i>
+<a name='L16'>  16 <font color='darkred'>#define</font> <a href='../R/171.html' title='Multiple refered from 7 places.'>READDIR_MAX_LEN</a> 14
+<a name='L17'>  17 
+<a name='L18'>  18 <i><font color='green'>/* Typical return values from main() and arguments to exit(). */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../R/44.html' title='Multiple refered from 15 places.'>EXIT_SUCCESS</a> 0          <i><font color='green'>/* Successful execution. */</font></i>
+<a name='L20'>  20 <font color='darkred'>#define</font> <a href='../R/43.html' title='Multiple refered from 33 places.'>EXIT_FAILURE</a> 1          <i><font color='green'>/* Unsuccessful execution. */</font></i>
+<a name='L21'>  21 
+<a name='L22'>  22 <i><font color='green'>/* Projects 2 and later. */</font></i>
+<a name='L23'>  23 <b>void</b> <a href='../S/97.html#L65' title='Defined at 65 in src/lib/user/syscall.c.'>halt</a> (<b>void</b>) <a href='../S/104.html#L8' title='Defined at 8 in src/lib/debug.h.'>NO_RETURN</a>;
+<a name='L24'>  24 <b>void</b> exit (<b>int</b> status) <a href='../S/104.html#L8' title='Defined at 8 in src/lib/debug.h.'>NO_RETURN</a>;
+<a name='L25'>  25 <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> exec (<b>const</b> <b>char</b> *file);
+<a name='L26'>  26 <b>int</b> wait (<a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a>);
+<a name='L27'>  27 bool create (<b>const</b> <b>char</b> *file, <b>unsigned</b> initial_size);
+<a name='L28'>  28 bool remove (<b>const</b> <b>char</b> *file);
+<a name='L29'>  29 <b>int</b> open (<b>const</b> <b>char</b> *file);
+<a name='L30'>  30 <b>int</b> filesize (<b>int</b> fd);
+<a name='L31'>  31 <b>int</b> read (<b>int</b> fd, <b>void</b> *buffer, <b>unsigned</b> length);
+<a name='L32'>  32 <b>int</b> write (<b>int</b> fd, <b>const</b> <b>void</b> *buffer, <b>unsigned</b> length);
+<a name='L33'>  33 <b>void</b> seek (<b>int</b> fd, <b>unsigned</b> position);
+<a name='L34'>  34 <b>unsigned</b> tell (<b>int</b> fd);
+<a name='L35'>  35 <b>void</b> close (<b>int</b> fd);
+<a name='L36'>  36 
+<a name='L37'>  37 <i><font color='green'>/* Project 3 and optionally project 4. */</font></i>
+<a name='L38'>  38 <a href='../S/100.html#L12' title='Defined at 12 in src/lib/user/syscall.h.'>mapid_t</a> mmap (<b>int</b> fd, <b>void</b> *addr);
+<a name='L39'>  39 <b>void</b> munmap (<a href='../S/100.html#L12' title='Defined at 12 in src/lib/user/syscall.h.'>mapid_t</a>);
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Project 4 only. */</font></i>
+<a name='L42'>  42 bool chdir (<b>const</b> <b>char</b> *dir);
+<a name='L43'>  43 bool mkdir (<b>const</b> <b>char</b> *dir);
+<a name='L44'>  44 bool readdir (<b>int</b> fd, <b>char</b> name[<a href='../S/100.html#L16' title='Defined at 16 in src/lib/user/syscall.h.'>READDIR_MAX_LEN</a> + 1]);
+<a name='L45'>  45 bool isdir (<b>int</b> fd);
+<a name='L46'>  46 <b>int</b> inumber (<b>int</b> fd);
+<a name='L47'>  47 
+<a name='L48'>  48 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/user/syscall.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>elem_type</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/114.html#L22'>elem_type</a>          22 src/lib/kernel/bitmap.c #define ELEM_BITS (sizeof (elem_type) * CHAR_BIT)
+<a href='../S/114.html#L30'>elem_type</a>          30 src/lib/kernel/bitmap.c     elem_type *bits;    /* Elements that represent bits. */
+<a href='../S/114.html#L43'>elem_type</a>          43 src/lib/kernel/bitmap.c static inline elem_type
+<a href='../S/114.html#L46'>elem_type</a>          46 src/lib/kernel/bitmap.c   return (elem_type) 1 &lt;&lt; (bit_idx % ELEM_BITS);
+<a href='../S/114.html#L60'>elem_type</a>          60 src/lib/kernel/bitmap.c   return sizeof (elem_type) * elem_cnt (bit_cnt);
+<a href='../S/114.html#L65'>elem_type</a>          65 src/lib/kernel/bitmap.c static inline elem_type
+<a href='../S/114.html#L69'>elem_type</a>          69 src/lib/kernel/bitmap.c   return last_bits ? ((elem_type) 1 &lt;&lt; last_bits) - 1 : (elem_type) -1;
+<a href='../S/114.html#L107'>elem_type</a>         107 src/lib/kernel/bitmap.c   b-&gt;bits = (elem_type *) (b + 1);
+<a href='../S/114.html#L161'>elem_type</a>         161 src/lib/kernel/bitmap.c   elem_type mask = bit_mask (bit_idx);
+<a href='../S/114.html#L174'>elem_type</a>         174 src/lib/kernel/bitmap.c   elem_type mask = bit_mask (bit_idx);
+<a href='../S/114.html#L189'>elem_type</a>         189 src/lib/kernel/bitmap.c   elem_type mask = bit_mask (bit_idx);
+</pre>
+</body>
+</html>

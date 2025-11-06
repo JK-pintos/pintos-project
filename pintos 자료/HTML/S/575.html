@@ -1,0 +1,88 @@
+<html>
+<head>
+<title>src/tests/threads/mlfqs-block.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/mlfqs-block.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L23'>[^]</a><a href='#L50'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L23' title='Defined at 23.'>test_mlfqs_block</a>
+<li><a href='#L50' title='Defined at 50.'>block_thread</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Checks that recent_cpu and priorities are updated for blocked</font></i>
+<a name='L2'>   2 <i><font color='green'>   threads.</font></i>
+<a name='L3'>   3 <i><font color='green'></font></i>
+<a name='L4'>   4 <i><font color='green'>   The main thread sleeps for 25 seconds, spins for 5 seconds,</font></i>
+<a name='L5'>   5 <i><font color='green'>   then releases a lock.  The "block" thread spins for 20 seconds</font></i>
+<a name='L6'>   6 <i><font color='green'>   then attempts to acquire the lock, which will block for 10</font></i>
+<a name='L7'>   7 <i><font color='green'>   seconds (until the main thread releases it).  If recent_cpu</font></i>
+<a name='L8'>   8 <i><font color='green'>   decays properly while the "block" thread sleeps, then the</font></i>
+<a name='L9'>   9 <i><font color='green'>   block thread should be immediately scheduled when the main</font></i>
+<a name='L10'>  10 <i><font color='green'>   thread releases the lock. */</font></i>
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L14'>  14 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L15'>  15 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L16'>  16 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L17'>  17 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L18'>  18 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L19'>  19 
+<a name='L20'>  20 <b>static</b> <b>void</b> <a href='../S/575.html#L50' title='Defined at 50 in src/tests/threads/mlfqs-block.c.'>block_thread</a> (<b>void</b> *lock_);
+<a name='L21'>  21 
+<a name='L22'>  22 <b>void</b>
+<a name='L23'>  23 <a href='../R/864.html' title='Multiple refered from 2 places.'>test_mlfqs_block</a> (<b>void</b>) 
+<a name='L24'>  24 <font color='red'>{</font>
+<a name='L25'>  25   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> start_time;
+<a name='L26'>  26   <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;
+<a name='L27'>  27   
+<a name='L28'>  28   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (thread_mlfqs);
+<a name='L29'>  29 
+<a name='L30'>  30   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread acquiring lock.");
+<a name='L31'>  31   <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L32'>  32   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L33'>  33   
+<a name='L34'>  34   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread creating block thread, sleeping 25 seconds...");
+<a name='L35'>  35   <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> ("block", <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a>, <a href='../S/575.html#L50' title='Defined at 50 in src/tests/threads/mlfqs-block.c.'>block_thread</a>, &amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L36'>  36   <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (25 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>);
+<a name='L37'>  37 
+<a name='L38'>  38   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread spinning for 5 seconds...");
+<a name='L39'>  39   start_time = <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ();
+<a name='L40'>  40   <b>while</b> (<a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (start_time) &lt; 5 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>)
+<a name='L41'>  41     <b>continue</b>;
+<a name='L42'>  42 
+<a name='L43'>  43   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Main thread releasing lock.");
+<a name='L44'>  44   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L45'>  45 
+<a name='L46'>  46   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Block thread should have already acquired lock.");
+<a name='L47'>  47 <font color='red'>}</font>
+<a name='L48'>  48 
+<a name='L49'>  49 <b>static</b> <b>void</b>
+<a name='L50'>  50 <a href='../R/344.html' title='Multiple refered from 2 places.'>block_thread</a> (<b>void</b> *lock_) 
+<a name='L51'>  51 <font color='red'>{</font>
+<a name='L52'>  52   <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> *<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> = lock_;
+<a name='L53'>  53   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> start_time;
+<a name='L54'>  54 
+<a name='L55'>  55   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Block thread spinning for 20 seconds...");
+<a name='L56'>  56   start_time = <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ();
+<a name='L57'>  57   <b>while</b> (<a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (start_time) &lt; 20 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>)
+<a name='L58'>  58     <b>continue</b>;
+<a name='L59'>  59 
+<a name='L60'>  60   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Block thread acquiring lock...");
+<a name='L61'>  61   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L62'>  62 
+<a name='L63'>  63   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("...got it.");
+<a name='L64'>  64 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L23'>[^]</a><a href='#L50'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

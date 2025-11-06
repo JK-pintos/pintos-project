@@ -1,0 +1,221 @@
+<html>
+<head>
+<title>src/lib/arithmetic.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/arithmetic.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L26'>[^]</a><a href='#L186'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L26' title='Defined at 26.'>divl</a>
+<li><a href='#L42' title='Defined at 42.'>nlz</a>
+<li><a href='#L78' title='Defined at 78.'>udiv64</a>
+<li><a href='#L132' title='Defined at 132.'>umod64</a>
+<li><a href='#L140' title='Defined at 140.'>sdiv64</a>
+<li><a href='#L151' title='Defined at 151.'>smod64</a>
+<li><a href='#L165' title='Defined at 165.'>__divdi3</a>
+<li><a href='#L172' title='Defined at 172.'>__moddi3</a>
+<li><a href='#L179' title='Defined at 179.'>__udivdi3</a>
+<li><a href='#L186' title='Defined at 186.'>__umoddi3</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L2'>   2 
+<a name='L3'>   3 <i><font color='green'>/* On x86, division of one 64-bit integer by another cannot be</font></i>
+<a name='L4'>   4 <i><font color='green'>   done with a single instruction or a short sequence.  Thus, GCC</font></i>
+<a name='L5'>   5 <i><font color='green'>   implements 64-bit division and remainder operations through</font></i>
+<a name='L6'>   6 <i><font color='green'>   function calls.  These functions are normally obtained from</font></i>
+<a name='L7'>   7 <i><font color='green'>   libgcc, which is automatically included by GCC in any link</font></i>
+<a name='L8'>   8 <i><font color='green'>   that it does.</font></i>
+<a name='L9'>   9 <i><font color='green'></font></i>
+<a name='L10'>  10 <i><font color='green'>   Some x86-64 machines, however, have a compiler and utilities</font></i>
+<a name='L11'>  11 <i><font color='green'>   that can generate 32-bit x86 code without having any of the</font></i>
+<a name='L12'>  12 <i><font color='green'>   necessary libraries, including libgcc.  Thus, we can make</font></i>
+<a name='L13'>  13 <i><font color='green'>   Pintos work on these machines by simply implementing our own</font></i>
+<a name='L14'>  14 <i><font color='green'>   64-bit division routines, which are the only routines from</font></i>
+<a name='L15'>  15 <i><font color='green'>   libgcc that Pintos requires.</font></i>
+<a name='L16'>  16 <i><font color='green'></font></i>
+<a name='L17'>  17 <i><font color='green'>   Completeness is another reason to include these routines.  If</font></i>
+<a name='L18'>  18 <i><font color='green'>   Pintos is completely self-contained, then that makes it that</font></i>
+<a name='L19'>  19 <i><font color='green'>   much less mysterious. */</font></i>
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Uses x86 DIVL instruction to divide 64-bit N by 32-bit D to</font></i>
+<a name='L22'>  22 <i><font color='green'>   yield a 32-bit quotient.  Returns the quotient.</font></i>
+<a name='L23'>  23 <i><font color='green'>   Traps with a divide error (#DE) if the quotient does not fit</font></i>
+<a name='L24'>  24 <i><font color='green'>   in 32 bits. */</font></i>
+<a name='L25'>  25 <b>static</b> <b>inline</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a>
+<a name='L26'>  26 <a href='../R/406.html' title='Multiple refered from 2 places.'>divl</a> (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> n, <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> d)
+<a name='L27'>  27 <font color='red'>{</font>
+<a name='L28'>  28   <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> n1 = n &gt;&gt; 32;
+<a name='L29'>  29   <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> n0 = n;
+<a name='L30'>  30   <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> q, r;
+<a name='L31'>  31 
+<a name='L32'>  32   <b>asm</b> ("divl %4"
+<a name='L33'>  33        : "=d" (r), "=a" (q)
+<a name='L34'>  34        : "0" (n1), "1" (n0), "rm" (d));
+<a name='L35'>  35 
+<a name='L36'>  36   <b>return</b> q;
+<a name='L37'>  37 <font color='red'>}</font>
+<a name='L38'>  38 
+<a name='L39'>  39 <i><font color='green'>/* Returns the number of leading zero bits in X,</font></i>
+<a name='L40'>  40 <i><font color='green'>   which must be nonzero. */</font></i>
+<a name='L41'>  41 <b>static</b> <b>int</b>
+<a name='L42'>  42 <a href='../S/86.html#L122' title='Refered from 122 in src/lib/arithmetic.c.'>nlz</a> (<a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> x) 
+<a name='L43'>  43 <font color='red'>{</font>
+<a name='L44'>  44   <i><font color='green'>/* This technique is portable, but there are better ways to do</font></i>
+<a name='L45'>  45 <i><font color='green'>     it on particular systems.  With sufficiently new enough GCC,</font></i>
+<a name='L46'>  46 <i><font color='green'>     you can use __builtin_clz() to take advantage of GCC's</font></i>
+<a name='L47'>  47 <i><font color='green'>     knowledge of how to do it.  Or you can use the x86 BSR</font></i>
+<a name='L48'>  48 <i><font color='green'>     instruction directly. */</font></i>
+<a name='L49'>  49   <b>int</b> n = 0;
+<a name='L50'>  50   <b>if</b> (x &lt;= 0x0000FFFF)
+<a name='L51'>  51     <font color='red'>{</font>
+<a name='L52'>  52       n += 16;
+<a name='L53'>  53       x &lt;&lt;= 16; 
+<a name='L54'>  54     <font color='red'>}</font>
+<a name='L55'>  55   <b>if</b> (x &lt;= 0x00FFFFFF)
+<a name='L56'>  56     <font color='red'>{</font>
+<a name='L57'>  57       n += 8;
+<a name='L58'>  58       x &lt;&lt;= 8; 
+<a name='L59'>  59     <font color='red'>}</font>
+<a name='L60'>  60   <b>if</b> (x &lt;= 0x0FFFFFFF)
+<a name='L61'>  61     <font color='red'>{</font>
+<a name='L62'>  62       n += 4;
+<a name='L63'>  63       x &lt;&lt;= 4;
+<a name='L64'>  64     <font color='red'>}</font>
+<a name='L65'>  65   <b>if</b> (x &lt;= 0x3FFFFFFF)
+<a name='L66'>  66     <font color='red'>{</font>
+<a name='L67'>  67       n += 2;
+<a name='L68'>  68       x &lt;&lt;= 2; 
+<a name='L69'>  69     <font color='red'>}</font>
+<a name='L70'>  70   <b>if</b> (x &lt;= 0x7FFFFFFF)
+<a name='L71'>  71     n++;
+<a name='L72'>  72   <b>return</b> n;
+<a name='L73'>  73 <font color='red'>}</font>
+<a name='L74'>  74 
+<a name='L75'>  75 <i><font color='green'>/* Divides unsigned 64-bit N by unsigned 64-bit D and returns the</font></i>
+<a name='L76'>  76 <i><font color='green'>   quotient. */</font></i>
+<a name='L77'>  77 <b>static</b> <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>
+<a name='L78'>  78 <a href='../R/934.html' title='Multiple refered from 3 places.'>udiv64</a> (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> n, <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> d)
+<a name='L79'>  79 <font color='red'>{</font>
+<a name='L80'>  80   <b>if</b> ((d &gt;&gt; 32) == 0) 
+<a name='L81'>  81     <font color='red'>{</font>
+<a name='L82'>  82       <i><font color='green'>/* Proof of correctness:</font></i>
+<a name='L83'>  83 <i><font color='green'></font></i>
+<a name='L84'>  84 <i><font color='green'>         Let n, d, b, n1, and n0 be defined as in this function.</font></i>
+<a name='L85'>  85 <i><font color='green'>         Let [x] be the "floor" of x.  Let T = b[n1/d].  Assume d</font></i>
+<a name='L86'>  86 <i><font color='green'>         nonzero.  Then:</font></i>
+<a name='L87'>  87 <i><font color='green'>             [n/d] = [n/d] - T + T</font></i>
+<a name='L88'>  88 <i><font color='green'>                   = [n/d - T] + T                         by (1) below</font></i>
+<a name='L89'>  89 <i><font color='green'>                   = [(b*n1 + n0)/d - T] + T               by definition of n</font></i>
+<a name='L90'>  90 <i><font color='green'>                   = [(b*n1 + n0)/d - dT/d] + T</font></i>
+<a name='L91'>  91 <i><font color='green'>                   = [(b(n1 - d[n1/d]) + n0)/d] + T</font></i>
+<a name='L92'>  92 <i><font color='green'>                   = [(b[n1 % d] + n0)/d] + T,             by definition of %</font></i>
+<a name='L93'>  93 <i><font color='green'>         which is the expression calculated below.</font></i>
+<a name='L94'>  94 <i><font color='green'></font></i>
+<a name='L95'>  95 <i><font color='green'>         (1) Note that for any real x, integer i: [x] + i = [x + i].</font></i>
+<a name='L96'>  96 <i><font color='green'></font></i>
+<a name='L97'>  97 <i><font color='green'>         To prevent divl() from trapping, [(b[n1 % d] + n0)/d] must</font></i>
+<a name='L98'>  98 <i><font color='green'>         be less than b.  Assume that [n1 % d] and n0 take their</font></i>
+<a name='L99'>  99 <i><font color='green'>         respective maximum values of d - 1 and b - 1:</font></i>
+<a name='L100'> 100 <i><font color='green'>                 [(b(d - 1) + (b - 1))/d] &lt; b</font></i>
+<a name='L101'> 101 <i><font color='green'>             &lt;=&gt; [(bd - 1)/d] &lt; b</font></i>
+<a name='L102'> 102 <i><font color='green'>             &lt;=&gt; [b - 1/d] &lt; b</font></i>
+<a name='L103'> 103 <i><font color='green'>         which is a tautology.</font></i>
+<a name='L104'> 104 <i><font color='green'></font></i>
+<a name='L105'> 105 <i><font color='green'>         Therefore, this code is correct and will not trap. */</font></i>
+<a name='L106'> 106       <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> b = 1ULL &lt;&lt; 32;
+<a name='L107'> 107       <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> n1 = n &gt;&gt; 32;
+<a name='L108'> 108       <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> n0 = n; 
+<a name='L109'> 109       <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> d0 = d;
+<a name='L110'> 110 
+<a name='L111'> 111       <b>return</b> <a href='../S/86.html#L26' title='Defined at 26 in src/lib/arithmetic.c.'>divl</a> (b * (n1 % d0) + n0, d0) + b * (n1 / d0); 
+<a name='L112'> 112     <font color='red'>}</font>
+<a name='L113'> 113   <b>else</b> 
+<a name='L114'> 114     <font color='red'>{</font>
+<a name='L115'> 115       <i><font color='green'>/* Based on the algorithm and proof available from</font></i>
+<a name='L116'> 116 <i><font color='green'>         http://www.hackersdelight.org/revisions.pdf. */</font></i>
+<a name='L117'> 117       <b>if</b> (n &lt; d)
+<a name='L118'> 118         <b>return</b> 0;
+<a name='L119'> 119       <b>else</b> 
+<a name='L120'> 120         <font color='red'>{</font>
+<a name='L121'> 121           <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a> d1 = d &gt;&gt; 32;
+<a name='L122'> 122           <b>int</b> s = <a href='../S/86.html#L42' title='Defined at 42 in src/lib/arithmetic.c.'>nlz</a> (d1);
+<a name='L123'> 123           <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> q = <a href='../S/86.html#L26' title='Defined at 26 in src/lib/arithmetic.c.'>divl</a> (n &gt;&gt; 1, (d &lt;&lt; s) &gt;&gt; 32) &gt;&gt; (31 - s);
+<a name='L124'> 124           <b>return</b> n - (q - 1) * d &lt; d ? q - 1 : q; 
+<a name='L125'> 125         <font color='red'>}</font>
+<a name='L126'> 126     <font color='red'>}</font>
+<a name='L127'> 127 <font color='red'>}</font>
+<a name='L128'> 128 
+<a name='L129'> 129 <i><font color='green'>/* Divides unsigned 64-bit N by unsigned 64-bit D and returns the</font></i>
+<a name='L130'> 130 <i><font color='green'>   remainder. */</font></i>
+<a name='L131'> 131 <b>static</b> <a href='../S/87.html#L26' title='Defined at 26 in src/lib/stdint.h.'>uint32_t</a>
+<a name='L132'> 132 <a href='../S/86.html#L188' title='Refered from 188 in src/lib/arithmetic.c.'>umod64</a> (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> n, <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> d)
+<a name='L133'> 133 <font color='red'>{</font>
+<a name='L134'> 134   <b>return</b> n - d * <a href='../S/86.html#L78' title='Defined at 78 in src/lib/arithmetic.c.'>udiv64</a> (n, d);
+<a name='L135'> 135 <font color='red'>}</font>
+<a name='L136'> 136 
+<a name='L137'> 137 <i><font color='green'>/* Divides signed 64-bit N by signed 64-bit D and returns the</font></i>
+<a name='L138'> 138 <i><font color='green'>   quotient. */</font></i>
+<a name='L139'> 139 <b>static</b> <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a>
+<a name='L140'> 140 <a href='../R/783.html' title='Multiple refered from 2 places.'>sdiv64</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> n, <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> d)
+<a name='L141'> 141 <font color='red'>{</font>
+<a name='L142'> 142   <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> n_abs = n &gt;= 0 ? (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) n : -(<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) n;
+<a name='L143'> 143   <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> d_abs = d &gt;= 0 ? (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) d : -(<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) d;
+<a name='L144'> 144   <a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> q_abs = <a href='../S/86.html#L78' title='Defined at 78 in src/lib/arithmetic.c.'>udiv64</a> (n_abs, d_abs);
+<a name='L145'> 145   <b>return</b> (n &lt; 0) == (d &lt; 0) ? (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a>) q_abs : -(<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a>) q_abs;
+<a name='L146'> 146 <font color='red'>}</font>
+<a name='L147'> 147 
+<a name='L148'> 148 <i><font color='green'>/* Divides signed 64-bit N by signed 64-bit D and returns the</font></i>
+<a name='L149'> 149 <i><font color='green'>   remainder. */</font></i>
+<a name='L150'> 150 <b>static</b> <a href='../S/87.html#L12' title='Defined at 12 in src/lib/stdint.h.'>int32_t</a>
+<a name='L151'> 151 <a href='../S/86.html#L174' title='Refered from 174 in src/lib/arithmetic.c.'>smod64</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> n, <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> d)
+<a name='L152'> 152 <font color='red'>{</font>
+<a name='L153'> 153   <b>return</b> n - d * <a href='../S/86.html#L140' title='Defined at 140 in src/lib/arithmetic.c.'>sdiv64</a> (n, d);
+<a name='L154'> 154 <font color='red'>}</font>
+<a name='L155'> 155 
+<a name='L156'> 156 <i><font color='green'>/* These are the routines that GCC calls. */</font></i>
+<a name='L157'> 157 
+<a name='L158'> 158 <b>long</b> <b>long</b> <a href='../S/86.html#L165' title='Defined at 165 in src/lib/arithmetic.c.'>__divdi3</a> (<b>long</b> <b>long</b> n, <b>long</b> <b>long</b> d);
+<a name='L159'> 159 <b>long</b> <b>long</b> <a href='../S/86.html#L172' title='Defined at 172 in src/lib/arithmetic.c.'>__moddi3</a> (<b>long</b> <b>long</b> n, <b>long</b> <b>long</b> d);
+<a name='L160'> 160 <b>unsigned</b> <b>long</b> <b>long</b> <a href='../S/86.html#L179' title='Defined at 179 in src/lib/arithmetic.c.'>__udivdi3</a> (<b>unsigned</b> <b>long</b> <b>long</b> n, <b>unsigned</b> <b>long</b> <b>long</b> d);
+<a name='L161'> 161 <b>unsigned</b> <b>long</b> <b>long</b> <a href='../S/86.html#L186' title='Defined at 186 in src/lib/arithmetic.c.'>__umoddi3</a> (<b>unsigned</b> <b>long</b> <b>long</b> n, <b>unsigned</b> <b>long</b> <b>long</b> d);
+<a name='L162'> 162 
+<a name='L163'> 163 <i><font color='green'>/* Signed 64-bit division. */</font></i>
+<a name='L164'> 164 <b>long</b> <b>long</b>
+<a name='L165'> 165 <a href='../S/86.html#L158' title='Refered from 158 in src/lib/arithmetic.c.'>__divdi3</a> (<b>long</b> <b>long</b> n, <b>long</b> <b>long</b> d) 
+<a name='L166'> 166 <font color='red'>{</font>
+<a name='L167'> 167   <b>return</b> <a href='../S/86.html#L140' title='Defined at 140 in src/lib/arithmetic.c.'>sdiv64</a> (n, d);
+<a name='L168'> 168 <font color='red'>}</font>
+<a name='L169'> 169 
+<a name='L170'> 170 <i><font color='green'>/* Signed 64-bit remainder. */</font></i>
+<a name='L171'> 171 <b>long</b> <b>long</b>
+<a name='L172'> 172 <a href='../S/86.html#L159' title='Refered from 159 in src/lib/arithmetic.c.'>__moddi3</a> (<b>long</b> <b>long</b> n, <b>long</b> <b>long</b> d) 
+<a name='L173'> 173 <font color='red'>{</font>
+<a name='L174'> 174   <b>return</b> <a href='../S/86.html#L151' title='Defined at 151 in src/lib/arithmetic.c.'>smod64</a> (n, d);
+<a name='L175'> 175 <font color='red'>}</font>
+<a name='L176'> 176 
+<a name='L177'> 177 <i><font color='green'>/* Unsigned 64-bit division. */</font></i>
+<a name='L178'> 178 <b>unsigned</b> <b>long</b> <b>long</b>
+<a name='L179'> 179 <a href='../S/86.html#L160' title='Refered from 160 in src/lib/arithmetic.c.'>__udivdi3</a> (<b>unsigned</b> <b>long</b> <b>long</b> n, <b>unsigned</b> <b>long</b> <b>long</b> d) 
+<a name='L180'> 180 <font color='red'>{</font>
+<a name='L181'> 181   <b>return</b> <a href='../S/86.html#L78' title='Defined at 78 in src/lib/arithmetic.c.'>udiv64</a> (n, d);
+<a name='L182'> 182 <font color='red'>}</font>
+<a name='L183'> 183 
+<a name='L184'> 184 <i><font color='green'>/* Unsigned 64-bit remainder. */</font></i>
+<a name='L185'> 185 <b>unsigned</b> <b>long</b> <b>long</b>
+<a name='L186'> 186 <a href='../S/86.html#L161' title='Refered from 161 in src/lib/arithmetic.c.'>__umoddi3</a> (<b>unsigned</b> <b>long</b> <b>long</b> n, <b>unsigned</b> <b>long</b> <b>long</b> d) 
+<a name='L187'> 187 <font color='red'>{</font>
+<a name='L188'> 188   <b>return</b> <a href='../S/86.html#L132' title='Defined at 132 in src/lib/arithmetic.c.'>umod64</a> (n, d);
+<a name='L189'> 189 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L26'>[^]</a><a href='#L186'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

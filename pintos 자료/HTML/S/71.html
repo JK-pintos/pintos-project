@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>src/userprog/exception.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/exception.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/314.html' title='Multiple included from 3 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/71.html#L2' title='Defined at 2 in src/userprog/exception.h.'>USERPROG_EXCEPTION_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/71.html#L1' title='Refered from 1 in src/userprog/exception.h.'>USERPROG_EXCEPTION_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Page fault error code bits that describe the cause of the exception.  */</font></i>
+<a name='L5'>   5 <font color='darkred'>#define</font> <a href='../S/64.html#L147' title='Refered from 147 in src/userprog/exception.c.'>PF_P</a> 0x1    <i><font color='green'>/* 0: not-present page. 1: access rights violation. */</font></i>
+<a name='L6'>   6 <font color='darkred'>#define</font> <a href='../R/124.html' title='Multiple refered from 2 places.'>PF_W</a> 0x2    <i><font color='green'>/* 0: read, 1: write. */</font></i>
+<a name='L7'>   7 <font color='darkred'>#define</font> <a href='../S/64.html#L149' title='Refered from 149 in src/userprog/exception.c.'>PF_U</a> 0x4    <i><font color='green'>/* 0: kernel, 1: user process. */</font></i>
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b> <a href='../S/64.html#L30' title='Defined at 30 in src/userprog/exception.c.'>exception_init</a> (<b>void</b>);
+<a name='L10'>  10 <b>void</b> <a href='../S/64.html#L65' title='Defined at 65 in src/userprog/exception.c.'>exception_print_stats</a> (<b>void</b>);
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#endif</font> <i><font color='green'>/* userprog/exception.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

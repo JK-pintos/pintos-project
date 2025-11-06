@@ -1,0 +1,34 @@
+<html>
+<head>
+<title>src/userprog/gdt.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/612.html'>userprog</a>/gdt.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/316.html' title='Multiple included from 5 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/70.html#L2' title='Defined at 2 in src/userprog/gdt.h.'>USERPROG_GDT_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/70.html#L1' title='Refered from 1 in src/userprog/gdt.h.'>USERPROG_GDT_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* Segment selectors.</font></i>
+<a name='L7'>   7 <i><font color='green'>   More selectors are defined by the loader in loader.h. */</font></i>
+<a name='L8'>   8 <font color='darkred'>#define</font> <a href='../R/191.html' title='Multiple refered from 3 places.'>SEL_UCSEG</a>       0x1B    <i><font color='green'>/* User code selector. */</font></i>
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../R/192.html' title='Multiple refered from 2 places.'>SEL_UDSEG</a>       0x23    <i><font color='green'>/* User data selector. */</font></i>
+<a name='L10'>  10 <font color='darkred'>#define</font> <a href='../R/190.html' title='Multiple refered from 2 places.'>SEL_TSS</a>         0x28    <i><font color='green'>/* Task-state segment. */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> <a href='../S/65.html#L25' title='Refered from 25 in src/userprog/gdt.c.'>SEL_CNT</a>         6       <i><font color='green'>/* Number of segments. */</font></i>
+<a name='L12'>  12 
+<a name='L13'>  13 <b>void</b> <a href='../S/65.html#L36' title='Defined at 36 in src/userprog/gdt.c.'>gdt_init</a> (<b>void</b>);
+<a name='L14'>  14 
+<a name='L15'>  15 <font color='darkred'>#endif</font> <i><font color='green'>/* userprog/gdt.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

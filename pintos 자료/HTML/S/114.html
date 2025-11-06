@@ -1,0 +1,422 @@
+<html>
+<head>
+<title>src/lib/kernel/bitmap.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/600.html'>kernel</a>/bitmap.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L368'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L36' title='Defined at 36.'>elem_idx</a>
+<li><a href='#L44' title='Defined at 44.'>bit_mask</a>
+<li><a href='#L51' title='Defined at 51.'>elem_cnt</a>
+<li><a href='#L58' title='Defined at 58.'>byte_cnt</a>
+<li><a href='#L66' title='Defined at 66.'>last_mask</a>
+<li><a href='#L79' title='Defined at 79.'>bitmap_create</a>
+<li><a href='#L100' title='Defined at 100.'>bitmap_create_in_buf</a>
+<li><a href='#L115' title='Defined at 115.'>bitmap_buf_size</a>
+<li><a href='#L124' title='Defined at 124.'>bitmap_destroy</a>
+<li><a href='#L137' title='Defined at 137.'>bitmap_size</a>
+<li><a href='#L146' title='Defined at 146.'>bitmap_set</a>
+<li><a href='#L158' title='Defined at 158.'>bitmap_mark</a>
+<li><a href='#L171' title='Defined at 171.'>bitmap_reset</a>
+<li><a href='#L186' title='Defined at 186.'>bitmap_flip</a>
+<li><a href='#L199' title='Defined at 199.'>bitmap_test</a>
+<li><a href='#L210' title='Defined at 210.'>bitmap_set_all</a>
+<li><a href='#L219' title='Defined at 219.'>bitmap_set_multiple</a>
+<li><a href='#L234' title='Defined at 234.'>bitmap_count</a>
+<li><a href='#L252' title='Defined at 252.'>bitmap_contains</a>
+<li><a href='#L269' title='Defined at 269.'>bitmap_any</a>
+<li><a href='#L277' title='Defined at 277.'>bitmap_none</a>
+<li><a href='#L285' title='Defined at 285.'>bitmap_all</a>
+<li><a href='#L297' title='Defined at 297.'>bitmap_scan</a>
+<li><a href='#L321' title='Defined at 321.'>bitmap_scan_and_flip</a>
+<li><a href='#L334' title='Defined at 334.'>bitmap_file_size</a>
+<li><a href='#L342' title='Defined at 342.'>bitmap_read</a>
+<li><a href='#L357' title='Defined at 357.'>bitmap_write</a>
+<li><a href='#L368' title='Defined at 368.'>bitmap_dump</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='111.html'>bitmap.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='90.html'>limits.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L7'>   7 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='36.html'>filesys/file.h</a>"
+<a name='L9'>   9 <font color='darkred'>#endif</font>
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* Element type.</font></i>
+<a name='L12'>  12 <i><font color='green'></font></i>
+<a name='L13'>  13 <i><font color='green'>   This must be an unsigned integer type at least as wide as int.</font></i>
+<a name='L14'>  14 <i><font color='green'></font></i>
+<a name='L15'>  15 <i><font color='green'>   Each bit represents one bit in the bitmap.</font></i>
+<a name='L16'>  16 <i><font color='green'>   If bit 0 in an element represents bit K in the bitmap,</font></i>
+<a name='L17'>  17 <i><font color='green'>   then bit 1 in the element represents bit K+1 in the bitmap,</font></i>
+<a name='L18'>  18 <i><font color='green'>   and so on. */</font></i>
+<a name='L19'>  19 <b>typedef</b> <b>unsigned</b> <b>long</b> <a href='../R/417.html' title='Multiple refered from 11 places.'>elem_type</a>;
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Number of bits in an element. */</font></i>
+<a name='L22'>  22 <font color='darkred'>#define</font> <a href='../R/42.html' title='Multiple refered from 4 places.'>ELEM_BITS</a> (<b>sizeof</b> (<a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>) * <a href='../S/90.html#L4' title='Defined at 4 in src/lib/limits.h.'>CHAR_BIT</a>)
+<a name='L23'>  23 
+<a name='L24'>  24 <i><font color='green'>/* From the outside, a bitmap is an array of bits.  From the</font></i>
+<a name='L25'>  25 <i><font color='green'>   inside, it's an array of elem_type (defined above) that</font></i>
+<a name='L26'>  26 <i><font color='green'>   simulates an array of bits. */</font></i>
+<a name='L27'>  27 <b>struct</b> <a href='../R/307.html' title='Multiple refered from 12 places.'>bitmap</a>
+<a name='L28'>  28   <font color='red'>{</font>
+<a name='L29'>  29     <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_cnt;     <i><font color='green'>/* Number of bits. */</font></i>
+<a name='L30'>  30     <a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a> *bits;    <i><font color='green'>/* Elements that represent bits. */</font></i>
+<a name='L31'>  31   <font color='red'>}</font>;
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Returns the index of the element that contains the bit</font></i>
+<a name='L34'>  34 <i><font color='green'>   numbered BIT_IDX. */</font></i>
+<a name='L35'>  35 <b>static</b> <b>inline</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L36'>  36 <a href='../R/416.html' title='Multiple refered from 4 places.'>elem_idx</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_idx) 
+<a name='L37'>  37 <font color='red'>{</font>
+<a name='L38'>  38   <b>return</b> bit_idx / <a href='../S/114.html#L22' title='Defined at 22 in src/lib/kernel/bitmap.c.'>ELEM_BITS</a>;
+<a name='L39'>  39 <font color='red'>}</font>
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Returns an elem_type where only the bit corresponding to</font></i>
+<a name='L42'>  42 <i><font color='green'>   BIT_IDX is turned on. */</font></i>
+<a name='L43'>  43 <b>static</b> <b>inline</b> <a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>
+<a name='L44'>  44 <a href='../R/306.html' title='Multiple refered from 4 places.'>bit_mask</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_idx) 
+<a name='L45'>  45 <font color='red'>{</font>
+<a name='L46'>  46   <b>return</b> (<a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>) 1 &lt;&lt; (bit_idx % <a href='../S/114.html#L22' title='Defined at 22 in src/lib/kernel/bitmap.c.'>ELEM_BITS</a>);
+<a name='L47'>  47 <font color='red'>}</font>
+<a name='L48'>  48 
+<a name='L49'>  49 <i><font color='green'>/* Returns the number of elements required for BIT_CNT bits. */</font></i>
+<a name='L50'>  50 <b>static</b> <b>inline</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L51'>  51 <a href='../R/415.html' title='Multiple refered from 10 places.'>elem_cnt</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_cnt)
+<a name='L52'>  52 <font color='red'>{</font>
+<a name='L53'>  53   <b>return</b> <a href='../S/79.html#L10' title='Defined at 10 in src/lib/round.h.'>DIV_ROUND_UP</a> (bit_cnt, <a href='../S/114.html#L22' title='Defined at 22 in src/lib/kernel/bitmap.c.'>ELEM_BITS</a>);
+<a name='L54'>  54 <font color='red'>}</font>
+<a name='L55'>  55 
+<a name='L56'>  56 <i><font color='green'>/* Returns the number of bytes required for BIT_CNT bits. */</font></i>
+<a name='L57'>  57 <b>static</b> <b>inline</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L58'>  58 <a href='../R/353.html' title='Multiple refered from 26 places.'>byte_cnt</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_cnt)
+<a name='L59'>  59 <font color='red'>{</font>
+<a name='L60'>  60   <b>return</b> <b>sizeof</b> (<a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>) * <a href='../S/114.html#L51' title='Defined at 51 in src/lib/kernel/bitmap.c.'>elem_cnt</a> (bit_cnt);
+<a name='L61'>  61 <font color='red'>}</font>
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>/* Returns a bit mask in which the bits actually used in the last</font></i>
+<a name='L64'>  64 <i><font color='green'>   element of B's bits are set to 1 and the rest are set to 0. */</font></i>
+<a name='L65'>  65 <b>static</b> <b>inline</b> <a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>
+<a name='L66'>  66 <a href='../S/114.html#L349' title='Refered from 349 in src/lib/kernel/bitmap.c.'>last_mask</a> (<b>const</b> <b>struct</b> bitmap *b) 
+<a name='L67'>  67 <font color='red'>{</font>
+<a name='L68'>  68   <b>int</b> last_bits = b-&gt;bit_cnt % <a href='../S/114.html#L22' title='Defined at 22 in src/lib/kernel/bitmap.c.'>ELEM_BITS</a>;
+<a name='L69'>  69   <b>return</b> last_bits ? ((<a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>) 1 &lt;&lt; last_bits) - 1 : (<a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a>) -1;
+<a name='L70'>  70 <font color='red'>}</font>
+<a name='L71'>  71 
+<a name='L72'>  72 <i><font color='green'>/* Creation and destruction. */</font></i>
+<a name='L73'>  73 
+<a name='L74'>  74 <i><font color='green'>/* Initializes B to be a bitmap of BIT_CNT bits</font></i>
+<a name='L75'>  75 <i><font color='green'>   and sets all of its bits to false.</font></i>
+<a name='L76'>  76 <i><font color='green'>   Returns true if success, false if memory allocation</font></i>
+<a name='L77'>  77 <i><font color='green'>   failed. */</font></i>
+<a name='L78'>  78 <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> *
+<a name='L79'>  79 <a href='../R/313.html' title='Multiple refered from 2 places.'>bitmap_create</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_cnt) 
+<a name='L80'>  80 <font color='red'>{</font>
+<a name='L81'>  81   <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> *b = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<b>sizeof</b> *b);
+<a name='L82'>  82   <b>if</b> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L83'>  83     <font color='red'>{</font>
+<a name='L84'>  84       b-&gt;bit_cnt = bit_cnt;
+<a name='L85'>  85       b-&gt;bits = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<a href='../S/114.html#L58' title='Defined at 58 in src/lib/kernel/bitmap.c.'>byte_cnt</a> (bit_cnt));
+<a name='L86'>  86       <b>if</b> (b-&gt;bits != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || bit_cnt == 0)
+<a name='L87'>  87         <font color='red'>{</font>
+<a name='L88'>  88           <a href='../S/114.html#L210' title='Defined at 210 in src/lib/kernel/bitmap.c.'>bitmap_set_all</a> (b, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L89'>  89           <b>return</b> b;
+<a name='L90'>  90         <font color='red'>}</font>
+<a name='L91'>  91       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (b);
+<a name='L92'>  92     <font color='red'>}</font>
+<a name='L93'>  93   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L94'>  94 <font color='red'>}</font>
+<a name='L95'>  95 
+<a name='L96'>  96 <i><font color='green'>/* Creates and returns a bitmap with BIT_CNT bits in the</font></i>
+<a name='L97'>  97 <i><font color='green'>   BLOCK_SIZE bytes of storage preallocated at BLOCK.</font></i>
+<a name='L98'>  98 <i><font color='green'>   BLOCK_SIZE must be at least bitmap_needed_bytes(BIT_CNT). */</font></i>
+<a name='L99'>  99 <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> *
+<a name='L100'> 100 <a href='../R/314.html' title='Multiple refered from 2 places.'>bitmap_create_in_buf</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_cnt, <b>void</b> *block, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> block_size <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>)
+<a name='L101'> 101 <font color='red'>{</font>
+<a name='L102'> 102   <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a> *b = <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L103'> 103   
+<a name='L104'> 104   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> &gt;= <a href='../S/114.html#L115' title='Defined at 115 in src/lib/kernel/bitmap.c.'>bitmap_buf_size</a> (bit_cnt));
+<a name='L105'> 105 
+<a name='L106'> 106   b-&gt;bit_cnt = bit_cnt;
+<a name='L107'> 107   b-&gt;bits = (<a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a> *) (b + 1);
+<a name='L108'> 108   <a href='../S/114.html#L210' title='Defined at 210 in src/lib/kernel/bitmap.c.'>bitmap_set_all</a> (b, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L109'> 109   <b>return</b> b;
+<a name='L110'> 110 <font color='red'>}</font>
+<a name='L111'> 111 
+<a name='L112'> 112 <i><font color='green'>/* Returns the number of bytes required to accomodate a bitmap</font></i>
+<a name='L113'> 113 <i><font color='green'>   with BIT_CNT bits (for use with bitmap_create_in_buf()). */</font></i>
+<a name='L114'> 114 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L115'> 115 <a href='../R/310.html' title='Multiple refered from 3 places.'>bitmap_buf_size</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_cnt) 
+<a name='L116'> 116 <font color='red'>{</font>
+<a name='L117'> 117   <b>return</b> <b>sizeof</b> (<b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a>) + <a href='../S/114.html#L58' title='Defined at 58 in src/lib/kernel/bitmap.c.'>byte_cnt</a> (bit_cnt);
+<a name='L118'> 118 <font color='red'>}</font>
+<a name='L119'> 119 
+<a name='L120'> 120 <i><font color='green'>/* Destroys bitmap B, freeing its storage.</font></i>
+<a name='L121'> 121 <i><font color='green'>   Not for use on bitmaps created by</font></i>
+<a name='L122'> 122 <i><font color='green'>   bitmap_create_preallocated(). */</font></i>
+<a name='L123'> 123 <b>void</b>
+<a name='L124'> 124 <a href='../S/111.html#L14' title='Refered from 14 in src/lib/kernel/bitmap.h.'>bitmap_destroy</a> (<b>struct</b> bitmap *b) 
+<a name='L125'> 125 <font color='red'>{</font>
+<a name='L126'> 126   <b>if</b> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L127'> 127     <font color='red'>{</font>
+<a name='L128'> 128       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (b-&gt;bits);
+<a name='L129'> 129       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (b);
+<a name='L130'> 130     <font color='red'>}</font>
+<a name='L131'> 131 <font color='red'>}</font>
+<a name='L132'> 132 
+<a name='L133'> 133 <i><font color='green'>/* Bitmap size. */</font></i>
+<a name='L134'> 134 
+<a name='L135'> 135 <i><font color='green'>/* Returns the number of bits in B. */</font></i>
+<a name='L136'> 136 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L137'> 137 <a href='../R/328.html' title='Multiple refered from 3 places.'>bitmap_size</a> (<b>const</b> <b>struct</b> bitmap *b)
+<a name='L138'> 138 <font color='red'>{</font>
+<a name='L139'> 139   <b>return</b> b-&gt;bit_cnt;
+<a name='L140'> 140 <font color='red'>}</font>
+<a name='L141'> 141 
+<a name='L142'> 142 <i><font color='green'>/* Setting and testing single bits. */</font></i>
+<a name='L143'> 143 
+<a name='L144'> 144 <i><font color='green'>/* Atomically sets the bit numbered IDX in B to VALUE. */</font></i>
+<a name='L145'> 145 <b>void</b>
+<a name='L146'> 146 <a href='../R/325.html' title='Multiple refered from 2 places.'>bitmap_set</a> (<b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx, bool value) 
+<a name='L147'> 147 <font color='red'>{</font>
+<a name='L148'> 148   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L149'> 149   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (idx &lt; b-&gt;bit_cnt);
+<a name='L150'> 150   <b>if</b> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>)
+<a name='L151'> 151     <a href='../S/114.html#L158' title='Defined at 158 in src/lib/kernel/bitmap.c.'>bitmap_mark</a> (b, idx);
+<a name='L152'> 152   <b>else</b>
+<a name='L153'> 153     <a href='../S/114.html#L171' title='Defined at 171 in src/lib/kernel/bitmap.c.'>bitmap_reset</a> (b, idx);
+<a name='L154'> 154 <font color='red'>}</font>
+<a name='L155'> 155 
+<a name='L156'> 156 <i><font color='green'>/* Atomically sets the bit numbered BIT_IDX in B to true. */</font></i>
+<a name='L157'> 157 <b>void</b>
+<a name='L158'> 158 <a href='../R/319.html' title='Multiple refered from 4 places.'>bitmap_mark</a> (<b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_idx) 
+<a name='L159'> 159 <font color='red'>{</font>
+<a name='L160'> 160   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx = <a href='../S/114.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.c.'>elem_idx</a> (bit_idx);
+<a name='L161'> 161   <a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a> mask = <a href='../S/114.html#L44' title='Defined at 44 in src/lib/kernel/bitmap.c.'>bit_mask</a> (bit_idx);
+<a name='L162'> 162 
+<a name='L163'> 163   <i><font color='green'>/* This is equivalent to `b-&gt;bits[idx] |= mask' except that it</font></i>
+<a name='L164'> 164 <i><font color='green'>     is guaranteed to be atomic on a uniprocessor machine.  See</font></i>
+<a name='L165'> 165 <i><font color='green'>     the description of the OR instruction in [IA32-v2b]. */</font></i>
+<a name='L166'> 166   <b>asm</b> ("orl %1, %0" : "=m" (b-&gt;bits[idx]) : "r" (mask) : "cc");
+<a name='L167'> 167 <font color='red'>}</font>
+<a name='L168'> 168 
+<a name='L169'> 169 <i><font color='green'>/* Atomically sets the bit numbered BIT_IDX in B to false. */</font></i>
+<a name='L170'> 170 <b>void</b>
+<a name='L171'> 171 <a href='../R/322.html' title='Multiple refered from 2 places.'>bitmap_reset</a> (<b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_idx) 
+<a name='L172'> 172 <font color='red'>{</font>
+<a name='L173'> 173   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx = <a href='../S/114.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.c.'>elem_idx</a> (bit_idx);
+<a name='L174'> 174   <a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a> mask = <a href='../S/114.html#L44' title='Defined at 44 in src/lib/kernel/bitmap.c.'>bit_mask</a> (bit_idx);
+<a name='L175'> 175 
+<a name='L176'> 176   <i><font color='green'>/* This is equivalent to `b-&gt;bits[idx] &amp;= ~mask' except that it</font></i>
+<a name='L177'> 177 <i><font color='green'>     is guaranteed to be atomic on a uniprocessor machine.  See</font></i>
+<a name='L178'> 178 <i><font color='green'>     the description of the AND instruction in [IA32-v2a]. */</font></i>
+<a name='L179'> 179   <b>asm</b> ("andl %1, %0" : "=m" (b-&gt;bits[idx]) : "r" (~mask) : "cc");
+<a name='L180'> 180 <font color='red'>}</font>
+<a name='L181'> 181 
+<a name='L182'> 182 <i><font color='green'>/* Atomically toggles the bit numbered IDX in B;</font></i>
+<a name='L183'> 183 <i><font color='green'>   that is, if it is true, makes it false,</font></i>
+<a name='L184'> 184 <i><font color='green'>   and if it is false, makes it true. */</font></i>
+<a name='L185'> 185 <b>void</b>
+<a name='L186'> 186 <a href='../S/111.html#L23' title='Refered from 23 in src/lib/kernel/bitmap.h.'>bitmap_flip</a> (<b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> bit_idx) 
+<a name='L187'> 187 <font color='red'>{</font>
+<a name='L188'> 188   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx = <a href='../S/114.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.c.'>elem_idx</a> (bit_idx);
+<a name='L189'> 189   <a href='../S/114.html#L19' title='Defined at 19 in src/lib/kernel/bitmap.c.'>elem_type</a> mask = <a href='../S/114.html#L44' title='Defined at 44 in src/lib/kernel/bitmap.c.'>bit_mask</a> (bit_idx);
+<a name='L190'> 190 
+<a name='L191'> 191   <i><font color='green'>/* This is equivalent to `b-&gt;bits[idx] ^= mask' except that it</font></i>
+<a name='L192'> 192 <i><font color='green'>     is guaranteed to be atomic on a uniprocessor machine.  See</font></i>
+<a name='L193'> 193 <i><font color='green'>     the description of the XOR instruction in [IA32-v2b]. */</font></i>
+<a name='L194'> 194   <b>asm</b> ("xorl %1, %0" : "=m" (b-&gt;bits[idx]) : "r" (mask) : "cc");
+<a name='L195'> 195 <font color='red'>}</font>
+<a name='L196'> 196 
+<a name='L197'> 197 <i><font color='green'>/* Returns the value of the bit numbered IDX in B. */</font></i>
+<a name='L198'> 198 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L199'> 199 <a href='../R/329.html' title='Multiple refered from 3 places.'>bitmap_test</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx) 
+<a name='L200'> 200 <font color='red'>{</font>
+<a name='L201'> 201   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L202'> 202   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (idx &lt; b-&gt;bit_cnt);
+<a name='L203'> 203   <b>return</b> (b-&gt;bits[<a href='../S/114.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.c.'>elem_idx</a> (idx)] &amp; <a href='../S/114.html#L44' title='Defined at 44 in src/lib/kernel/bitmap.c.'>bit_mask</a> (idx)) != 0;
+<a name='L204'> 204 <font color='red'>}</font>
+<a name='L205'> 205 
+<a name='L206'> 206 <i><font color='green'>/* Setting and testing multiple bits. */</font></i>
+<a name='L207'> 207 
+<a name='L208'> 208 <i><font color='green'>/* Sets all bits in B to VALUE. */</font></i>
+<a name='L209'> 209 <b>void</b>
+<a name='L210'> 210 <a href='../R/326.html' title='Multiple refered from 3 places.'>bitmap_set_all</a> (<b>struct</b> bitmap *b, bool value) 
+<a name='L211'> 211 <font color='red'>{</font>
+<a name='L212'> 212   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L213'> 213 
+<a name='L214'> 214   <a href='../S/114.html#L219' title='Defined at 219 in src/lib/kernel/bitmap.c.'>bitmap_set_multiple</a> (b, 0, <a href='../S/114.html#L137' title='Defined at 137 in src/lib/kernel/bitmap.c.'>bitmap_size</a> (b), <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L215'> 215 <font color='red'>}</font>
+<a name='L216'> 216 
+<a name='L217'> 217 <i><font color='green'>/* Sets the CNT bits starting at START in B to VALUE. */</font></i>
+<a name='L218'> 218 <b>void</b>
+<a name='L219'> 219 <a href='../R/327.html' title='Multiple refered from 6 places.'>bitmap_set_multiple</a> (<b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, bool value) 
+<a name='L220'> 220 <font color='red'>{</font>
+<a name='L221'> 221   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L222'> 222   
+<a name='L223'> 223   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L224'> 224   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> &lt;= b-&gt;bit_cnt);
+<a name='L225'> 225   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + cnt &lt;= b-&gt;bit_cnt);
+<a name='L226'> 226 
+<a name='L227'> 227   <b>for</b> (i = 0; i &lt; cnt; i++)
+<a name='L228'> 228     <a href='../S/114.html#L146' title='Defined at 146 in src/lib/kernel/bitmap.c.'>bitmap_set</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + i, <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L229'> 229 <font color='red'>}</font>
+<a name='L230'> 230 
+<a name='L231'> 231 <i><font color='green'>/* Returns the number of bits in B between START and START + CNT,</font></i>
+<a name='L232'> 232 <i><font color='green'>   exclusive, that are set to VALUE. */</font></i>
+<a name='L233'> 233 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L234'> 234 <a href='../S/111.html#L29' title='Refered from 29 in src/lib/kernel/bitmap.h.'>bitmap_count</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, bool value) 
+<a name='L235'> 235 <font color='red'>{</font>
+<a name='L236'> 236   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i, value_cnt;
+<a name='L237'> 237 
+<a name='L238'> 238   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L239'> 239   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> &lt;= b-&gt;bit_cnt);
+<a name='L240'> 240   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + cnt &lt;= b-&gt;bit_cnt);
+<a name='L241'> 241 
+<a name='L242'> 242   value_cnt = 0;
+<a name='L243'> 243   <b>for</b> (i = 0; i &lt; cnt; i++)
+<a name='L244'> 244     <b>if</b> (<a href='../S/114.html#L199' title='Defined at 199 in src/lib/kernel/bitmap.c.'>bitmap_test</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + i) == <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>)
+<a name='L245'> 245       value_cnt++;
+<a name='L246'> 246   <b>return</b> value_cnt;
+<a name='L247'> 247 <font color='red'>}</font>
+<a name='L248'> 248 
+<a name='L249'> 249 <i><font color='green'>/* Returns true if any bits in B between START and START + CNT,</font></i>
+<a name='L250'> 250 <i><font color='green'>   exclusive, are set to VALUE, and false otherwise. */</font></i>
+<a name='L251'> 251 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L252'> 252 <a href='../R/311.html' title='Multiple refered from 5 places.'>bitmap_contains</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, bool value) 
+<a name='L253'> 253 <font color='red'>{</font>
+<a name='L254'> 254   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L255'> 255   
+<a name='L256'> 256   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L257'> 257   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> &lt;= b-&gt;bit_cnt);
+<a name='L258'> 258   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + cnt &lt;= b-&gt;bit_cnt);
+<a name='L259'> 259 
+<a name='L260'> 260   <b>for</b> (i = 0; i &lt; cnt; i++)
+<a name='L261'> 261     <b>if</b> (<a href='../S/114.html#L199' title='Defined at 199 in src/lib/kernel/bitmap.c.'>bitmap_test</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + i) == <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>)
+<a name='L262'> 262       <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L263'> 263   <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L264'> 264 <font color='red'>}</font>
+<a name='L265'> 265 
+<a name='L266'> 266 <i><font color='green'>/* Returns true if any bits in B between START and START + CNT,</font></i>
+<a name='L267'> 267 <i><font color='green'>   exclusive, are set to true, and false otherwise.*/</font></i>
+<a name='L268'> 268 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L269'> 269 <a href='../S/111.html#L31' title='Refered from 31 in src/lib/kernel/bitmap.h.'>bitmap_any</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt) 
+<a name='L270'> 270 <font color='red'>{</font>
+<a name='L271'> 271   <b>return</b> <a href='../S/114.html#L252' title='Defined at 252 in src/lib/kernel/bitmap.c.'>bitmap_contains</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>, cnt, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L272'> 272 <font color='red'>}</font>
+<a name='L273'> 273 
+<a name='L274'> 274 <i><font color='green'>/* Returns true if no bits in B between START and START + CNT,</font></i>
+<a name='L275'> 275 <i><font color='green'>   exclusive, are set to true, and false otherwise.*/</font></i>
+<a name='L276'> 276 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L277'> 277 <a href='../S/111.html#L32' title='Refered from 32 in src/lib/kernel/bitmap.h.'>bitmap_none</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt) 
+<a name='L278'> 278 <font color='red'>{</font>
+<a name='L279'> 279   <b>return</b> !<a href='../S/114.html#L252' title='Defined at 252 in src/lib/kernel/bitmap.c.'>bitmap_contains</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>, cnt, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L280'> 280 <font color='red'>}</font>
+<a name='L281'> 281 
+<a name='L282'> 282 <i><font color='green'>/* Returns true if every bit in B between START and START + CNT,</font></i>
+<a name='L283'> 283 <i><font color='green'>   exclusive, is set to true, and false otherwise. */</font></i>
+<a name='L284'> 284 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L285'> 285 <a href='../R/308.html' title='Multiple refered from 3 places.'>bitmap_all</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt) 
+<a name='L286'> 286 <font color='red'>{</font>
+<a name='L287'> 287   <b>return</b> !<a href='../S/114.html#L252' title='Defined at 252 in src/lib/kernel/bitmap.c.'>bitmap_contains</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>, cnt, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L288'> 288 <font color='red'>}</font>
+<a name='L289'> 289 
+<a name='L290'> 290 <i><font color='green'>/* Finding set or unset bits. */</font></i>
+<a name='L291'> 291 
+<a name='L292'> 292 <i><font color='green'>/* Finds and returns the starting index of the first group of CNT</font></i>
+<a name='L293'> 293 <i><font color='green'>   consecutive bits in B at or after START that are all set to</font></i>
+<a name='L294'> 294 <i><font color='green'>   VALUE.</font></i>
+<a name='L295'> 295 <i><font color='green'>   If there is no such group, returns BITMAP_ERROR. */</font></i>
+<a name='L296'> 296 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L297'> 297 <a href='../R/323.html' title='Multiple refered from 2 places.'>bitmap_scan</a> (<b>const</b> <b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, bool value) 
+<a name='L298'> 298 <font color='red'>{</font>
+<a name='L299'> 299   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L300'> 300   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> &lt;= b-&gt;bit_cnt);
+<a name='L301'> 301 
+<a name='L302'> 302   <b>if</b> (cnt &lt;= b-&gt;bit_cnt) 
+<a name='L303'> 303     <font color='red'>{</font>
+<a name='L304'> 304       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> last = b-&gt;bit_cnt - cnt;
+<a name='L305'> 305       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L306'> 306       <b>for</b> (i = <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>; i &lt;= last; i++)
+<a name='L307'> 307         <b>if</b> (!<a href='../S/114.html#L252' title='Defined at 252 in src/lib/kernel/bitmap.c.'>bitmap_contains</a> (b, i, cnt, !<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>))
+<a name='L308'> 308           <b>return</b> i; 
+<a name='L309'> 309     <font color='red'>}</font>
+<a name='L310'> 310   <b>return</b> <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>;
+<a name='L311'> 311 <font color='red'>}</font>
+<a name='L312'> 312 
+<a name='L313'> 313 <i><font color='green'>/* Finds the first group of CNT consecutive bits in B at or after</font></i>
+<a name='L314'> 314 <i><font color='green'>   START that are all set to VALUE, flips them all to !VALUE,</font></i>
+<a name='L315'> 315 <i><font color='green'>   and returns the index of the first bit in the group.</font></i>
+<a name='L316'> 316 <i><font color='green'>   If there is no such group, returns BITMAP_ERROR.</font></i>
+<a name='L317'> 317 <i><font color='green'>   If CNT is zero, returns 0.</font></i>
+<a name='L318'> 318 <i><font color='green'>   Bits are set atomically, but testing bits is not atomic with</font></i>
+<a name='L319'> 319 <i><font color='green'>   setting them. */</font></i>
+<a name='L320'> 320 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L321'> 321 <a href='../R/324.html' title='Multiple refered from 3 places.'>bitmap_scan_and_flip</a> (<b>struct</b> bitmap *b, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> start, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, bool value)
+<a name='L322'> 322 <font color='red'>{</font>
+<a name='L323'> 323   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> idx = <a href='../S/114.html#L297' title='Defined at 297 in src/lib/kernel/bitmap.c.'>bitmap_scan</a> (b, <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>, cnt, <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L324'> 324   <b>if</b> (idx != <a href='../S/111.html#L36' title='Defined at 36 in src/lib/kernel/bitmap.h.'>BITMAP_ERROR</a>) 
+<a name='L325'> 325     <a href='../S/114.html#L219' title='Defined at 219 in src/lib/kernel/bitmap.c.'>bitmap_set_multiple</a> (b, idx, cnt, !<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L326'> 326   <b>return</b> idx;
+<a name='L327'> 327 <font color='red'>}</font>
+<a name='L328'> 328 
+<a name='L329'> 329 <i><font color='green'>/* File input and output. */</font></i>
+<a name='L330'> 330 
+<a name='L331'> 331 <font color='darkred'>#ifdef</font> FILESYS
+<a name='L332'> 332 <i><font color='green'>/* Returns the number of bytes needed to store B in a file. */</font></i>
+<a name='L333'> 333 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L334'> 334 <a href='../R/317.html' title='Multiple refered from 2 places.'>bitmap_file_size</a> (<b>const</b> <b>struct</b> bitmap *b) 
+<a name='L335'> 335 <font color='red'>{</font>
+<a name='L336'> 336   <b>return</b> <a href='../S/114.html#L58' title='Defined at 58 in src/lib/kernel/bitmap.c.'>byte_cnt</a> (b-&gt;bit_cnt);
+<a name='L337'> 337 <font color='red'>}</font>
+<a name='L338'> 338 
+<a name='L339'> 339 <i><font color='green'>/* Reads B from FILE.  Returns true if successful, false</font></i>
+<a name='L340'> 340 <i><font color='green'>   otherwise. */</font></i>
+<a name='L341'> 341 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L342'> 342 <a href='../R/321.html' title='Multiple refered from 2 places.'>bitmap_read</a> (<b>struct</b> bitmap *b, <b>struct</b> file *file) 
+<a name='L343'> 343 <font color='red'>{</font>
+<a name='L344'> 344   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L345'> 345   <b>if</b> (b-&gt;bit_cnt &gt; 0) 
+<a name='L346'> 346     <font color='red'>{</font>
+<a name='L347'> 347       <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size = <a href='../S/114.html#L58' title='Defined at 58 in src/lib/kernel/bitmap.c.'>byte_cnt</a> (b-&gt;bit_cnt);
+<a name='L348'> 348       success = <a href='../S/29.html#L82' title='Defined at 82 in src/filesys/file.c.'>file_read_at</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, b-&gt;bits, size, 0) == size;
+<a name='L349'> 349       b-&gt;bits[<a href='../S/114.html#L51' title='Defined at 51 in src/lib/kernel/bitmap.c.'>elem_cnt</a> (b-&gt;bit_cnt) - 1] &amp;= <a href='../S/114.html#L66' title='Defined at 66 in src/lib/kernel/bitmap.c.'>last_mask</a> (b);
+<a name='L350'> 350     <font color='red'>}</font>
+<a name='L351'> 351   <b>return</b> success;
+<a name='L352'> 352 <font color='red'>}</font>
+<a name='L353'> 353 
+<a name='L354'> 354 <i><font color='green'>/* Writes B to FILE.  Return true if successful, false</font></i>
+<a name='L355'> 355 <i><font color='green'>   otherwise. */</font></i>
+<a name='L356'> 356 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L357'> 357 <a href='../R/330.html' title='Multiple refered from 4 places.'>bitmap_write</a> (<b>const</b> <b>struct</b> bitmap *b, <b>struct</b> file *file)
+<a name='L358'> 358 <font color='red'>{</font>
+<a name='L359'> 359   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size = <a href='../S/114.html#L58' title='Defined at 58 in src/lib/kernel/bitmap.c.'>byte_cnt</a> (b-&gt;bit_cnt);
+<a name='L360'> 360   <b>return</b> <a href='../S/29.html#L110' title='Defined at 110 in src/filesys/file.c.'>file_write_at</a> (<a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, b-&gt;bits, size, 0) == size;
+<a name='L361'> 361 <font color='red'>}</font>
+<a name='L362'> 362 <font color='darkred'>#endif</font> <i><font color='green'>/* FILESYS */</font></i>
+<a name='L363'> 363 
+<a name='L364'> 364 <i><font color='green'>/* Debugging. */</font></i>
+<a name='L365'> 365 
+<a name='L366'> 366 <i><font color='green'>/* Dumps the contents of B to the console as hexadecimal. */</font></i>
+<a name='L367'> 367 <b>void</b>
+<a name='L368'> 368 <a href='../S/111.html#L49' title='Refered from 49 in src/lib/kernel/bitmap.h.'>bitmap_dump</a> (<b>const</b> <b>struct</b> bitmap *b) 
+<a name='L369'> 369 <font color='red'>{</font>
+<a name='L370'> 370   <a href='../S/115.html#L593' title='Defined at 593 in src/lib/stdio.c.'>hex_dump</a> (0, b-&gt;bits, <a href='../S/114.html#L58' title='Defined at 58 in src/lib/kernel/bitmap.c.'>byte_cnt</a> (b-&gt;bit_cnt), <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L371'> 371 <font color='red'>}</font>
+<a name='L372'> 372 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L368'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

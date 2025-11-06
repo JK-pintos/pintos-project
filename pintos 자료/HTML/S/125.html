@@ -1,0 +1,285 @@
+<html>
+<head>
+<title>src/devices/timer.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/timer.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L240'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L36' title='Defined at 36.'>timer_init</a>
+<li><a href='#L44' title='Defined at 44.'>timer_calibrate</a>
+<li><a href='#L71' title='Defined at 71.'>timer_ticks</a>
+<li><a href='#L82' title='Defined at 82.'>timer_elapsed</a>
+<li><a href='#L90' title='Defined at 90.'>timer_sleep</a>
+<li><a href='#L102' title='Defined at 102.'>timer_msleep</a>
+<li><a href='#L110' title='Defined at 110.'>timer_usleep</a>
+<li><a href='#L118' title='Defined at 118.'>timer_nsleep</a>
+<li><a href='#L131' title='Defined at 131.'>timer_mdelay</a>
+<li><a href='#L144' title='Defined at 144.'>timer_udelay</a>
+<li><a href='#L157' title='Defined at 157.'>timer_ndelay</a>
+<li><a href='#L164' title='Defined at 164.'>timer_print_stats</a>
+<li><a href='#L171' title='Defined at 171.'>timer_interrupt</a>
+<li><a href='#L180' title='Defined at 180.'>too_many_loops</a>
+<li><a href='#L204' title='Defined at 204.'>busy_wait</a>
+<li><a href='#L212' title='Defined at 212.'>real_time_sleep</a>
+<li><a href='#L240' title='Defined at 240.'>real_time_delay</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='139.html'>devices/pit.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L10'>  10   
+<a name='L11'>  11 <i><font color='green'>/* See [8254] for hardware details of the 8254 timer chip. */</font></i>
+<a name='L12'>  12 
+<a name='L13'>  13 <font color='darkred'>#if</font> <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a> &lt; 19
+<a name='L14'>  14 <font color='darkred'>#error</font> 8254 timer requires TIMER_FREQ &gt;= 19
+<a name='L15'>  15 <font color='darkred'>#endif</font>
+<a name='L16'>  16 <font color='darkred'>#if</font> <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a> &gt; 1000
+<a name='L17'>  17 <font color='darkred'>#error</font> TIMER_FREQ &lt;= 1000 recommended
+<a name='L18'>  18 <font color='darkred'>#endif</font>
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Number of timer ticks since OS booted. */</font></i>
+<a name='L21'>  21 <b>static</b> <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ticks;
+<a name='L22'>  22 
+<a name='L23'>  23 <i><font color='green'>/* Number of loops per timer tick.</font></i>
+<a name='L24'>  24 <i><font color='green'>   Initialized by timer_calibrate(). */</font></i>
+<a name='L25'>  25 <b>static</b> <b>unsigned</b> loops_per_tick;
+<a name='L26'>  26 
+<a name='L27'>  27 <b>static</b> <a href='../S/150.html#L58' title='Defined at 58 in src/threads/interrupt.h.'>intr_handler_func</a> <a href='../S/125.html#L171' title='Defined at 171 in src/devices/timer.c.'>timer_interrupt</a>;
+<a name='L28'>  28 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/125.html#L180' title='Defined at 180 in src/devices/timer.c.'>too_many_loops</a> (<b>unsigned</b> loops);
+<a name='L29'>  29 <b>static</b> <b>void</b> <a href='../S/125.html#L204' title='Defined at 204 in src/devices/timer.c.'>busy_wait</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> loops);
+<a name='L30'>  30 <b>static</b> <b>void</b> <a href='../S/125.html#L212' title='Defined at 212 in src/devices/timer.c.'>real_time_sleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> num, <a href='../S/87.html#L12' title='Defined at 12 in src/lib/stdint.h.'>int32_t</a> denom);
+<a name='L31'>  31 <b>static</b> <b>void</b> <a href='../S/125.html#L240' title='Defined at 240 in src/devices/timer.c.'>real_time_delay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> num, <a href='../S/87.html#L12' title='Defined at 12 in src/lib/stdint.h.'>int32_t</a> denom);
+<a name='L32'>  32 
+<a name='L33'>  33 <i><font color='green'>/* Sets up the timer to interrupt TIMER_FREQ times per second,</font></i>
+<a name='L34'>  34 <i><font color='green'>   and registers the corresponding interrupt. */</font></i>
+<a name='L35'>  35 <b>void</b>
+<a name='L36'>  36 <a href='../R/913.html' title='Multiple refered from 2 places.'>timer_init</a> (<b>void</b>) 
+<a name='L37'>  37 <font color='red'>{</font>
+<a name='L38'>  38   <a href='../S/118.html#L46' title='Defined at 46 in src/devices/pit.c.'>pit_configure_channel</a> (0, 2, <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>);
+<a name='L39'>  39   <a href='../S/168.html#L181' title='Defined at 181 in src/threads/interrupt.c.'>intr_register_ext</a> (0x20, <a href='../S/125.html#L171' title='Defined at 171 in src/devices/timer.c.'>timer_interrupt</a>, "8254 Timer");
+<a name='L40'>  40 <font color='red'>}</font>
+<a name='L41'>  41 
+<a name='L42'>  42 <i><font color='green'>/* Calibrates loops_per_tick, used to implement brief delays. */</font></i>
+<a name='L43'>  43 <b>void</b>
+<a name='L44'>  44 <a href='../R/911.html' title='Multiple refered from 2 places.'>timer_calibrate</a> (<b>void</b>) 
+<a name='L45'>  45 <font color='red'>{</font>
+<a name='L46'>  46   <b>unsigned</b> high_bit, test_bit;
+<a name='L47'>  47 
+<a name='L48'>  48   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/168.html#L65' title='Defined at 65 in src/threads/interrupt.c.'>intr_get_level</a> () == INTR_ON);
+<a name='L49'>  49   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Calibrating timer...  ");
+<a name='L50'>  50 
+<a name='L51'>  51   <i><font color='green'>/* Approximate loops_per_tick as the largest power-of-two</font></i>
+<a name='L52'>  52 <i><font color='green'>     still less than one timer tick. */</font></i>
+<a name='L53'>  53   loops_per_tick = 1u &lt;&lt; 10;
+<a name='L54'>  54   <b>while</b> (!<a href='../S/125.html#L180' title='Defined at 180 in src/devices/timer.c.'>too_many_loops</a> (loops_per_tick &lt;&lt; 1)) 
+<a name='L55'>  55     <font color='red'>{</font>
+<a name='L56'>  56       loops_per_tick &lt;&lt;= 1;
+<a name='L57'>  57       <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (loops_per_tick != 0);
+<a name='L58'>  58     <font color='red'>}</font>
+<a name='L59'>  59 
+<a name='L60'>  60   <i><font color='green'>/* Refine the next 8 bits of loops_per_tick. */</font></i>
+<a name='L61'>  61   high_bit = loops_per_tick;
+<a name='L62'>  62   <b>for</b> (test_bit = high_bit &gt;&gt; 1; test_bit != high_bit &gt;&gt; 10; test_bit &gt;&gt;= 1)
+<a name='L63'>  63     <b>if</b> (!<a href='../S/125.html#L180' title='Defined at 180 in src/devices/timer.c.'>too_many_loops</a> (high_bit | test_bit))
+<a name='L64'>  64       loops_per_tick |= test_bit;
+<a name='L65'>  65 
+<a name='L66'>  66   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%'"<a href='../S/81.html#L30' title='Defined at 30 in src/lib/inttypes.h.'>PRIu64</a>" loops/s.\n", (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a>) loops_per_tick * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a>);
+<a name='L67'>  67 <font color='red'>}</font>
+<a name='L68'>  68 
+<a name='L69'>  69 <i><font color='green'>/* Returns the number of timer ticks since the OS booted. */</font></i>
+<a name='L70'>  70 <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a>
+<a name='L71'>  71 <a href='../R/921.html' title='Multiple refered from 23 places.'>timer_ticks</a> (<b>void</b>) 
+<a name='L72'>  72 <font color='red'>{</font>
+<a name='L73'>  73   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L74'>  74   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> t = ticks;
+<a name='L75'>  75   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L76'>  76   <b>return</b> t;
+<a name='L77'>  77 <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79 <i><font color='green'>/* Returns the number of timer ticks elapsed since THEN, which</font></i>
+<a name='L80'>  80 <i><font color='green'>   should be a value once returned by timer_ticks(). */</font></i>
+<a name='L81'>  81 <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a>
+<a name='L82'>  82 <a href='../R/912.html' title='Multiple refered from 18 places.'>timer_elapsed</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> then) 
+<a name='L83'>  83 <font color='red'>{</font>
+<a name='L84'>  84   <b>return</b> <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> () - then;
+<a name='L85'>  85 <font color='red'>}</font>
+<a name='L86'>  86 
+<a name='L87'>  87 <i><font color='green'>/* Sleeps for approximately TICKS timer ticks.  Interrupts must</font></i>
+<a name='L88'>  88 <i><font color='green'>   be turned on. */</font></i>
+<a name='L89'>  89 <b>void</b>
+<a name='L90'>  90 <a href='../R/920.html' title='Multiple refered from 21 places.'>timer_sleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ticks) 
+<a name='L91'>  91 <font color='red'>{</font>
+<a name='L92'>  92   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> = <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ();
+<a name='L93'>  93 
+<a name='L94'>  94   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/168.html#L65' title='Defined at 65 in src/threads/interrupt.c.'>intr_get_level</a> () == INTR_ON);
+<a name='L95'>  95   <b>while</b> (<a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>) &lt; ticks) 
+<a name='L96'>  96     <a href='../S/163.html#L310' title='Defined at 310 in src/threads/thread.c.'>thread_yield</a> ();
+<a name='L97'>  97 <font color='red'>}</font>
+<a name='L98'>  98 
+<a name='L99'>  99 <i><font color='green'>/* Sleeps for approximately MS milliseconds.  Interrupts must be</font></i>
+<a name='L100'> 100 <i><font color='green'>   turned on. */</font></i>
+<a name='L101'> 101 <b>void</b>
+<a name='L102'> 102 <a href='../R/916.html' title='Multiple refered from 5 places.'>timer_msleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ms) 
+<a name='L103'> 103 <font color='red'>{</font>
+<a name='L104'> 104   <a href='../S/125.html#L212' title='Defined at 212 in src/devices/timer.c.'>real_time_sleep</a> (ms, 1000);
+<a name='L105'> 105 <font color='red'>}</font>
+<a name='L106'> 106 
+<a name='L107'> 107 <i><font color='green'>/* Sleeps for approximately US microseconds.  Interrupts must be</font></i>
+<a name='L108'> 108 <i><font color='green'>   turned on. */</font></i>
+<a name='L109'> 109 <b>void</b>
+<a name='L110'> 110 <a href='../R/923.html' title='Multiple refered from 4 places.'>timer_usleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> us) 
+<a name='L111'> 111 <font color='red'>{</font>
+<a name='L112'> 112   <a href='../S/125.html#L212' title='Defined at 212 in src/devices/timer.c.'>real_time_sleep</a> (us, 1000 * 1000);
+<a name='L113'> 113 <font color='red'>}</font>
+<a name='L114'> 114 
+<a name='L115'> 115 <i><font color='green'>/* Sleeps for approximately NS nanoseconds.  Interrupts must be</font></i>
+<a name='L116'> 116 <i><font color='green'>   turned on. */</font></i>
+<a name='L117'> 117 <b>void</b>
+<a name='L118'> 118 <a href='../R/918.html' title='Multiple refered from 2 places.'>timer_nsleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ns) 
+<a name='L119'> 119 <font color='red'>{</font>
+<a name='L120'> 120   <a href='../S/125.html#L212' title='Defined at 212 in src/devices/timer.c.'>real_time_sleep</a> (ns, 1000 * 1000 * 1000);
+<a name='L121'> 121 <font color='red'>}</font>
+<a name='L122'> 122 
+<a name='L123'> 123 <i><font color='green'>/* Busy-waits for approximately MS milliseconds.  Interrupts need</font></i>
+<a name='L124'> 124 <i><font color='green'>   not be turned on.</font></i>
+<a name='L125'> 125 <i><font color='green'></font></i>
+<a name='L126'> 126 <i><font color='green'>   Busy waiting wastes CPU cycles, and busy waiting with</font></i>
+<a name='L127'> 127 <i><font color='green'>   interrupts off for the interval between timer ticks or longer</font></i>
+<a name='L128'> 128 <i><font color='green'>   will cause timer ticks to be lost.  Thus, use timer_msleep()</font></i>
+<a name='L129'> 129 <i><font color='green'>   instead if interrupts are enabled. */</font></i>
+<a name='L130'> 130 <b>void</b>
+<a name='L131'> 131 <a href='../S/124.html#L23' title='Refered from 23 in src/devices/timer.h.'>timer_mdelay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ms) 
+<a name='L132'> 132 <font color='red'>{</font>
+<a name='L133'> 133   <a href='../S/125.html#L240' title='Defined at 240 in src/devices/timer.c.'>real_time_delay</a> (ms, 1000);
+<a name='L134'> 134 <font color='red'>}</font>
+<a name='L135'> 135 
+<a name='L136'> 136 <i><font color='green'>/* Sleeps for approximately US microseconds.  Interrupts need not</font></i>
+<a name='L137'> 137 <i><font color='green'>   be turned on.</font></i>
+<a name='L138'> 138 <i><font color='green'></font></i>
+<a name='L139'> 139 <i><font color='green'>   Busy waiting wastes CPU cycles, and busy waiting with</font></i>
+<a name='L140'> 140 <i><font color='green'>   interrupts off for the interval between timer ticks or longer</font></i>
+<a name='L141'> 141 <i><font color='green'>   will cause timer ticks to be lost.  Thus, use timer_usleep()</font></i>
+<a name='L142'> 142 <i><font color='green'>   instead if interrupts are enabled. */</font></i>
+<a name='L143'> 143 <b>void</b>
+<a name='L144'> 144 <a href='../R/922.html' title='Multiple refered from 4 places.'>timer_udelay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> us) 
+<a name='L145'> 145 <font color='red'>{</font>
+<a name='L146'> 146   <a href='../S/125.html#L240' title='Defined at 240 in src/devices/timer.c.'>real_time_delay</a> (us, 1000 * 1000);
+<a name='L147'> 147 <font color='red'>}</font>
+<a name='L148'> 148 
+<a name='L149'> 149 <i><font color='green'>/* Sleeps execution for approximately NS nanoseconds.  Interrupts</font></i>
+<a name='L150'> 150 <i><font color='green'>   need not be turned on.</font></i>
+<a name='L151'> 151 <i><font color='green'></font></i>
+<a name='L152'> 152 <i><font color='green'>   Busy waiting wastes CPU cycles, and busy waiting with</font></i>
+<a name='L153'> 153 <i><font color='green'>   interrupts off for the interval between timer ticks or longer</font></i>
+<a name='L154'> 154 <i><font color='green'>   will cause timer ticks to be lost.  Thus, use timer_nsleep()</font></i>
+<a name='L155'> 155 <i><font color='green'>   instead if interrupts are enabled.*/</font></i>
+<a name='L156'> 156 <b>void</b>
+<a name='L157'> 157 <a href='../S/124.html#L25' title='Refered from 25 in src/devices/timer.h.'>timer_ndelay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ns) 
+<a name='L158'> 158 <font color='red'>{</font>
+<a name='L159'> 159   <a href='../S/125.html#L240' title='Defined at 240 in src/devices/timer.c.'>real_time_delay</a> (ns, 1000 * 1000 * 1000);
+<a name='L160'> 160 <font color='red'>}</font>
+<a name='L161'> 161 
+<a name='L162'> 162 <i><font color='green'>/* Prints timer statistics. */</font></i>
+<a name='L163'> 163 <b>void</b>
+<a name='L164'> 164 <a href='../R/919.html' title='Multiple refered from 2 places.'>timer_print_stats</a> (<b>void</b>) 
+<a name='L165'> 165 <font color='red'>{</font>
+<a name='L166'> 166   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Timer: %"<a href='../S/81.html#L27' title='Defined at 27 in src/lib/inttypes.h.'>PRId64</a>" ticks\n", <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ());
+<a name='L167'> 167 <font color='red'>}</font>
+<a name='L168'> 168 
+<a name='L169'> 169 <i><font color='green'>/* Timer interrupt handler. */</font></i>
+<a name='L170'> 170 <b>static</b> <b>void</b>
+<a name='L171'> 171 <a href='../R/914.html' title='Multiple refered from 2 places.'>timer_interrupt</a> (<b>struct</b> intr_frame *args <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>)
+<a name='L172'> 172 <font color='red'>{</font>
+<a name='L173'> 173   ticks++;
+<a name='L174'> 174   <a href='../S/163.html#L123' title='Defined at 123 in src/threads/thread.c.'>thread_tick</a> ();
+<a name='L175'> 175 <font color='red'>}</font>
+<a name='L176'> 176 
+<a name='L177'> 177 <i><font color='green'>/* Returns true if LOOPS iterations waits for more than one timer</font></i>
+<a name='L178'> 178 <i><font color='green'>   tick, otherwise false. */</font></i>
+<a name='L179'> 179 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L180'> 180 <a href='../R/925.html' title='Multiple refered from 3 places.'>too_many_loops</a> (<b>unsigned</b> loops) 
+<a name='L181'> 181 <font color='red'>{</font>
+<a name='L182'> 182   <i><font color='green'>/* Wait for a timer tick. */</font></i>
+<a name='L183'> 183   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> = ticks;
+<a name='L184'> 184   <b>while</b> (ticks == <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>)
+<a name='L185'> 185     <a href='../S/155.html#L49' title='Defined at 49 in src/threads/synch.h.'>barrier</a> ();
+<a name='L186'> 186 
+<a name='L187'> 187   <i><font color='green'>/* Run LOOPS loops. */</font></i>
+<a name='L188'> 188   <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> = ticks;
+<a name='L189'> 189   <a href='../S/125.html#L204' title='Defined at 204 in src/devices/timer.c.'>busy_wait</a> (loops);
+<a name='L190'> 190 
+<a name='L191'> 191   <i><font color='green'>/* If the tick count changed, we iterated too long. */</font></i>
+<a name='L192'> 192   <a href='../S/155.html#L49' title='Defined at 49 in src/threads/synch.h.'>barrier</a> ();
+<a name='L193'> 193   <b>return</b> <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> != ticks;
+<a name='L194'> 194 <font color='red'>}</font>
+<a name='L195'> 195 
+<a name='L196'> 196 <i><font color='green'>/* Iterates through a simple loop LOOPS times, for implementing</font></i>
+<a name='L197'> 197 <i><font color='green'>   brief delays.</font></i>
+<a name='L198'> 198 <i><font color='green'></font></i>
+<a name='L199'> 199 <i><font color='green'>   Marked NO_INLINE because code alignment can significantly</font></i>
+<a name='L200'> 200 <i><font color='green'>   affect timings, so that if this function was inlined</font></i>
+<a name='L201'> 201 <i><font color='green'>   differently in different places the results would be difficult</font></i>
+<a name='L202'> 202 <i><font color='green'>   to predict. */</font></i>
+<a name='L203'> 203 <b>static</b> <b>void</b> <a href='../S/104.html#L9' title='Defined at 9 in src/lib/debug.h.'>NO_INLINE</a>
+<a name='L204'> 204 <a href='../R/352.html' title='Multiple refered from 3 places.'>busy_wait</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> loops) 
+<a name='L205'> 205 <font color='red'>{</font>
+<a name='L206'> 206   <b>while</b> (loops-- &gt; 0)
+<a name='L207'> 207     <a href='../S/155.html#L49' title='Defined at 49 in src/threads/synch.h.'>barrier</a> ();
+<a name='L208'> 208 <font color='red'>}</font>
+<a name='L209'> 209 
+<a name='L210'> 210 <i><font color='green'>/* Sleep for approximately NUM/DENOM seconds. */</font></i>
+<a name='L211'> 211 <b>static</b> <b>void</b>
+<a name='L212'> 212 <a href='../R/756.html' title='Multiple refered from 4 places.'>real_time_sleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> num, <a href='../S/87.html#L12' title='Defined at 12 in src/lib/stdint.h.'>int32_t</a> denom) 
+<a name='L213'> 213 <font color='red'>{</font>
+<a name='L214'> 214   <i><font color='green'>/* Convert NUM/DENOM seconds into timer ticks, rounding down.</font></i>
+<a name='L215'> 215 <i><font color='green'>          </font></i>
+<a name='L216'> 216 <i><font color='green'>        (NUM / DENOM) s          </font></i>
+<a name='L217'> 217 <i><font color='green'>     ---------------------- = NUM * TIMER_FREQ / DENOM ticks. </font></i>
+<a name='L218'> 218 <i><font color='green'>     1 s / TIMER_FREQ ticks</font></i>
+<a name='L219'> 219 <i><font color='green'>  */</font></i>
+<a name='L220'> 220   <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ticks = num * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a> / denom;
+<a name='L221'> 221 
+<a name='L222'> 222   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/168.html#L65' title='Defined at 65 in src/threads/interrupt.c.'>intr_get_level</a> () == INTR_ON);
+<a name='L223'> 223   <b>if</b> (ticks &gt; 0)
+<a name='L224'> 224     <font color='red'>{</font>
+<a name='L225'> 225       <i><font color='green'>/* We're waiting for at least one full timer tick.  Use</font></i>
+<a name='L226'> 226 <i><font color='green'>         timer_sleep() because it will yield the CPU to other</font></i>
+<a name='L227'> 227 <i><font color='green'>         processes. */</font></i>                
+<a name='L228'> 228       <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (ticks); 
+<a name='L229'> 229     <font color='red'>}</font>
+<a name='L230'> 230   <b>else</b> 
+<a name='L231'> 231     <font color='red'>{</font>
+<a name='L232'> 232       <i><font color='green'>/* Otherwise, use a busy-wait loop for more accurate</font></i>
+<a name='L233'> 233 <i><font color='green'>         sub-tick timing. */</font></i>
+<a name='L234'> 234       <a href='../S/125.html#L240' title='Defined at 240 in src/devices/timer.c.'>real_time_delay</a> (num, denom); 
+<a name='L235'> 235     <font color='red'>}</font>
+<a name='L236'> 236 <font color='red'>}</font>
+<a name='L237'> 237 
+<a name='L238'> 238 <i><font color='green'>/* Busy-wait for approximately NUM/DENOM seconds. */</font></i>
+<a name='L239'> 239 <b>static</b> <b>void</b>
+<a name='L240'> 240 <a href='../R/755.html' title='Multiple refered from 5 places.'>real_time_delay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> num, <a href='../S/87.html#L12' title='Defined at 12 in src/lib/stdint.h.'>int32_t</a> denom)
+<a name='L241'> 241 <font color='red'>{</font>
+<a name='L242'> 242   <i><font color='green'>/* Scale the numerator and denominator down by 1000 to avoid</font></i>
+<a name='L243'> 243 <i><font color='green'>     the possibility of overflow. */</font></i>
+<a name='L244'> 244   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (denom % 1000 == 0);
+<a name='L245'> 245   <a href='../S/125.html#L204' title='Defined at 204 in src/devices/timer.c.'>busy_wait</a> (loops_per_tick * num / 1000 * <a href='../S/124.html#L8' title='Defined at 8 in src/devices/timer.h.'>TIMER_FREQ</a> / (denom / 1000)); 
+<a name='L246'> 246 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L240'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

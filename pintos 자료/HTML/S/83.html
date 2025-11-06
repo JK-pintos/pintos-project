@@ -1,0 +1,414 @@
+<html>
+<head>
+<title>src/lib/string.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/string.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L7'>[^]</a><a href='#L356'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L7' title='Defined at 7.'>memcpy</a>
+<li><a href='#L24' title='Defined at 24.'>memmove</a>
+<li><a href='#L53' title='Defined at 53.'>memcmp</a>
+<li><a href='#L73' title='Defined at 73.'>strcmp</a>
+<li><a href='#L94' title='Defined at 94.'>memchr</a>
+<li><a href='#L113' title='Defined at 113.'>strchr</a>
+<li><a href='#L131' title='Defined at 131.'>strcspn</a>
+<li><a href='#L145' title='Defined at 145.'>strpbrk</a>
+<li><a href='#L156' title='Defined at 156.'>strrchr</a>
+<li><a href='#L170' title='Defined at 170.'>strspn</a>
+<li><a href='#L184' title='Defined at 184.'>strstr</a>
+<li><a href='#L235' title='Defined at 235.'>strtok_r</a>
+<li><a href='#L279' title='Defined at 279.'>memset</a>
+<li><a href='#L293' title='Defined at 293.'>strlen</a>
+<li><a href='#L307' title='Defined at 307.'>strnlen</a>
+<li><a href='#L326' title='Defined at 326.'>strlcpy</a>
+<li><a href='#L356' title='Defined at 356.'>strlcat</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Copies SIZE bytes from SRC to DST, which must not overlap.</font></i>
+<a name='L5'>   5 <i><font color='green'>   Returns DST. */</font></i>
+<a name='L6'>   6 <b>void</b> *
+<a name='L7'>   7 <a href='../R/659.html' title='Multiple refered from 11 places.'>memcpy</a> (<b>void</b> *dst_, <b>const</b> <b>void</b> *src_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L8'>   8 <font color='red'>{</font>
+<a name='L9'>   9   <b>unsigned</b> <b>char</b> *dst = dst_;
+<a name='L10'>  10   <b>const</b> <b>unsigned</b> <b>char</b> *src = src_;
+<a name='L11'>  11 
+<a name='L12'>  12   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (dst != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L13'>  13   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (src != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L14'>  14 
+<a name='L15'>  15   <b>while</b> (size-- &gt; 0)
+<a name='L16'>  16     *dst++ = *src++;
+<a name='L17'>  17 
+<a name='L18'>  18   <b>return</b> dst_;
+<a name='L19'>  19 <font color='red'>}</font>
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Copies SIZE bytes from SRC to DST, which are allowed to</font></i>
+<a name='L22'>  22 <i><font color='green'>   overlap.  Returns DST. */</font></i>
+<a name='L23'>  23 <b>void</b> *
+<a name='L24'>  24 <a href='../R/660.html' title='Multiple refered from 5 places.'>memmove</a> (<b>void</b> *dst_, <b>const</b> <b>void</b> *src_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L25'>  25 <font color='red'>{</font>
+<a name='L26'>  26   <b>unsigned</b> <b>char</b> *dst = dst_;
+<a name='L27'>  27   <b>const</b> <b>unsigned</b> <b>char</b> *src = src_;
+<a name='L28'>  28 
+<a name='L29'>  29   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (dst != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L30'>  30   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (src != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L31'>  31 
+<a name='L32'>  32   <b>if</b> (dst &lt; src) 
+<a name='L33'>  33     <font color='red'>{</font>
+<a name='L34'>  34       <b>while</b> (size-- &gt; 0)
+<a name='L35'>  35         *dst++ = *src++;
+<a name='L36'>  36     <font color='red'>}</font>
+<a name='L37'>  37   <b>else</b> 
+<a name='L38'>  38     <font color='red'>{</font>
+<a name='L39'>  39       dst += size;
+<a name='L40'>  40       src += size;
+<a name='L41'>  41       <b>while</b> (size-- &gt; 0)
+<a name='L42'>  42         *--dst = *--src;
+<a name='L43'>  43     <font color='red'>}</font>
+<a name='L44'>  44 
+<a name='L45'>  45   <b>return</b> dst;
+<a name='L46'>  46 <font color='red'>}</font>
+<a name='L47'>  47 
+<a name='L48'>  48 <i><font color='green'>/* Find the first differing byte in the two blocks of SIZE bytes</font></i>
+<a name='L49'>  49 <i><font color='green'>   at A and B.  Returns a positive value if the byte in A is</font></i>
+<a name='L50'>  50 <i><font color='green'>   greater, a negative value if the byte in B is greater, or zero</font></i>
+<a name='L51'>  51 <i><font color='green'>   if blocks A and B are equal. */</font></i>
+<a name='L52'>  52 <b>int</b>
+<a name='L53'>  53 <a href='../R/658.html' title='Multiple refered from 20 places.'>memcmp</a> (<b>const</b> <b>void</b> *a_, <b>const</b> <b>void</b> *b_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L54'>  54 <font color='red'>{</font>
+<a name='L55'>  55   <b>const</b> <b>unsigned</b> <b>char</b> *a = a_;
+<a name='L56'>  56   <b>const</b> <b>unsigned</b> <b>char</b> *b = b_;
+<a name='L57'>  57 
+<a name='L58'>  58   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L59'>  59   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L60'>  60 
+<a name='L61'>  61   <b>for</b> (; size-- &gt; 0; a++, b++)
+<a name='L62'>  62     <b>if</b> (*a != *b)
+<a name='L63'>  63       <b>return</b> *a &gt; *b ? +1 : -1;
+<a name='L64'>  64   <b>return</b> 0;
+<a name='L65'>  65 <font color='red'>}</font>
+<a name='L66'>  66 
+<a name='L67'>  67 <i><font color='green'>/* Finds the first differing characters in strings A and B.</font></i>
+<a name='L68'>  68 <i><font color='green'>   Returns a positive value if the character in A (as an unsigned</font></i>
+<a name='L69'>  69 <i><font color='green'>   char) is greater, a negative value if the character in B (as</font></i>
+<a name='L70'>  70 <i><font color='green'>   an unsigned char) is greater, or zero if strings A and B are</font></i>
+<a name='L71'>  71 <i><font color='green'>   equal. */</font></i>
+<a name='L72'>  72 <b>int</b>
+<a name='L73'>  73 <a href='../R/830.html' title='Multiple refered from 27 places.'>strcmp</a> (<b>const</b> <b>char</b> *a_, <b>const</b> <b>char</b> *b_) 
+<a name='L74'>  74 <font color='red'>{</font>
+<a name='L75'>  75   <b>const</b> <b>unsigned</b> <b>char</b> *a = (<b>const</b> <b>unsigned</b> <b>char</b> *) a_;
+<a name='L76'>  76   <b>const</b> <b>unsigned</b> <b>char</b> *b = (<b>const</b> <b>unsigned</b> <b>char</b> *) b_;
+<a name='L77'>  77 
+<a name='L78'>  78   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L79'>  79   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L80'>  80 
+<a name='L81'>  81   <b>while</b> (*a != '\0' &amp;&amp; *a == *b) 
+<a name='L82'>  82     <font color='red'>{</font>
+<a name='L83'>  83       a++;
+<a name='L84'>  84       b++;
+<a name='L85'>  85     <font color='red'>}</font>
+<a name='L86'>  86 
+<a name='L87'>  87   <b>return</b> *a &lt; *b ? -1 : *a &gt; *b;
+<a name='L88'>  88 <font color='red'>}</font>
+<a name='L89'>  89 
+<a name='L90'>  90 <i><font color='green'>/* Returns a pointer to the first occurrence of CH in the first</font></i>
+<a name='L91'>  91 <i><font color='green'>   SIZE bytes starting at BLOCK.  Returns a null pointer if CH</font></i>
+<a name='L92'>  92 <i><font color='green'>   does not occur in BLOCK. */</font></i>
+<a name='L93'>  93 <b>void</b> *
+<a name='L94'>  94 <a href='../S/82.html#L12' title='Refered from 12 in src/lib/string.h.'>memchr</a> (<b>const</b> <b>void</b> *block_, <b>int</b> ch_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L95'>  95 <font color='red'>{</font>
+<a name='L96'>  96   <b>const</b> <b>unsigned</b> <b>char</b> *<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> = block_;
+<a name='L97'>  97   <b>unsigned</b> <b>char</b> ch = ch_;
+<a name='L98'>  98 
+<a name='L99'>  99   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L100'> 100 
+<a name='L101'> 101   <b>for</b> (; size-- &gt; 0; <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>++)
+<a name='L102'> 102     <b>if</b> (*<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a> == ch)
+<a name='L103'> 103       <b>return</b> (<b>void</b> *) <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L104'> 104 
+<a name='L105'> 105   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L106'> 106 <font color='red'>}</font>
+<a name='L107'> 107 
+<a name='L108'> 108 <i><font color='green'>/* Finds and returns the first occurrence of C in STRING, or a</font></i>
+<a name='L109'> 109 <i><font color='green'>   null pointer if C does not appear in STRING.  If C == '\0'</font></i>
+<a name='L110'> 110 <i><font color='green'>   then returns a pointer to the null terminator at the end of</font></i>
+<a name='L111'> 111 <i><font color='green'>   STRING. */</font></i>
+<a name='L112'> 112 <b>char</b> *
+<a name='L113'> 113 <a href='../R/829.html' title='Multiple refered from 8 places.'>strchr</a> (<b>const</b> <b>char</b> *string, <b>int</b> c_) 
+<a name='L114'> 114 <font color='red'>{</font>
+<a name='L115'> 115   <b>char</b> c = c_;
+<a name='L116'> 116 
+<a name='L117'> 117   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (string != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L118'> 118 
+<a name='L119'> 119   <b>for</b> (;;) 
+<a name='L120'> 120     <b>if</b> (*string == c)
+<a name='L121'> 121       <b>return</b> (<b>char</b> *) string;
+<a name='L122'> 122     <b>else</b> <b>if</b> (*string == '\0')
+<a name='L123'> 123       <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L124'> 124     <b>else</b>
+<a name='L125'> 125       string++;
+<a name='L126'> 126 <font color='red'>}</font>
+<a name='L127'> 127 
+<a name='L128'> 128 <i><font color='green'>/* Returns the length of the initial substring of STRING that</font></i>
+<a name='L129'> 129 <i><font color='green'>   consists of characters that are not in STOP. */</font></i>
+<a name='L130'> 130 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L131'> 131 <a href='../S/82.html#L14' title='Refered from 14 in src/lib/string.h.'>strcspn</a> (<b>const</b> <b>char</b> *string, <b>const</b> <b>char</b> *stop) 
+<a name='L132'> 132 <font color='red'>{</font>
+<a name='L133'> 133   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> length;
+<a name='L134'> 134 
+<a name='L135'> 135   <b>for</b> (length = 0; string[length] != '\0'; length++)
+<a name='L136'> 136     <b>if</b> (<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (stop, string[length]) != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L137'> 137       <b>break</b>;
+<a name='L138'> 138   <b>return</b> length;
+<a name='L139'> 139 <font color='red'>}</font>
+<a name='L140'> 140 
+<a name='L141'> 141 <i><font color='green'>/* Returns a pointer to the first character in STRING that is</font></i>
+<a name='L142'> 142 <i><font color='green'>   also in STOP.  If no character in STRING is in STOP, returns a</font></i>
+<a name='L143'> 143 <i><font color='green'>   null pointer. */</font></i>
+<a name='L144'> 144 <b>char</b> *
+<a name='L145'> 145 <a href='../S/82.html#L15' title='Refered from 15 in src/lib/string.h.'>strpbrk</a> (<b>const</b> <b>char</b> *string, <b>const</b> <b>char</b> *stop) 
+<a name='L146'> 146 <font color='red'>{</font>
+<a name='L147'> 147   <b>for</b> (; *string != '\0'; string++)
+<a name='L148'> 148     <b>if</b> (<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (stop, *string) != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L149'> 149       <b>return</b> (<b>char</b> *) string;
+<a name='L150'> 150   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L151'> 151 <font color='red'>}</font>
+<a name='L152'> 152 
+<a name='L153'> 153 <i><font color='green'>/* Returns a pointer to the last occurrence of C in STRING.</font></i>
+<a name='L154'> 154 <i><font color='green'>   Returns a null pointer if C does not occur in STRING. */</font></i>
+<a name='L155'> 155 <b>char</b> *
+<a name='L156'> 156 <a href='../S/82.html#L16' title='Refered from 16 in src/lib/string.h.'>strrchr</a> (<b>const</b> <b>char</b> *string, <b>int</b> c_) 
+<a name='L157'> 157 <font color='red'>{</font>
+<a name='L158'> 158   <b>char</b> c = c_;
+<a name='L159'> 159   <b>const</b> <b>char</b> *p = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L160'> 160 
+<a name='L161'> 161   <b>for</b> (; *string != '\0'; string++)
+<a name='L162'> 162     <b>if</b> (*string == c)
+<a name='L163'> 163       p = string;
+<a name='L164'> 164   <b>return</b> (<b>char</b> *) p;
+<a name='L165'> 165 <font color='red'>}</font>
+<a name='L166'> 166 
+<a name='L167'> 167 <i><font color='green'>/* Returns the length of the initial substring of STRING that</font></i>
+<a name='L168'> 168 <i><font color='green'>   consists of characters in SKIP. */</font></i>
+<a name='L169'> 169 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L170'> 170 <a href='../S/82.html#L17' title='Refered from 17 in src/lib/string.h.'>strspn</a> (<b>const</b> <b>char</b> *string, <b>const</b> <b>char</b> *skip) 
+<a name='L171'> 171 <font color='red'>{</font>
+<a name='L172'> 172   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> length;
+<a name='L173'> 173   
+<a name='L174'> 174   <b>for</b> (length = 0; string[length] != '\0'; length++)
+<a name='L175'> 175     <b>if</b> (<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (skip, string[length]) == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L176'> 176       <b>break</b>;
+<a name='L177'> 177   <b>return</b> length;
+<a name='L178'> 178 <font color='red'>}</font>
+<a name='L179'> 179 
+<a name='L180'> 180 <i><font color='green'>/* Returns a pointer to the first occurrence of NEEDLE within</font></i>
+<a name='L181'> 181 <i><font color='green'>   HAYSTACK.  Returns a null pointer if NEEDLE does not exist</font></i>
+<a name='L182'> 182 <i><font color='green'>   within HAYSTACK. */</font></i>
+<a name='L183'> 183 <b>char</b> *
+<a name='L184'> 184 <a href='../S/82.html#L18' title='Refered from 18 in src/lib/string.h.'>strstr</a> (<b>const</b> <b>char</b> *haystack, <b>const</b> <b>char</b> *needle) 
+<a name='L185'> 185 <font color='red'>{</font>
+<a name='L186'> 186   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> haystack_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (haystack);
+<a name='L187'> 187   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> needle_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (needle);
+<a name='L188'> 188 
+<a name='L189'> 189   <b>if</b> (haystack_len &gt;= needle_len) 
+<a name='L190'> 190     <font color='red'>{</font>
+<a name='L191'> 191       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L192'> 192 
+<a name='L193'> 193       <b>for</b> (i = 0; i &lt;= haystack_len - needle_len; i++)
+<a name='L194'> 194         <b>if</b> (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (haystack + i, needle, needle_len))
+<a name='L195'> 195           <b>return</b> (<b>char</b> *) haystack + i;
+<a name='L196'> 196     <font color='red'>}</font>
+<a name='L197'> 197 
+<a name='L198'> 198   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L199'> 199 <font color='red'>}</font>
+<a name='L200'> 200 
+<a name='L201'> 201 <i><font color='green'>/* Breaks a string into tokens separated by DELIMITERS.  The</font></i>
+<a name='L202'> 202 <i><font color='green'>   first time this function is called, S should be the string to</font></i>
+<a name='L203'> 203 <i><font color='green'>   tokenize, and in subsequent calls it must be a null pointer.</font></i>
+<a name='L204'> 204 <i><font color='green'>   SAVE_PTR is the address of a `char *' variable used to keep</font></i>
+<a name='L205'> 205 <i><font color='green'>   track of the tokenizer's position.  The return value each time</font></i>
+<a name='L206'> 206 <i><font color='green'>   is the next token in the string, or a null pointer if no</font></i>
+<a name='L207'> 207 <i><font color='green'>   tokens remain.</font></i>
+<a name='L208'> 208 <i><font color='green'></font></i>
+<a name='L209'> 209 <i><font color='green'>   This function treats multiple adjacent delimiters as a single</font></i>
+<a name='L210'> 210 <i><font color='green'>   delimiter.  The returned tokens will never be length 0.</font></i>
+<a name='L211'> 211 <i><font color='green'>   DELIMITERS may change from one call to the next within a</font></i>
+<a name='L212'> 212 <i><font color='green'>   single string.</font></i>
+<a name='L213'> 213 <i><font color='green'></font></i>
+<a name='L214'> 214 <i><font color='green'>   strtok_r() modifies the string S, changing delimiters to null</font></i>
+<a name='L215'> 215 <i><font color='green'>   bytes.  Thus, S must be a modifiable string.  String literals,</font></i>
+<a name='L216'> 216 <i><font color='green'>   in particular, are *not* modifiable in C, even though for</font></i>
+<a name='L217'> 217 <i><font color='green'>   backward compatibility they are not `const'.</font></i>
+<a name='L218'> 218 <i><font color='green'></font></i>
+<a name='L219'> 219 <i><font color='green'>   Example usage:</font></i>
+<a name='L220'> 220 <i><font color='green'></font></i>
+<a name='L221'> 221 <i><font color='green'>   char s[] = "  String to  tokenize. ";</font></i>
+<a name='L222'> 222 <i><font color='green'>   char *token, *save_ptr;</font></i>
+<a name='L223'> 223 <i><font color='green'></font></i>
+<a name='L224'> 224 <i><font color='green'>   for (token = strtok_r (s, " ", &amp;save_ptr); token != NULL;</font></i>
+<a name='L225'> 225 <i><font color='green'>        token = strtok_r (NULL, " ", &amp;save_ptr))</font></i>
+<a name='L226'> 226 <i><font color='green'>     printf ("'%s'\n", token);</font></i>
+<a name='L227'> 227 <i><font color='green'></font></i>
+<a name='L228'> 228 <i><font color='green'>   outputs:</font></i>
+<a name='L229'> 229 <i><font color='green'></font></i>
+<a name='L230'> 230 <i><font color='green'>     'String'</font></i>
+<a name='L231'> 231 <i><font color='green'>     'to'</font></i>
+<a name='L232'> 232 <i><font color='green'>     'tokenize.'</font></i>
+<a name='L233'> 233 <i><font color='green'>*/</font></i>
+<a name='L234'> 234 <b>char</b> *
+<a name='L235'> 235 <a href='../R/843.html' title='Multiple refered from 3 places.'>strtok_r</a> (<b>char</b> *s, <b>const</b> <b>char</b> *delimiters, <b>char</b> **save_ptr) 
+<a name='L236'> 236 <font color='red'>{</font>
+<a name='L237'> 237   <b>char</b> *token;
+<a name='L238'> 238   
+<a name='L239'> 239   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (delimiters != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L240'> 240   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (save_ptr != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L241'> 241 
+<a name='L242'> 242   <i><font color='green'>/* If S is nonnull, start from it.</font></i>
+<a name='L243'> 243 <i><font color='green'>     If S is null, start from saved position. */</font></i>
+<a name='L244'> 244   <b>if</b> (s == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L245'> 245     s = *save_ptr;
+<a name='L246'> 246   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (s != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L247'> 247 
+<a name='L248'> 248   <i><font color='green'>/* Skip any DELIMITERS at our current position. */</font></i>
+<a name='L249'> 249   <b>while</b> (<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (delimiters, *s) != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) 
+<a name='L250'> 250     <font color='red'>{</font>
+<a name='L251'> 251       <i><font color='green'>/* strchr() will always return nonnull if we're searching</font></i>
+<a name='L252'> 252 <i><font color='green'>         for a null byte, because every string contains a null</font></i>
+<a name='L253'> 253 <i><font color='green'>         byte (at the end). */</font></i>
+<a name='L254'> 254       <b>if</b> (*s == '\0')
+<a name='L255'> 255         <font color='red'>{</font>
+<a name='L256'> 256           *save_ptr = s;
+<a name='L257'> 257           <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L258'> 258         <font color='red'>}</font>
+<a name='L259'> 259 
+<a name='L260'> 260       s++;
+<a name='L261'> 261     <font color='red'>}</font>
+<a name='L262'> 262 
+<a name='L263'> 263   <i><font color='green'>/* Skip any non-DELIMITERS up to the end of the string. */</font></i>
+<a name='L264'> 264   token = s;
+<a name='L265'> 265   <b>while</b> (<a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (delimiters, *s) == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L266'> 266     s++;
+<a name='L267'> 267   <b>if</b> (*s != '\0') 
+<a name='L268'> 268     <font color='red'>{</font>
+<a name='L269'> 269       *s = '\0';
+<a name='L270'> 270       *save_ptr = s + 1;
+<a name='L271'> 271     <font color='red'>}</font>
+<a name='L272'> 272   <b>else</b> 
+<a name='L273'> 273     *save_ptr = s;
+<a name='L274'> 274   <b>return</b> token;
+<a name='L275'> 275 <font color='red'>}</font>
+<a name='L276'> 276 
+<a name='L277'> 277 <i><font color='green'>/* Sets the SIZE bytes in DST to VALUE. */</font></i>
+<a name='L278'> 278 <b>void</b> *
+<a name='L279'> 279 <a href='../R/661.html' title='Multiple refered from 25 places.'>memset</a> (<b>void</b> *dst_, <b>int</b> value, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L280'> 280 <font color='red'>{</font>
+<a name='L281'> 281   <b>unsigned</b> <b>char</b> *dst = dst_;
+<a name='L282'> 282 
+<a name='L283'> 283   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (dst != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> || size == 0);
+<a name='L284'> 284   
+<a name='L285'> 285   <b>while</b> (size-- &gt; 0)
+<a name='L286'> 286     *dst++ = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L287'> 287 
+<a name='L288'> 288   <b>return</b> dst_;
+<a name='L289'> 289 <font color='red'>}</font>
+<a name='L290'> 290 
+<a name='L291'> 291 <i><font color='green'>/* Returns the length of STRING. */</font></i>
+<a name='L292'> 292 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L293'> 293 <a href='../R/835.html' title='Multiple refered from 40 places.'>strlen</a> (<b>const</b> <b>char</b> *string) 
+<a name='L294'> 294 <font color='red'>{</font>
+<a name='L295'> 295   <b>const</b> <b>char</b> *p;
+<a name='L296'> 296 
+<a name='L297'> 297   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (string != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L298'> 298 
+<a name='L299'> 299   <b>for</b> (p = string; *p != '\0'; p++)
+<a name='L300'> 300     <b>continue</b>;
+<a name='L301'> 301   <b>return</b> p - string;
+<a name='L302'> 302 <font color='red'>}</font>
+<a name='L303'> 303 
+<a name='L304'> 304 <i><font color='green'>/* If STRING is less than MAXLEN characters in length, returns</font></i>
+<a name='L305'> 305 <i><font color='green'>   its actual length.  Otherwise, returns MAXLEN. */</font></i>
+<a name='L306'> 306 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L307'> 307 <a href='../R/838.html' title='Multiple refered from 3 places.'>strnlen</a> (<b>const</b> <b>char</b> *string, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> maxlen) 
+<a name='L308'> 308 <font color='red'>{</font>
+<a name='L309'> 309   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> length;
+<a name='L310'> 310 
+<a name='L311'> 311   <b>for</b> (length = 0; string[length] != '\0' &amp;&amp; length &lt; maxlen; length++)
+<a name='L312'> 312     <b>continue</b>;
+<a name='L313'> 313   <b>return</b> length;
+<a name='L314'> 314 <font color='red'>}</font>
+<a name='L315'> 315 
+<a name='L316'> 316 <i><font color='green'>/* Copies string SRC to DST.  If SRC is longer than SIZE - 1</font></i>
+<a name='L317'> 317 <i><font color='green'>   characters, only SIZE - 1 characters are copied.  A null</font></i>
+<a name='L318'> 318 <i><font color='green'>   terminator is always written to DST, unless SIZE is 0.</font></i>
+<a name='L319'> 319 <i><font color='green'>   Returns the length of SRC, not including the null terminator.</font></i>
+<a name='L320'> 320 <i><font color='green'></font></i>
+<a name='L321'> 321 <i><font color='green'>   strlcpy() is not in the standard C library, but it is an</font></i>
+<a name='L322'> 322 <i><font color='green'>   increasingly popular extension.  See</font></i>
+<a name='L323'> 323 <i><font color='green'>   http://www.courtesan.com/todd/papers/strlcpy.html for</font></i>
+<a name='L324'> 324 <i><font color='green'>   information on strlcpy(). */</font></i>
+<a name='L325'> 325 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L326'> 326 <a href='../R/834.html' title='Multiple refered from 16 places.'>strlcpy</a> (<b>char</b> *dst, <b>const</b> <b>char</b> *src, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L327'> 327 <font color='red'>{</font>
+<a name='L328'> 328   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> src_len;
+<a name='L329'> 329 
+<a name='L330'> 330   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (dst != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L331'> 331   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (src != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L332'> 332 
+<a name='L333'> 333   src_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (src);
+<a name='L334'> 334   <b>if</b> (size &gt; 0) 
+<a name='L335'> 335     <font color='red'>{</font>
+<a name='L336'> 336       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> dst_len = size - 1;
+<a name='L337'> 337       <b>if</b> (src_len &lt; dst_len)
+<a name='L338'> 338         dst_len = src_len;
+<a name='L339'> 339       <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (dst, src, dst_len);
+<a name='L340'> 340       dst[dst_len] = '\0';
+<a name='L341'> 341     <font color='red'>}</font>
+<a name='L342'> 342   <b>return</b> src_len;
+<a name='L343'> 343 <font color='red'>}</font>
+<a name='L344'> 344 
+<a name='L345'> 345 <i><font color='green'>/* Concatenates string SRC to DST.  The concatenated string is</font></i>
+<a name='L346'> 346 <i><font color='green'>   limited to SIZE - 1 characters.  A null terminator is always</font></i>
+<a name='L347'> 347 <i><font color='green'>   written to DST, unless SIZE is 0.  Returns the length that the</font></i>
+<a name='L348'> 348 <i><font color='green'>   concatenated string would have assuming that there was</font></i>
+<a name='L349'> 349 <i><font color='green'>   sufficient space, not including a null terminator.</font></i>
+<a name='L350'> 350 <i><font color='green'></font></i>
+<a name='L351'> 351 <i><font color='green'>   strlcat() is not in the standard C library, but it is an</font></i>
+<a name='L352'> 352 <i><font color='green'>   increasingly popular extension.  See</font></i>
+<a name='L353'> 353 <i><font color='green'>   http://www.courtesan.com/todd/papers/strlcpy.html for</font></i>
+<a name='L354'> 354 <i><font color='green'>   information on strlcpy(). */</font></i>
+<a name='L355'> 355 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L356'> 356 <a href='../S/82.html#L24' title='Refered from 24 in src/lib/string.h.'>strlcat</a> (<b>char</b> *dst, <b>const</b> <b>char</b> *src, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L357'> 357 <font color='red'>{</font>
+<a name='L358'> 358   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> src_len, dst_len;
+<a name='L359'> 359 
+<a name='L360'> 360   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (dst != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L361'> 361   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (src != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L362'> 362 
+<a name='L363'> 363   src_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (src);
+<a name='L364'> 364   dst_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (dst);
+<a name='L365'> 365   <b>if</b> (size &gt; 0 &amp;&amp; dst_len &lt; size) 
+<a name='L366'> 366     <font color='red'>{</font>
+<a name='L367'> 367       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> copy_cnt = size - dst_len - 1;
+<a name='L368'> 368       <b>if</b> (src_len &lt; copy_cnt)
+<a name='L369'> 369         copy_cnt = src_len;
+<a name='L370'> 370       <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (dst + dst_len, src, copy_cnt);
+<a name='L371'> 371       dst[dst_len + copy_cnt] = '\0';
+<a name='L372'> 372     <font color='red'>}</font>
+<a name='L373'> 373   <b>return</b> src_len + dst_len;
+<a name='L374'> 374 <font color='red'>}</font>
+<a name='L375'> 375 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L7'>[^]</a><a href='#L356'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

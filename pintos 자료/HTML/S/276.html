@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/dir-rm-parent.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/dir-rm-parent.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L9' title='Defined at 9.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tries to remove a parent of the current directory.  This must</font></i>
+<a name='L2'>   2 <i><font color='green'>   fail, because that directory is non-empty. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>void</b>
+<a name='L9'>   9 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   CHECK (<a href='../S/97.html#L163' title='Defined at 163 in src/lib/user/syscall.c.'>mkdir</a> ("a"), "mkdir \"a\"");
+<a name='L12'>  12   CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> ("a"), "chdir \"a\"");
+<a name='L13'>  13   CHECK (<a href='../S/97.html#L163' title='Defined at 163 in src/lib/user/syscall.c.'>mkdir</a> ("b"), "mkdir \"b\"");
+<a name='L14'>  14   CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> ("b"), "chdir \"b\"");
+<a name='L15'>  15   CHECK (!<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> ("/a"), "remove \"/a\" (must fail)");
+<a name='L16'>  16 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L9'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

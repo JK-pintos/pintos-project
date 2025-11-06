@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>open</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/43.html#L16'>open</a>               16 src/examples/cat.c       int fd = open (argv[i]);
+<a href='../S/52.html#L20'>open</a>               20 src/examples/cmp.c   fd[0] = open (argv[1]);
+<a href='../S/52.html#L26'>open</a>               26 src/examples/cmp.c   fd[1] = open (argv[2]);
+<a href='../S/51.html#L20'>open</a>               20 src/examples/cp.c   in_fd = open (argv[1]);
+<a href='../S/51.html#L33'>open</a>               33 src/examples/cp.c   out_fd = open (argv[2]);
+<a href='../S/58.html#L16'>open</a>               16 src/examples/hex-dump.c       int fd = open (argv[i]);
+<a href='../S/55.html#L318'>open</a>              318 src/examples/insult.c 	  handle = open (argv[i]);
+<a href='../S/50.html#L23'>open</a>               23 src/examples/lineup.c   handle = open (argv[1]);
+<a href='../S/47.html#L18'>open</a>               18 src/examples/ls.c   int dir_fd = open (dir);
+<a href='../S/47.html#L43'>open</a>               43 src/examples/ls.c               entry_fd = open (full_name);
+<a href='../S/61.html#L22'>open</a>               22 src/examples/mcat.c       fd = open (argv[i]);
+<a href='../S/60.html#L25'>open</a>               25 src/examples/mcp.c   in_fd = open (argv[1]);
+<a href='../S/60.html#L39'>open</a>               39 src/examples/mcp.c   out_fd = open (argv[2]);
+<a href='../S/59.html#L34'>open</a>               34 src/examples/pwd.c   int fd = open (file_name);
+<a href='../S/59.html#L103'>open</a>              103 src/examples/pwd.c       parent_fd = open (name);
+<a href='../S/197.html#L33'>open</a>               33 src/tests/filesys/base/child-syn-read.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/184.html#L27'>open</a>               27 src/tests/filesys/base/child-syn-wrt.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/210.html#L23'>open</a>               23 src/tests/filesys/base/syn-read.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/209.html#L20'>open</a>               20 src/tests/filesys/base/syn-remove.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/212.html#L27'>open</a>               27 src/tests/filesys/base/syn-write.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/236.html#L36'>open</a>               36 src/tests/filesys/extended/child-syn-rw.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/251.html#L13'>open</a>               13 src/tests/filesys/extended/dir-mkdir.c   CHECK (open ("b") &gt; 1, "open \"b\"");
+<a href='../S/283.html#L15'>open</a>               15 src/tests/filesys/extended/dir-open.c   CHECK ((fd = open ("xyzzy")) &gt; 1, "open \"xyzzy\"");
+<a href='../S/269.html#L15'>open</a>               15 src/tests/filesys/extended/dir-rm-cwd.c   CHECK ((fd = open (name)) &gt; 1, "open \"%s\"", name);
+<a href='../S/269.html#L44'>open</a>               44 src/tests/filesys/extended/dir-rm-cwd.c       CHECK (open ("/a") == -1, "open \"/a\" (must fail)");
+<a href='../S/269.html#L45'>open</a>               45 src/tests/filesys/extended/dir-rm-cwd.c       CHECK (open (".") == -1, "open \".\" (must fail)");
+<a href='../S/269.html#L46'>open</a>               46 src/tests/filesys/extended/dir-rm-cwd.c       CHECK (open ("..") == -1, "open \"..\" (must fail)");
+<a href='../S/241.html#L48'>open</a>               48 src/tests/filesys/extended/dir-rm-tree.c   CHECK (open (try) == -1, "open \"%s\" (must return -1)", try);
+<a href='../S/217.html#L36'>open</a>               36 src/tests/filesys/extended/dir-vine.c       CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/217.html#L55'>open</a>               55 src/tests/filesys/extended/dir-vine.c       CHECK ((fd = open (".")) &gt; 1, "open \".\"");
+<a href='../S/262.html#L18'>open</a>               18 src/tests/filesys/extended/grow-sparse.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/294.html#L44'>open</a>               44 src/tests/filesys/extended/grow-two-files.c   CHECK ((fd_a = open ("a")) &gt; 1, "open \"a\"");
+<a href='../S/294.html#L45'>open</a>               45 src/tests/filesys/extended/grow-two-files.c   CHECK ((fd_b = open ("b")) &gt; 1, "open \"b\"");
+<a href='../S/227.html#L38'>open</a>               38 src/tests/filesys/extended/mk-tree.c   CHECK ((fd = open (try)) &gt; 1, "open \"%s\"", try);
+<a href='../S/248.html#L22'>open</a>               22 src/tests/filesys/extended/syn-rw.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/233.html#L62'>open</a>               62 src/tests/filesys/extended/tar.c   archive_fd = open (archive_name);
+<a href='../S/233.html#L92'>open</a>               92 src/tests/filesys/extended/tar.c   int file_fd = open (file_name);
+<a href='../S/296.html#L16'>open</a>               16 src/tests/filesys/seq-test.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a href='../S/591.html#L155'>open</a>              155 src/tests/lib.c   CHECK ((fd = open (file_name)) &gt; 1, "open \"%s\" for verification",
+<a href='../S/482.html#L22'>open</a>               22 src/tests/userprog/child-rox.c   CHECK ((handle = open ("child-rox")) &gt; 1, "open \"child-rox\"");
+<a href='../S/489.html#L11'>open</a>               11 src/tests/userprog/close-normal.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/429.html#L13'>open</a>               13 src/tests/userprog/close-twice.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/415.html#L18'>open</a>               18 src/tests/userprog/multi-child-fd.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/493.html#L59'>open</a>               59 src/tests/userprog/no-vm/multi-oom.c     if (open (test_name) == -1)
+<a href='../S/493.html#L87'>open</a>               87 src/tests/userprog/no-vm/multi-oom.c         open ((char *)PHYS_BASE);
+<a href='../S/479.html#L11'>open</a>               11 src/tests/userprog/open-bad-ptr.c   msg ("open(0x20101234): %d", open ((char *) 0x20101234));
+<a href='../S/399.html#L12'>open</a>               12 src/tests/userprog/open-boundary.c   CHECK (open (copy_string_across_boundary ("sample.txt")) &gt; 1,
+<a href='../S/394.html#L10'>open</a>               10 src/tests/userprog/open-empty.c   int handle = open ("");
+<a href='../S/499.html#L10'>open</a>               10 src/tests/userprog/open-missing.c   int handle = open ("no-such-file");
+<a href='../S/442.html#L10'>open</a>               10 src/tests/userprog/open-normal.c   int handle = open ("sample.txt");
+<a href='../S/481.html#L11'>open</a>               11 src/tests/userprog/open-null.c   open (NULL);
+<a href='../S/407.html#L12'>open</a>               12 src/tests/userprog/open-twice.c   int h1 = open ("sample.txt");
+<a href='../S/407.html#L13'>open</a>               13 src/tests/userprog/open-twice.c   int h2 = open ("sample.txt");  
+<a href='../S/407.html#L15'>open</a>               15 src/tests/userprog/open-twice.c   CHECK ((h1 = open ("sample.txt")) &gt; 1, "open \"sample.txt\" once");
+<a href='../S/407.html#L16'>open</a>               16 src/tests/userprog/open-twice.c   CHECK ((h2 = open ("sample.txt")) &gt; 1, "open \"sample.txt\" again");
+<a href='../S/414.html#L12'>open</a>               12 src/tests/userprog/read-bad-ptr.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/487.html#L18'>open</a>               18 src/tests/userprog/read-boundary.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/463.html#L14'>open</a>               14 src/tests/userprog/read-zero.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/488.html#L14'>open</a>               14 src/tests/userprog/rox-simple.c   CHECK ((handle = open ("rox-simple")) &gt; 1, "open \"rox-simple\"");
+<a href='../S/476.html#L12'>open</a>               12 src/tests/userprog/write-bad-ptr.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/427.html#L20'>open</a>               20 src/tests/userprog/write-boundary.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/453.html#L14'>open</a>               14 src/tests/userprog/write-normal.c   CHECK ((handle = open ("test.txt")) &gt; 1, "open \"test.txt\"");
+<a href='../S/405.html#L14'>open</a>               14 src/tests/userprog/write-zero.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/366.html#L20'>open</a>               20 src/tests/vm/child-mm-wrt.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/317.html#L20'>open</a>               20 src/tests/vm/child-qsort-mm.c   CHECK ((handle = open (argv[1])) &gt; 1, "open \"%s\"", argv[1]);
+<a href='../S/341.html#L23'>open</a>               23 src/tests/vm/child-qsort.c   CHECK ((handle = open (argv[1])) &gt; 1, "open \"%s\"", argv[1]);
+<a href='../S/380.html#L25'>open</a>               25 src/tests/vm/child-sort.c   CHECK ((handle = open (argv[1])) &gt; 1, "open \"%s\"", argv[1]);
+<a href='../S/324.html#L20'>open</a>               20 src/tests/vm/mmap-clean.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/386.html#L18'>open</a>               18 src/tests/vm/mmap-close.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/305.html#L18'>open</a>               18 src/tests/vm/mmap-inherit.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/342.html#L12'>open</a>               12 src/tests/vm/mmap-misalign.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/370.html#L12'>open</a>               12 src/tests/vm/mmap-null.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/319.html#L15'>open</a>               15 src/tests/vm/mmap-over-code.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/355.html#L17'>open</a>               17 src/tests/vm/mmap-over-data.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/344.html#L15'>open</a>               15 src/tests/vm/mmap-over-stk.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/383.html#L14'>open</a>               14 src/tests/vm/mmap-overlap.c   CHECK ((fd[0] = open ("zeros")) &gt; 1, "open \"zeros\" once");
+<a href='../S/383.html#L16'>open</a>               16 src/tests/vm/mmap-overlap.c   CHECK ((fd[1] = open ("zeros")) &gt; 1 &amp;&amp; fd[0] != fd[1],
+<a href='../S/313.html#L17'>open</a>               17 src/tests/vm/mmap-read.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/385.html#L19'>open</a>               19 src/tests/vm/mmap-remove.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/385.html#L25'>open</a>               25 src/tests/vm/mmap-remove.c   CHECK (open ("sample.txt") == -1, "try to open \"sample.txt\"");
+<a href='../S/309.html#L24'>open</a>               24 src/tests/vm/mmap-shuffle.c   CHECK ((handle = open ("buffer")) &gt; 1, "open \"buffer\"");
+<a href='../S/382.html#L19'>open</a>               19 src/tests/vm/mmap-twice.c       CHECK ((handle[i] = open ("sample.txt")) &gt; 1,
+<a href='../S/354.html#L17'>open</a>               17 src/tests/vm/mmap-unmap.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/336.html#L22'>open</a>               22 src/tests/vm/mmap-write.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/327.html#L17'>open</a>               17 src/tests/vm/mmap-zero.c   CHECK ((handle = open ("empty")) &gt; 1, "open \"empty\"");
+<a href='../S/350.html#L53'>open</a>               53 src/tests/vm/page-merge-seq.c       CHECK ((handle = open ("buffer")) &gt; 1, "open \"buffer\"");
+<a href='../S/350.html#L63'>open</a>               63 src/tests/vm/page-merge-seq.c       CHECK ((handle = open ("buffer")) &gt; 1, "open \"buffer\"");
+<a href='../S/339.html#L56'>open</a>               56 src/tests/vm/parallel-merge.c       CHECK ((handle = open (fn)) &gt; 1, "open \"%s\"", fn);
+<a href='../S/339.html#L76'>open</a>               76 src/tests/vm/parallel-merge.c       CHECK ((handle = open (fn)) &gt; 1, "open \"%s\"", fn);
+<a href='../S/304.html#L13'>open</a>               13 src/tests/vm/pt-bad-read.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/369.html#L22'>open</a>               22 src/tests/vm/pt-grow-stk-sc.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/369.html#L27'>open</a>               27 src/tests/vm/pt-grow-stk-sc.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "2nd open \"sample.txt\"");
+<a href='../S/329.html#L12'>open</a>               12 src/tests/vm/pt-write-code-2.c   CHECK ((handle = open ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a href='../S/7.html#L270'>open</a>              270 src/utils/squish-pty.c   master = open ("/dev/ptmx", O_RDWR | O_NOCTTY);
+<a href='../S/7.html#L282'>open</a>              282 src/utils/squish-pty.c   slave = open (name, O_RDWR);
+</pre>
+</body>
+</html>

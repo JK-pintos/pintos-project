@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>src/tests/userprog/sc-bad-sp.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/sc-bad-sp.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Invokes a system call with the stack pointer (%esp) set to a</font></i>
+<a name='L2'>   2 <i><font color='green'>   bad address.  The process must be terminated with -1 exit</font></i>
+<a name='L3'>   3 <i><font color='green'>   code. </font></i>
+<a name='L4'>   4 <i><font color='green'></font></i>
+<a name='L5'>   5 <i><font color='green'>   For Project 3: The bad address lies approximately 64MB below</font></i>
+<a name='L6'>   6 <i><font color='green'>   the code segment, so there is no ambiguity that this attempt</font></i>
+<a name='L7'>   7 <i><font color='green'>   must be rejected even after stack growth is implemented.</font></i>
+<a name='L8'>   8 <i><font color='green'>   Moreover, a good stack growth heuristics should probably not</font></i>
+<a name='L9'>   9 <i><font color='green'>   grow the stack for the purpose of reading the system call</font></i>
+<a name='L10'>  10 <i><font color='green'>   number and arguments. */</font></i>
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L14'>  14 
+<a name='L15'>  15 <b>void</b>
+<a name='L16'>  16 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>asm</b> <b>volatile</b> ("movl $.-(64*1024*1024), %esp; int $0x30");
+<a name='L19'>  19   <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("should have called exit(-1)");
+<a name='L20'>  20 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L16'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

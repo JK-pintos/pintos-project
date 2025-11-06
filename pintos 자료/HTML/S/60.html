@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>src/examples/mcp.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/mcp.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* mcp.c</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Copies one file to another, using mmap. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L8'>   8 
+<a name='L9'>   9 <b>int</b>
+<a name='L10'>  10 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <b>int</b> in_fd, out_fd;
+<a name='L13'>  13   <a href='../S/100.html#L12' title='Defined at 12 in src/lib/user/syscall.h.'>mapid_t</a> in_map, out_map;
+<a name='L14'>  14   <b>void</b> *in_data = (<b>void</b> *) 0x10000000;
+<a name='L15'>  15   <b>void</b> *out_data = (<b>void</b> *) 0x20000000;
+<a name='L16'>  16   <b>int</b> size;
+<a name='L17'>  17 
+<a name='L18'>  18   <b>if</b> (argc != 3) 
+<a name='L19'>  19     <font color='red'>{</font>
+<a name='L20'>  20       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("usage: cp OLD NEW\n");
+<a name='L21'>  21       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L22'>  22     <font color='red'>}</font>
+<a name='L23'>  23 
+<a name='L24'>  24   <i><font color='green'>/* Open input file. */</font></i>
+<a name='L25'>  25   in_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[1]);
+<a name='L26'>  26   <b>if</b> (in_fd &lt; 0) 
+<a name='L27'>  27     <font color='red'>{</font>
+<a name='L28'>  28       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: open failed\n", argv[1]);
+<a name='L29'>  29       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L30'>  30     <font color='red'>}</font>
+<a name='L31'>  31   size = <a href='../S/97.html#L109' title='Defined at 109 in src/lib/user/syscall.c.'>filesize</a> (in_fd);
+<a name='L32'>  32 
+<a name='L33'>  33   <i><font color='green'>/* Create and open output file. */</font></i>
+<a name='L34'>  34   <b>if</b> (!<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (argv[2], size)) 
+<a name='L35'>  35     <font color='red'>{</font>
+<a name='L36'>  36       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: create failed\n", argv[2]);
+<a name='L37'>  37       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L38'>  38     <font color='red'>}</font>
+<a name='L39'>  39   out_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[2]);
+<a name='L40'>  40   <b>if</b> (out_fd &lt; 0) 
+<a name='L41'>  41     <font color='red'>{</font>
+<a name='L42'>  42       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: open failed\n", argv[2]);
+<a name='L43'>  43       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L44'>  44     <font color='red'>}</font>
+<a name='L45'>  45 
+<a name='L46'>  46   <i><font color='green'>/* Map files. */</font></i>
+<a name='L47'>  47   in_map = <a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (in_fd, in_data);
+<a name='L48'>  48   <b>if</b> (in_map == <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>) 
+<a name='L49'>  49     <font color='red'>{</font>
+<a name='L50'>  50       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: mmap failed\n", argv[1]);
+<a name='L51'>  51       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L52'>  52     <font color='red'>}</font>
+<a name='L53'>  53   out_map = <a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (out_fd, out_data);
+<a name='L54'>  54   <b>if</b> (out_map == <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>)
+<a name='L55'>  55     <font color='red'>{</font>
+<a name='L56'>  56       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: mmap failed\n", argv[2]);
+<a name='L57'>  57       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L58'>  58     <font color='red'>}</font>
+<a name='L59'>  59 
+<a name='L60'>  60   <i><font color='green'>/* Copy files. */</font></i>
+<a name='L61'>  61   <a href='../S/83.html#L7' title='Defined at 7 in src/lib/string.c.'>memcpy</a> (out_data, in_data, size);
+<a name='L62'>  62 
+<a name='L63'>  63   <i><font color='green'>/* Unmap files (optional). */</font></i>
+<a name='L64'>  64   <a href='../S/97.html#L151' title='Defined at 151 in src/lib/user/syscall.c.'>munmap</a> (in_map);
+<a name='L65'>  65   <a href='../S/97.html#L151' title='Defined at 151 in src/lib/user/syscall.c.'>munmap</a> (out_map);
+<a name='L66'>  66 
+<a name='L67'>  67   <b>return</b> <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a>;
+<a name='L68'>  68 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

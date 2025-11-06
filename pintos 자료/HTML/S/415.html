@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>src/tests/userprog/multi-child-fd.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/multi-child-fd.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L13' title='Defined at 13.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Opens a file and then runs a subprocess that tries to close</font></i>
+<a name='L2'>   2 <i><font color='green'>   the file.  (Pintos does not have inheritance of file handles,</font></i>
+<a name='L3'>   3 <i><font color='green'>   so this must fail.)  The parent process then attempts to use</font></i>
+<a name='L4'>   4 <i><font color='green'>   the file handle, which must succeed. */</font></i>
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "tests/userprog/sample.inc"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <b>void</b>
+<a name='L13'>  13 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L14'>  14 <font color='red'>{</font>
+<a name='L15'>  15   <b>char</b> child_cmd[128];
+<a name='L16'>  16   <b>int</b> handle;
+<a name='L17'>  17 
+<a name='L18'>  18   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("sample.txt")) &gt; 1, "open \"sample.txt\"");
+<a name='L19'>  19 
+<a name='L20'>  20   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (child_cmd, <b>sizeof</b> child_cmd, "child-close %d", handle);
+<a name='L21'>  21   
+<a name='L22'>  22   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("wait(exec()) = %d", <a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (<a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> (child_cmd)));
+<a name='L23'>  23 
+<a name='L24'>  24   <a href='../S/591.html#L108' title='Defined at 108 in src/tests/lib.c.'>check_file_handle</a> (handle, "sample.txt", sample, <b>sizeof</b> sample - 1);
+<a name='L25'>  25 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L13'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

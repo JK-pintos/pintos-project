@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>src/lib/user/debug.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/601.html'>user</a>/debug.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>debug_panic</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Aborts the user program, printing the source file name, line</font></i>
+<a name='L8'>   8 <i><font color='green'>   number, and function name, plus a user-specific message. */</font></i>
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../S/104.html#L14' title='Refered from 14 in src/lib/debug.h.'>debug_panic</a> (<b>const</b> <b>char</b> *file, <b>int</b> line, <b>const</b> <b>char</b> *function,
+<a name='L11'>  11              <b>const</b> <b>char</b> *message, ...)
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L14'>  14 
+<a name='L15'>  15   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("User process ABORT at %s:%d in %s(): ", <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, line, function);
+<a name='L16'>  16 
+<a name='L17'>  17   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, message);
+<a name='L18'>  18   <a href='../D/1079.html' title='Multiple defined in 2 places.'>vprintf</a> (message, args);
+<a name='L19'>  19   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\n");
+<a name='L20'>  20   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L21'>  21 
+<a name='L22'>  22   <a href='../S/91.html#L13' title='Defined at 13 in src/lib/debug.c.'>debug_backtrace</a> ();
+<a name='L23'>  23   
+<a name='L24'>  24   <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (1);
+<a name='L25'>  25 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

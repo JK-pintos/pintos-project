@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>src/devices/shutdown.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/shutdown.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/20.html' title='Multiple included from 4 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/141.html#L2' title='Defined at 2 in src/devices/shutdown.h.'>DEVICES_SHUTDOWN_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/141.html#L1' title='Refered from 1 in src/devices/shutdown.h.'>DEVICES_SHUTDOWN_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* How to shut down when Pintos has nothing left to do. */</font></i>
+<a name='L7'>   7 <b>enum</b> <a href='../S/136.html#L21' title='Refered from 21 in src/devices/shutdown.c.'>shutdown_type</a>
+<a name='L8'>   8   <font color='red'>{</font>
+<a name='L9'>   9     SHUTDOWN_NONE,              <i><font color='green'>/* Loop forever. */</font></i>
+<a name='L10'>  10     SHUTDOWN_POWER_OFF,         <i><font color='green'>/* Power off the machine (if possible). */</font></i>
+<a name='L11'>  11     SHUTDOWN_REBOOT,            <i><font color='green'>/* Reboot the machine (if possible). */</font></i>
+<a name='L12'>  12   <font color='red'>}</font>;
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b> <a href='../S/136.html#L29' title='Defined at 29 in src/devices/shutdown.c.'>shutdown</a> (<b>void</b>);
+<a name='L15'>  15 <b>void</b> <a href='../S/136.html#L50' title='Defined at 50 in src/devices/shutdown.c.'>shutdown_configure</a> (<b>enum</b> shutdown_type);
+<a name='L16'>  16 <b>void</b> <a href='../S/136.html#L57' title='Defined at 57 in src/devices/shutdown.c.'>shutdown_reboot</a> (<b>void</b>) <a href='../S/104.html#L8' title='Defined at 8 in src/lib/debug.h.'>NO_RETURN</a>;
+<a name='L17'>  17 <b>void</b> shutdown_power_off (<b>void</b>) <a href='../S/104.html#L8' title='Defined at 8 in src/lib/debug.h.'>NO_RETURN</a>;
+<a name='L18'>  18 
+<a name='L19'>  19 <font color='darkred'>#endif</font> <i><font color='green'>/* devices/shutdown.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

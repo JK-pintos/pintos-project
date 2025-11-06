@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>block_size</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/128.html#L53'>block_size</a>         53 src/devices/block.h block_sector_t block_size (struct block *);
+<a href='../S/134.html#L79'>block_size</a>         79 src/devices/partition.c   if (sector &gt;= block_size (block))
+<a href='../S/134.html#L158'>block_size</a>        158 src/devices/partition.c   if (start &gt;= block_size (block))
+<a href='../S/134.html#L161'>block_size</a>        161 src/devices/partition.c   else if (start + size &lt; start || start + size &gt; block_size (block))
+<a href='../S/134.html#L163'>block_size</a>        163 src/devices/partition.c             block_name (block), part_nr, start + size, block_size (block));
+<a href='../S/25.html#L15'>block_size</a>         15 src/filesys/free-map.c   free_map = bitmap_create (block_size (fs_device));
+<a href='../S/26.html#L204'>block_size</a>        204 src/filesys/fsutil.c       if (sector &gt;= block_size (dst))
+<a href='../S/114.html#L104'>block_size</a>        104 src/lib/kernel/bitmap.c   ASSERT (block_size &gt;= bitmap_buf_size (bit_cnt));
+<a href='../S/294.html#L18'>block_size</a>         18 src/tests/filesys/extended/grow-two-files.c       size_t block_size = random_ulong () % (FILE_SIZE / 8) + 1;
+<a href='../S/294.html#L20'>block_size</a>         20 src/tests/filesys/extended/grow-two-files.c       if (block_size &gt; FILE_SIZE - *ofs)
+<a href='../S/294.html#L21'>block_size</a>         21 src/tests/filesys/extended/grow-two-files.c         block_size = FILE_SIZE - *ofs;
+<a href='../S/294.html#L23'>block_size</a>         23 src/tests/filesys/extended/grow-two-files.c       ret_val = write (fd, buf + *ofs, block_size);
+<a href='../S/294.html#L24'>block_size</a>         24 src/tests/filesys/extended/grow-two-files.c       if (ret_val != block_size)
+<a href='../S/294.html#L26'>block_size</a>         26 src/tests/filesys/extended/grow-two-files.c               block_size, *ofs, file_name, ret_val);
+<a href='../S/294.html#L27'>block_size</a>         27 src/tests/filesys/extended/grow-two-files.c       *ofs += block_size;
+<a href='../S/296.html#L22'>block_size</a>         22 src/tests/filesys/seq-test.c       size_t block_size = block_size_func ();
+<a href='../S/296.html#L23'>block_size</a>         23 src/tests/filesys/seq-test.c       if (block_size &gt; size - ofs)
+<a href='../S/296.html#L24'>block_size</a>         24 src/tests/filesys/seq-test.c         block_size = size - ofs;
+<a href='../S/296.html#L26'>block_size</a>         26 src/tests/filesys/seq-test.c       if (write (fd, buf + ofs, block_size) != (int) block_size)
+<a href='../S/296.html#L28'>block_size</a>         28 src/tests/filesys/seq-test.c               block_size, ofs, file_name);
+<a href='../S/296.html#L30'>block_size</a>         30 src/tests/filesys/seq-test.c       ofs += block_size;
+<a href='../S/591.html#L127'>block_size</a>        127 src/tests/lib.c       size_t block_size, ret_val;
+<a href='../S/591.html#L129'>block_size</a>        129 src/tests/lib.c       block_size = size - ofs;
+<a href='../S/591.html#L130'>block_size</a>        130 src/tests/lib.c       if (block_size &gt; sizeof block)
+<a href='../S/591.html#L131'>block_size</a>        131 src/tests/lib.c         block_size = sizeof block;
+<a href='../S/591.html#L133'>block_size</a>        133 src/tests/lib.c       ret_val = read (fd, block, block_size);
+<a href='../S/591.html#L134'>block_size</a>        134 src/tests/lib.c       if (ret_val != block_size)
+<a href='../S/591.html#L136'>block_size</a>        136 src/tests/lib.c               block_size, ofs, file_name, ret_val);
+<a href='../S/591.html#L138'>block_size</a>        138 src/tests/lib.c       compare_bytes (block, buf + ofs, block_size, ofs, file_name);
+<a href='../S/591.html#L139'>block_size</a>        139 src/tests/lib.c       ofs += block_size;
+<a href='../S/161.html#L40'>block_size</a>         40 src/threads/malloc.c     size_t block_size;          /* Size of each element in bytes. */
+<a href='../S/161.html#L74'>block_size</a>         74 src/threads/malloc.c   size_t block_size;
+<a href='../S/161.html#L76'>block_size</a>         76 src/threads/malloc.c   for (block_size = 16; block_size &lt; PGSIZE / 2; block_size *= 2)
+<a href='../S/161.html#L80'>block_size</a>         80 src/threads/malloc.c       d-&gt;block_size = block_size;
+<a href='../S/161.html#L81'>block_size</a>         81 src/threads/malloc.c       d-&gt;blocks_per_arena = (PGSIZE - sizeof (struct arena)) / block_size;
+<a href='../S/161.html#L103'>block_size</a>        103 src/threads/malloc.c     if (d-&gt;block_size &gt;= size)
+<a href='../S/161.html#L185'>block_size</a>        185 src/threads/malloc.c   return d != NULL ? d-&gt;block_size : PGSIZE * a-&gt;free_cnt - pg_ofs (block);
+<a href='../S/161.html#L207'>block_size</a>        207 src/threads/malloc.c           size_t old_size = block_size (old_block);
+<a href='../S/161.html#L233'>block_size</a>        233 src/threads/malloc.c           memset (b, 0xcc, d-&gt;block_size);
+<a href='../S/161.html#L278'>block_size</a>        278 src/threads/malloc.c           || (pg_ofs (b) - sizeof *a) % a-&gt;desc-&gt;block_size == 0);
+<a href='../S/161.html#L293'>block_size</a>        293 src/threads/malloc.c                            + idx * a-&gt;desc-&gt;block_size);
+</pre>
+</body>
+</html>

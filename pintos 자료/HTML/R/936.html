@@ -1,0 +1,127 @@
+<html>
+<head>
+<title>uint32_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/128.html#L15'>uint32_t</a>           15 src/devices/block.h typedef uint32_t block_sector_t;
+<a href='../S/123.html#L286'>uint32_t</a>          286 src/devices/ide.c   capacity = *(uint32_t *) &amp;id[60 * 2];
+<a href='../S/134.html#L61'>uint32_t</a>           61 src/devices/partition.c       uint32_t offset;          /* Start sector offset from partition table. */
+<a href='../S/134.html#L62'>uint32_t</a>           62 src/devices/partition.c       uint32_t size;            /* Number of sectors. */
+<a href='../S/35.html#L20'>uint32_t</a>           20 src/filesys/inode.c     uint32_t unused[125];               /* Not used. */
+<a href='../S/86.html#L25'>uint32_t</a>           25 src/lib/arithmetic.c static inline uint32_t
+<a href='../S/86.html#L26'>uint32_t</a>           26 src/lib/arithmetic.c divl (uint64_t n, uint32_t d)
+<a href='../S/86.html#L28'>uint32_t</a>           28 src/lib/arithmetic.c   uint32_t n1 = n &gt;&gt; 32;
+<a href='../S/86.html#L29'>uint32_t</a>           29 src/lib/arithmetic.c   uint32_t n0 = n;
+<a href='../S/86.html#L30'>uint32_t</a>           30 src/lib/arithmetic.c   uint32_t q, r;
+<a href='../S/86.html#L42'>uint32_t</a>           42 src/lib/arithmetic.c nlz (uint32_t x) 
+<a href='../S/86.html#L107'>uint32_t</a>          107 src/lib/arithmetic.c       uint32_t n1 = n &gt;&gt; 32;
+<a href='../S/86.html#L108'>uint32_t</a>          108 src/lib/arithmetic.c       uint32_t n0 = n; 
+<a href='../S/86.html#L109'>uint32_t</a>          109 src/lib/arithmetic.c       uint32_t d0 = d;
+<a href='../S/86.html#L121'>uint32_t</a>          121 src/lib/arithmetic.c           uint32_t d1 = d &gt;&gt; 32;
+<a href='../S/86.html#L131'>uint32_t</a>          131 src/lib/arithmetic.c static uint32_t
+<a href='../S/87.html#L36'>uint32_t</a>           36 src/lib/stdint.h typedef uint32_t uintptr_t;
+<a href='../S/592.html#L66'>uint32_t</a>           66 src/tests/cksum.c   uint32_t s = 0;
+<a href='../S/156.html#L42'>uint32_t</a>           42 src/threads/init.c uint32_t *init_page_dir;
+<a href='../S/156.html#L160'>uint32_t</a>          160 src/threads/init.c   uint32_t *pd, *pt;
+<a href='../S/156.html#L201'>uint32_t</a>          201 src/threads/init.c   argc = *(uint32_t *) ptov (LOADER_ARG_CNT);
+<a href='../S/144.html#L10'>uint32_t</a>           10 src/threads/init.h extern uint32_t *init_page_dir;
+<a href='../S/168.html#L67'>uint32_t</a>           67 src/threads/interrupt.c   uint32_t flags;
+<a href='../S/168.html#L296'>uint32_t</a>          296 src/threads/interrupt.c   uint32_t e0, e1;
+<a href='../S/168.html#L302'>uint32_t</a>          302 src/threads/interrupt.c   e0 = (((uint32_t) function &amp; 0xffff)     /* Offset 15:0. */
+<a href='../S/168.html#L305'>uint32_t</a>          305 src/threads/interrupt.c   e1 = (((uint32_t) function &amp; 0xffff0000) /* Offset 31:16. */
+<a href='../S/168.html#L307'>uint32_t</a>          307 src/threads/interrupt.c         | ((uint32_t) dpl &lt;&lt; 13)           /* Descriptor privilege level. */
+<a href='../S/168.html#L309'>uint32_t</a>          309 src/threads/interrupt.c         | ((uint32_t) type &lt;&lt; 8));         /* Gate type. */
+<a href='../S/168.html#L335'>uint32_t</a>          335 src/threads/interrupt.c   return limit | ((uint64_t) (uint32_t) base &lt;&lt; 16);
+<a href='../S/168.html#L413'>uint32_t</a>          413 src/threads/interrupt.c   uint32_t cr2;
+<a href='../S/168.html#L428'>uint32_t</a>          428 src/threads/interrupt.c           f-&gt;esi, f-&gt;edi, (uint32_t) f-&gt;esp, f-&gt;ebp);
+<a href='../S/150.html#L24'>uint32_t</a>           24 src/threads/interrupt.h     uint32_t edi;               /* Saved EDI. */
+<a href='../S/150.html#L25'>uint32_t</a>           25 src/threads/interrupt.h     uint32_t esi;               /* Saved ESI. */
+<a href='../S/150.html#L26'>uint32_t</a>           26 src/threads/interrupt.h     uint32_t ebp;               /* Saved EBP. */
+<a href='../S/150.html#L27'>uint32_t</a>           27 src/threads/interrupt.h     uint32_t esp_dummy;         /* Not used. */
+<a href='../S/150.html#L28'>uint32_t</a>           28 src/threads/interrupt.h     uint32_t ebx;               /* Saved EBX. */
+<a href='../S/150.html#L29'>uint32_t</a>           29 src/threads/interrupt.h     uint32_t edx;               /* Saved EDX. */
+<a href='../S/150.html#L30'>uint32_t</a>           30 src/threads/interrupt.h     uint32_t ecx;               /* Saved ECX. */
+<a href='../S/150.html#L31'>uint32_t</a>           31 src/threads/interrupt.h     uint32_t eax;               /* Saved EAX. */
+<a href='../S/150.html#L38'>uint32_t</a>           38 src/threads/interrupt.h     uint32_t vec_no;            /* Interrupt vector number. */
+<a href='../S/150.html#L43'>uint32_t</a>           43 src/threads/interrupt.h     uint32_t error_code;        /* Error code. */
+<a href='../S/150.html#L53'>uint32_t</a>           53 src/threads/interrupt.h     uint32_t eflags;            /* Saved CPU flags. */
+<a href='../S/157.html#L46'>uint32_t</a>           46 src/threads/io.h static inline uint32_t
+<a href='../S/157.html#L50'>uint32_t</a>           50 src/threads/io.h   uint32_t data;
+<a href='../S/157.html#L100'>uint32_t</a>          100 src/threads/io.h outl (uint16_t port, uint32_t data)
+<a href='../S/152.html#L37'>uint32_t</a>           37 src/threads/loader.h extern uint32_t init_ram_pages;
+<a href='../S/162.html#L71'>uint32_t</a>           71 src/threads/pte.h static inline uint32_t pde_create (uint32_t *pt) {
+<a href='../S/162.html#L78'>uint32_t</a>           78 src/threads/pte.h static inline uint32_t *pde_get_pt (uint32_t pde) {
+<a href='../S/162.html#L87'>uint32_t</a>           87 src/threads/pte.h static inline uint32_t pte_create_kernel (void *page, bool writable) {
+<a href='../S/162.html#L96'>uint32_t</a>           96 src/threads/pte.h static inline uint32_t pte_create_user (void *page, bool writable) {
+<a href='../S/162.html#L102'>uint32_t</a>          102 src/threads/pte.h static inline void *pte_get_page (uint32_t pte) {
+<a href='../S/146.html#L8'>uint32_t</a>            8 src/threads/switch.h     uint32_t edi;               /*  0: Saved %edi. */
+<a href='../S/146.html#L9'>uint32_t</a>            9 src/threads/switch.h     uint32_t esi;               /*  4: Saved %esi. */
+<a href='../S/146.html#L10'>uint32_t</a>           10 src/threads/switch.h     uint32_t ebp;               /*  8: Saved %ebp. */
+<a href='../S/146.html#L11'>uint32_t</a>           11 src/threads/switch.h     uint32_t ebx;               /* 12: Saved %ebx. */
+<a href='../S/163.html#L440'>uint32_t</a>          440 src/threads/thread.c   uint32_t *esp;
+<a href='../S/163.html#L482'>uint32_t</a>          482 src/threads/thread.c   ASSERT (size % sizeof (uint32_t) == 0);
+<a href='../S/163.html#L587'>uint32_t</a>          587 src/threads/thread.c uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+<a href='../S/164.html#L98'>uint32_t</a>           98 src/threads/thread.h     uint32_t *pagedir;                  /* Page directory. */
+<a href='../S/65.html#L82'>uint32_t</a>           82 src/userprog/gdt.c make_seg_desc (uint32_t base,
+<a href='../S/65.html#L83'>uint32_t</a>           83 src/userprog/gdt.c                uint32_t limit,
+<a href='../S/65.html#L89'>uint32_t</a>           89 src/userprog/gdt.c   uint32_t e0, e1;
+<a href='../S/65.html#L136'>uint32_t</a>          136 src/userprog/gdt.c   return make_seg_desc ((uint32_t) laddr, 0x67, CLS_SYSTEM, 9, 0, GRAN_BYTE);
+<a href='../S/65.html#L145'>uint32_t</a>          145 src/userprog/gdt.c   return limit | ((uint64_t) (uint32_t) base &lt;&lt; 16);
+<a href='../S/75.html#L9'>uint32_t</a>            9 src/userprog/pagedir.c static uint32_t *active_pd (void);
+<a href='../S/75.html#L10'>uint32_t</a>           10 src/userprog/pagedir.c static void invalidate_pagedir (uint32_t *);
+<a href='../S/75.html#L16'>uint32_t</a>           16 src/userprog/pagedir.c uint32_t *
+<a href='../S/75.html#L19'>uint32_t</a>           19 src/userprog/pagedir.c   uint32_t *pd = palloc_get_page (0);
+<a href='../S/75.html#L28'>uint32_t</a>           28 src/userprog/pagedir.c pagedir_destroy (uint32_t *pd) 
+<a href='../S/75.html#L30'>uint32_t</a>           30 src/userprog/pagedir.c   uint32_t *pde;
+<a href='../S/75.html#L39'>uint32_t</a>           39 src/userprog/pagedir.c         uint32_t *pt = pde_get_pt (*pde);
+<a href='../S/75.html#L40'>uint32_t</a>           40 src/userprog/pagedir.c         uint32_t *pte;
+<a href='../S/75.html#L56'>uint32_t</a>           56 src/userprog/pagedir.c static uint32_t *
+<a href='../S/75.html#L57'>uint32_t</a>           57 src/userprog/pagedir.c lookup_page (uint32_t *pd, const void *vaddr, bool create)
+<a href='../S/75.html#L59'>uint32_t</a>           59 src/userprog/pagedir.c   uint32_t *pt, *pde;
+<a href='../S/75.html#L99'>uint32_t</a>           99 src/userprog/pagedir.c pagedir_set_page (uint32_t *pd, void *upage, void *kpage, bool writable)
+<a href='../S/75.html#L101'>uint32_t</a>          101 src/userprog/pagedir.c   uint32_t *pte;
+<a href='../S/75.html#L126'>uint32_t</a>          126 src/userprog/pagedir.c pagedir_get_page (uint32_t *pd, const void *uaddr) 
+<a href='../S/75.html#L128'>uint32_t</a>          128 src/userprog/pagedir.c   uint32_t *pte;
+<a href='../S/75.html#L144'>uint32_t</a>          144 src/userprog/pagedir.c pagedir_clear_page (uint32_t *pd, void *upage) 
+<a href='../S/75.html#L146'>uint32_t</a>          146 src/userprog/pagedir.c   uint32_t *pte;
+<a href='../S/75.html#L164'>uint32_t</a>          164 src/userprog/pagedir.c pagedir_is_dirty (uint32_t *pd, const void *vpage) 
+<a href='../S/75.html#L166'>uint32_t</a>          166 src/userprog/pagedir.c   uint32_t *pte = lookup_page (pd, vpage, false);
+<a href='../S/75.html#L173'>uint32_t</a>          173 src/userprog/pagedir.c pagedir_set_dirty (uint32_t *pd, const void *vpage, bool dirty) 
+<a href='../S/75.html#L175'>uint32_t</a>          175 src/userprog/pagedir.c   uint32_t *pte = lookup_page (pd, vpage, false);
+<a href='../S/75.html#L182'>uint32_t</a>          182 src/userprog/pagedir.c           *pte &amp;= ~(uint32_t) PTE_D;
+<a href='../S/75.html#L193'>uint32_t</a>          193 src/userprog/pagedir.c pagedir_is_accessed (uint32_t *pd, const void *vpage) 
+<a href='../S/75.html#L195'>uint32_t</a>          195 src/userprog/pagedir.c   uint32_t *pte = lookup_page (pd, vpage, false);
+<a href='../S/75.html#L202'>uint32_t</a>          202 src/userprog/pagedir.c pagedir_set_accessed (uint32_t *pd, const void *vpage, bool accessed) 
+<a href='../S/75.html#L204'>uint32_t</a>          204 src/userprog/pagedir.c   uint32_t *pte = lookup_page (pd, vpage, false);
+<a href='../S/75.html#L211'>uint32_t</a>          211 src/userprog/pagedir.c           *pte &amp;= ~(uint32_t) PTE_A; 
+<a href='../S/75.html#L220'>uint32_t</a>          220 src/userprog/pagedir.c pagedir_activate (uint32_t *pd) 
+<a href='../S/75.html#L234'>uint32_t</a>          234 src/userprog/pagedir.c static uint32_t *
+<a href='../S/75.html#L255'>uint32_t</a>          255 src/userprog/pagedir.c invalidate_pagedir (uint32_t *pd) 
+<a href='../S/73.html#L7'>uint32_t</a>            7 src/userprog/pagedir.h uint32_t *pagedir_create (void);
+<a href='../S/73.html#L8'>uint32_t</a>            8 src/userprog/pagedir.h void pagedir_destroy (uint32_t *pd);
+<a href='../S/73.html#L9'>uint32_t</a>            9 src/userprog/pagedir.h bool pagedir_set_page (uint32_t *pd, void *upage, void *kpage, bool rw);
+<a href='../S/73.html#L10'>uint32_t</a>           10 src/userprog/pagedir.h void *pagedir_get_page (uint32_t *pd, const void *upage);
+<a href='../S/73.html#L11'>uint32_t</a>           11 src/userprog/pagedir.h void pagedir_clear_page (uint32_t *pd, void *upage);
+<a href='../S/73.html#L12'>uint32_t</a>           12 src/userprog/pagedir.h bool pagedir_is_dirty (uint32_t *pd, const void *upage);
+<a href='../S/73.html#L13'>uint32_t</a>           13 src/userprog/pagedir.h void pagedir_set_dirty (uint32_t *pd, const void *upage, bool dirty);
+<a href='../S/73.html#L14'>uint32_t</a>           14 src/userprog/pagedir.h bool pagedir_is_accessed (uint32_t *pd, const void *upage);
+<a href='../S/73.html#L15'>uint32_t</a>           15 src/userprog/pagedir.h void pagedir_set_accessed (uint32_t *pd, const void *upage, bool accessed);
+<a href='../S/73.html#L16'>uint32_t</a>           16 src/userprog/pagedir.h void pagedir_activate (uint32_t *pd);
+<a href='../S/66.html#L99'>uint32_t</a>           99 src/userprog/process.c   uint32_t *pd;
+<a href='../S/66.html#L139'>uint32_t</a>          139 src/userprog/process.c typedef uint32_t Elf32_Word, Elf32_Addr, Elf32_Off;
+<a href='../S/66.html#L201'>uint32_t</a>          201 src/userprog/process.c                           uint32_t read_bytes, uint32_t zero_bytes,
+<a href='../S/66.html#L275'>uint32_t</a>          275 src/userprog/process.c               uint32_t file_page = phdr.p_offset &amp; ~PGMASK;
+<a href='../S/66.html#L276'>uint32_t</a>          276 src/userprog/process.c               uint32_t mem_page = phdr.p_vaddr &amp; ~PGMASK;
+<a href='../S/66.html#L277'>uint32_t</a>          277 src/userprog/process.c               uint32_t page_offset = phdr.p_vaddr &amp; PGMASK;
+<a href='../S/66.html#L278'>uint32_t</a>          278 src/userprog/process.c               uint32_t read_bytes, zero_bytes;
+<a href='../S/66.html#L384'>uint32_t</a>          384 src/userprog/process.c               uint32_t read_bytes, uint32_t zero_bytes, bool writable) 
+<a href='../S/72.html#L60'>uint32_t</a>           60 src/userprog/tss.c     uint32_t cr3;
+<a href='../S/72.html#L62'>uint32_t</a>           62 src/userprog/tss.c     uint32_t eflags;
+<a href='../S/72.html#L63'>uint32_t</a>           63 src/userprog/tss.c     uint32_t eax, ecx, edx, ebx;
+<a href='../S/72.html#L64'>uint32_t</a>           64 src/userprog/tss.c     uint32_t esp, ebp, esi, edi;
+</pre>
+</body>
+</html>

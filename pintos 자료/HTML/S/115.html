@@ -1,0 +1,689 @@
+<html>
+<head>
+<title>src/lib/stdio.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/stdio.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L26'>[^]</a><a href='#L642'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L26' title='Defined at 26.'>vsnprintf</a>
+<li><a href='#L46' title='Defined at 46.'>vsnprintf_helper</a>
+<li><a href='#L62' title='Defined at 62.'>snprintf</a>
+<li><a href='#L79' title='Defined at 79.'>printf</a>
+<li><a href='#L157' title='Defined at 157.'>__vprintf</a>
+<li><a href='#L340' title='Defined at 340.'>parse_conversion</a>
+<li><a href='#L470' title='Defined at 470.'>format_integer</a>
+<li><a href='#L551' title='Defined at 551.'>output_dup</a>
+<li><a href='#L561' title='Defined at 561.'>format_string</a>
+<li><a href='#L577' title='Defined at 577.'>__printf</a>
+<li><a href='#L593' title='Defined at 593.'>hex_dump</a>
+<li><a href='#L642' title='Defined at 642.'>print_human_readable_size</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='81.html'>inttypes.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L7'>   7 
+<a name='L8'>   8 <i><font color='green'>/* Auxiliary data for vsnprintf_helper(). */</font></i>
+<a name='L9'>   9 <b>struct</b> <a href='../R/967.html' title='Multiple refered from 2 places.'>vsnprintf_aux</a> 
+<a name='L10'>  10   <font color='red'>{</font>
+<a name='L11'>  11     <b>char</b> *p;            <i><font color='green'>/* Current output position. */</font></i>
+<a name='L12'>  12     <b>int</b> length;         <i><font color='green'>/* Length of output string. */</font></i>
+<a name='L13'>  13     <b>int</b> max_length;     <i><font color='green'>/* Max length of output string. */</font></i>
+<a name='L14'>  14   <font color='red'>}</font>;
+<a name='L15'>  15 
+<a name='L16'>  16 <b>static</b> <b>void</b> <a href='../S/115.html#L46' title='Defined at 46 in src/lib/stdio.c.'>vsnprintf_helper</a> (<b>char</b>, <b>void</b> *);
+<a name='L17'>  17 
+<a name='L18'>  18 <i><font color='green'>/* Like vprintf(), except that output is stored into BUFFER,</font></i>
+<a name='L19'>  19 <i><font color='green'>   which must have space for BUF_SIZE characters.  Writes at most</font></i>
+<a name='L20'>  20 <i><font color='green'>   BUF_SIZE - 1 characters to BUFFER, followed by a null</font></i>
+<a name='L21'>  21 <i><font color='green'>   terminator.  BUFFER will always be null-terminated unless</font></i>
+<a name='L22'>  22 <i><font color='green'>   BUF_SIZE is zero.  Returns the number of characters that would</font></i>
+<a name='L23'>  23 <i><font color='green'>   have been written to BUFFER, not including a null terminator,</font></i>
+<a name='L24'>  24 <i><font color='green'>   had there been enough room. */</font></i>
+<a name='L25'>  25 <b>int</b>
+<a name='L26'>  26 <a href='../R/966.html' title='Multiple refered from 6 places.'>vsnprintf</a> (<b>char</b> *buffer, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> buf_size, <b>const</b> <b>char</b> *format, va_list args) 
+<a name='L27'>  27 <font color='red'>{</font>
+<a name='L28'>  28   <i><font color='green'>/* Set up aux data for vsnprintf_helper(). */</font></i>
+<a name='L29'>  29   <b>struct</b> <a href='../S/115.html#L9' title='Defined at 9 in src/lib/stdio.c.'>vsnprintf_aux</a> aux;
+<a name='L30'>  30   aux.p = buffer;
+<a name='L31'>  31   aux.length = 0;
+<a name='L32'>  32   aux.max_length = buf_size &gt; 0 ? buf_size - 1 : 0;
+<a name='L33'>  33 
+<a name='L34'>  34   <i><font color='green'>/* Do most of the work. */</font></i>
+<a name='L35'>  35   <a href='../S/115.html#L157' title='Defined at 157 in src/lib/stdio.c.'>__vprintf</a> (format, args, <a href='../S/115.html#L46' title='Defined at 46 in src/lib/stdio.c.'>vsnprintf_helper</a>, &amp;aux);
+<a name='L36'>  36 
+<a name='L37'>  37   <i><font color='green'>/* Add null terminator. */</font></i>
+<a name='L38'>  38   <b>if</b> (buf_size &gt; 0)
+<a name='L39'>  39     *aux.p = '\0';
+<a name='L40'>  40 
+<a name='L41'>  41   <b>return</b> aux.length;
+<a name='L42'>  42 <font color='red'>}</font>
+<a name='L43'>  43 
+<a name='L44'>  44 <i><font color='green'>/* Helper function for vsnprintf(). */</font></i>
+<a name='L45'>  45 <b>static</b> <b>void</b>
+<a name='L46'>  46 <a href='../R/968.html' title='Multiple refered from 2 places.'>vsnprintf_helper</a> (<b>char</b> ch, <b>void</b> *aux_)
+<a name='L47'>  47 <font color='red'>{</font>
+<a name='L48'>  48   <b>struct</b> <a href='../S/115.html#L9' title='Defined at 9 in src/lib/stdio.c.'>vsnprintf_aux</a> *aux = aux_;
+<a name='L49'>  49 
+<a name='L50'>  50   <b>if</b> (aux-&gt;length++ &lt; aux-&gt;max_length)
+<a name='L51'>  51     *aux-&gt;p++ = ch;
+<a name='L52'>  52 <font color='red'>}</font>
+<a name='L53'>  53 
+<a name='L54'>  54 <i><font color='green'>/* Like printf(), except that output is stored into BUFFER,</font></i>
+<a name='L55'>  55 <i><font color='green'>   which must have space for BUF_SIZE characters.  Writes at most</font></i>
+<a name='L56'>  56 <i><font color='green'>   BUF_SIZE - 1 characters to BUFFER, followed by a null</font></i>
+<a name='L57'>  57 <i><font color='green'>   terminator.  BUFFER will always be null-terminated unless</font></i>
+<a name='L58'>  58 <i><font color='green'>   BUF_SIZE is zero.  Returns the number of characters that would</font></i>
+<a name='L59'>  59 <i><font color='green'>   have been written to BUFFER, not including a null terminator,</font></i>
+<a name='L60'>  60 <i><font color='green'>   had there been enough room. */</font></i>
+<a name='L61'>  61 <b>int</b>
+<a name='L62'>  62 <a href='../R/820.html' title='Multiple refered from 38 places.'>snprintf</a> (<b>char</b> *buffer, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> buf_size, <b>const</b> <b>char</b> *format, ...) 
+<a name='L63'>  63 <font color='red'>{</font>
+<a name='L64'>  64   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L65'>  65   <b>int</b> retval;
+<a name='L66'>  66 
+<a name='L67'>  67   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L68'>  68   retval = <a href='../S/115.html#L26' title='Defined at 26 in src/lib/stdio.c.'>vsnprintf</a> (buffer, buf_size, format, args);
+<a name='L69'>  69   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L70'>  70 
+<a name='L71'>  71   <b>return</b> retval;
+<a name='L72'>  72 <font color='red'>}</font>
+<a name='L73'>  73 
+<a name='L74'>  74 <i><font color='green'>/* Writes formatted output to the console.</font></i>
+<a name='L75'>  75 <i><font color='green'>   In the kernel, the console is both the video display and first</font></i>
+<a name='L76'>  76 <i><font color='green'>   serial port.</font></i>
+<a name='L77'>  77 <i><font color='green'>   In userspace, the console is file descriptor 1. */</font></i>
+<a name='L78'>  78 <b>int</b>
+<a name='L79'>  79 <a href='../R/727.html' title='Multiple refered from 180 places.'>printf</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L80'>  80 <font color='red'>{</font>
+<a name='L81'>  81   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L82'>  82   <b>int</b> retval;
+<a name='L83'>  83 
+<a name='L84'>  84   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L85'>  85   retval = <a href='../D/1079.html' title='Multiple defined in 2 places.'>vprintf</a> (format, args);
+<a name='L86'>  86   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L87'>  87 
+<a name='L88'>  88   <b>return</b> retval;
+<a name='L89'>  89 <font color='red'>}</font>
+<a name='L90'>  90 
+<a name='L91'>  91 <i><font color='green'>/* printf() formatting internals. */</font></i>
+<a name='L92'>  92 
+<a name='L93'>  93 <i><font color='green'>/* A printf() conversion. */</font></i>
+<a name='L94'>  94 <b>struct</b> <a href='../S/115.html#L162' title='Refered from 162 in src/lib/stdio.c.'>printf_conversion</a> 
+<a name='L95'>  95   <font color='red'>{</font>
+<a name='L96'>  96     <i><font color='green'>/* Flags. */</font></i>
+<a name='L97'>  97     <b>enum</b> 
+<a name='L98'>  98       <font color='red'>{</font>
+<a name='L99'>  99         MINUS = 1 &lt;&lt; 0,         <i><font color='green'>/* '-' */</font></i>
+<a name='L100'> 100         PLUS = 1 &lt;&lt; 1,          <i><font color='green'>/* '+' */</font></i>
+<a name='L101'> 101         SPACE = 1 &lt;&lt; 2,         <i><font color='green'>/* ' ' */</font></i>
+<a name='L102'> 102         POUND = 1 &lt;&lt; 3,         <i><font color='green'>/* '#' */</font></i>
+<a name='L103'> 103         ZERO = 1 &lt;&lt; 4,          <i><font color='green'>/* '0' */</font></i>
+<a name='L104'> 104         GROUP = 1 &lt;&lt; 5          <i><font color='green'>/* '\'' */</font></i>
+<a name='L105'> 105       <font color='red'>}</font>
+<a name='L106'> 106     flags;
+<a name='L107'> 107 
+<a name='L108'> 108     <i><font color='green'>/* Minimum field width. */</font></i>
+<a name='L109'> 109     <b>int</b> width;
+<a name='L110'> 110 
+<a name='L111'> 111     <i><font color='green'>/* Numeric precision.</font></i>
+<a name='L112'> 112 <i><font color='green'>       -1 indicates no precision was specified. */</font></i>
+<a name='L113'> 113     <b>int</b> precision;
+<a name='L114'> 114 
+<a name='L115'> 115     <i><font color='green'>/* Type of argument to format. */</font></i>
+<a name='L116'> 116     <b>enum</b> 
+<a name='L117'> 117       <font color='red'>{</font>
+<a name='L118'> 118         CHAR = 1,               <i><font color='green'>/* hh */</font></i>
+<a name='L119'> 119         SHORT = 2,              <i><font color='green'>/* h */</font></i>
+<a name='L120'> 120         INT = 3,                <i><font color='green'>/* (none) */</font></i>
+<a name='L121'> 121         INTMAX = 4,             <i><font color='green'>/* j */</font></i>
+<a name='L122'> 122         LONG = 5,               <i><font color='green'>/* l */</font></i>
+<a name='L123'> 123         LONGLONG = 6,           <i><font color='green'>/* ll */</font></i>
+<a name='L124'> 124         PTRDIFFT = 7,           <i><font color='green'>/* t */</font></i>
+<a name='L125'> 125         SIZET = 8               <i><font color='green'>/* z */</font></i>
+<a name='L126'> 126       <font color='red'>}</font>
+<a name='L127'> 127     type;
+<a name='L128'> 128   <font color='red'>}</font>;
+<a name='L129'> 129 
+<a name='L130'> 130 <b>struct</b> <a href='../R/534.html' title='Multiple refered from 5 places.'>integer_base</a> 
+<a name='L131'> 131   <font color='red'>{</font>
+<a name='L132'> 132     <b>int</b> base;                   <i><font color='green'>/* Base. */</font></i>
+<a name='L133'> 133     <b>const</b> <b>char</b> *digits;         <i><font color='green'>/* Collection of digits. */</font></i>
+<a name='L134'> 134     <b>int</b> x;                      <i><font color='green'>/* `x' character to use, for base 16 only. */</font></i>
+<a name='L135'> 135     <b>int</b> group;                  <i><font color='green'>/* Number of digits to group with ' flag. */</font></i>
+<a name='L136'> 136   <font color='red'>}</font>;
+<a name='L137'> 137 
+<a name='L138'> 138 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/115.html#L130' title='Defined at 130 in src/lib/stdio.c.'>integer_base</a> base_d = <font color='red'>{</font>10, "0123456789", 0, 3<font color='red'>}</font>;
+<a name='L139'> 139 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/115.html#L130' title='Defined at 130 in src/lib/stdio.c.'>integer_base</a> base_o = <font color='red'>{</font>8, "01234567", 0, 3<font color='red'>}</font>;
+<a name='L140'> 140 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/115.html#L130' title='Defined at 130 in src/lib/stdio.c.'>integer_base</a> base_x = <font color='red'>{</font>16, "0123456789abcdef", 'x', 4<font color='red'>}</font>;
+<a name='L141'> 141 <b>static</b> <b>const</b> <b>struct</b> <a href='../S/115.html#L130' title='Defined at 130 in src/lib/stdio.c.'>integer_base</a> base_X = <font color='red'>{</font>16, "0123456789ABCDEF", 'X', 4<font color='red'>}</font>;
+<a name='L142'> 142 
+<a name='L143'> 143 <b>static</b> <b>const</b> <b>char</b> *<a href='../S/115.html#L340' title='Defined at 340 in src/lib/stdio.c.'>parse_conversion</a> (<b>const</b> <b>char</b> *format,
+<a name='L144'> 144                                      <b>struct</b> printf_conversion *,
+<a name='L145'> 145                                      va_list *);
+<a name='L146'> 146 <b>static</b> <b>void</b> <a href='../S/115.html#L470' title='Defined at 470 in src/lib/stdio.c.'>format_integer</a> (<a href='../S/87.html#L43' title='Defined at 43 in src/lib/stdint.h.'>uintmax_t</a> value, bool is_signed, bool negative, 
+<a name='L147'> 147                             <b>const</b> <b>struct</b> integer_base *,
+<a name='L148'> 148                             <b>const</b> <b>struct</b> printf_conversion *,
+<a name='L149'> 149                             <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux);
+<a name='L150'> 150 <b>static</b> <b>void</b> <a href='../S/115.html#L551' title='Defined at 551 in src/lib/stdio.c.'>output_dup</a> (<b>char</b> ch, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt,
+<a name='L151'> 151                         <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux);
+<a name='L152'> 152 <b>static</b> <b>void</b> <a href='../S/115.html#L561' title='Defined at 561 in src/lib/stdio.c.'>format_string</a> (<b>const</b> <b>char</b> *string, <b>int</b> length,
+<a name='L153'> 153                            <b>struct</b> printf_conversion *,
+<a name='L154'> 154                            <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux);
+<a name='L155'> 155 
+<a name='L156'> 156 <b>void</b>
+<a name='L157'> 157 <a href='../R/278.html' title='Multiple refered from 4 places.'>__vprintf</a> (<b>const</b> <b>char</b> *format, va_list args,
+<a name='L158'> 158            <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux)
+<a name='L159'> 159 <font color='red'>{</font>
+<a name='L160'> 160   <b>for</b> (; *format != '\0'; format++)
+<a name='L161'> 161     <font color='red'>{</font>
+<a name='L162'> 162       <b>struct</b> <a href='../S/115.html#L94' title='Defined at 94 in src/lib/stdio.c.'>printf_conversion</a> c;
+<a name='L163'> 163 
+<a name='L164'> 164       <i><font color='green'>/* Literally copy non-conversions to output. */</font></i>
+<a name='L165'> 165       <b>if</b> (*format != '%') 
+<a name='L166'> 166         <font color='red'>{</font>
+<a name='L167'> 167           output (*format, aux);
+<a name='L168'> 168           <b>continue</b>;
+<a name='L169'> 169         <font color='red'>}</font>
+<a name='L170'> 170       format++;
+<a name='L171'> 171 
+<a name='L172'> 172       <i><font color='green'>/* %% =&gt; %. */</font></i>
+<a name='L173'> 173       <b>if</b> (*format == '%') 
+<a name='L174'> 174         <font color='red'>{</font>
+<a name='L175'> 175           output ('%', aux);
+<a name='L176'> 176           <b>continue</b>;
+<a name='L177'> 177         <font color='red'>}</font>
+<a name='L178'> 178 
+<a name='L179'> 179       <i><font color='green'>/* Parse conversion specifiers. */</font></i>
+<a name='L180'> 180       format = <a href='../S/115.html#L340' title='Defined at 340 in src/lib/stdio.c.'>parse_conversion</a> (format, &amp;c, &amp;args);
+<a name='L181'> 181 
+<a name='L182'> 182       <i><font color='green'>/* Do conversion. */</font></i>
+<a name='L183'> 183       <b>switch</b> (*format) 
+<a name='L184'> 184         <font color='red'>{</font>
+<a name='L185'> 185         <b>case</b> 'd':
+<a name='L186'> 186         <b>case</b> 'i': 
+<a name='L187'> 187           <font color='red'>{</font>
+<a name='L188'> 188             <i><font color='green'>/* Signed integer conversions. */</font></i>
+<a name='L189'> 189             <a href='../S/87.html#L39' title='Defined at 39 in src/lib/stdint.h.'>intmax_t</a> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L190'> 190             
+<a name='L191'> 191             <b>switch</b> (c.type) 
+<a name='L192'> 192               <font color='red'>{</font>
+<a name='L193'> 193               <b>case</b> CHAR: 
+<a name='L194'> 194                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = (<b>signed</b> <b>char</b>) <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>int</b>);
+<a name='L195'> 195                 <b>break</b>;
+<a name='L196'> 196               <b>case</b> SHORT:
+<a name='L197'> 197                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = (<b>short</b>) <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>int</b>);
+<a name='L198'> 198                 <b>break</b>;
+<a name='L199'> 199               <b>case</b> INT:
+<a name='L200'> 200                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>int</b>);
+<a name='L201'> 201                 <b>break</b>;
+<a name='L202'> 202               <b>case</b> INTMAX:
+<a name='L203'> 203                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <a href='../S/87.html#L39' title='Defined at 39 in src/lib/stdint.h.'>intmax_t</a>);
+<a name='L204'> 204                 <b>break</b>;
+<a name='L205'> 205               <b>case</b> LONG:
+<a name='L206'> 206                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>long</b>);
+<a name='L207'> 207                 <b>break</b>;
+<a name='L208'> 208               <b>case</b> LONGLONG:
+<a name='L209'> 209                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>long</b> <b>long</b>);
+<a name='L210'> 210                 <b>break</b>;
+<a name='L211'> 211               <b>case</b> PTRDIFFT:
+<a name='L212'> 212                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <a href='../S/92.html#L9' title='Defined at 9 in src/lib/stddef.h.'>ptrdiff_t</a>);
+<a name='L213'> 213                 <b>break</b>;
+<a name='L214'> 214               <b>case</b> SIZET:
+<a name='L215'> 215                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L216'> 216                 <b>if</b> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &gt; <a href='../S/87.html#L49' title='Defined at 49 in src/lib/stdint.h.'>SIZE_MAX</a> / 2)
+<a name='L217'> 217                   <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> - <a href='../S/87.html#L49' title='Defined at 49 in src/lib/stdint.h.'>SIZE_MAX</a> - 1;
+<a name='L218'> 218                 <b>break</b>;
+<a name='L219'> 219               <b>default</b>:
+<a name='L220'> 220                 <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a> ();
+<a name='L221'> 221               <font color='red'>}</font>
+<a name='L222'> 222 
+<a name='L223'> 223             <a href='../S/115.html#L470' title='Defined at 470 in src/lib/stdio.c.'>format_integer</a> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &lt; 0 ? -<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> : <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>,
+<a name='L224'> 224                             <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>, <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &lt; 0, &amp;base_d, &amp;c, output, aux);
+<a name='L225'> 225           <font color='red'>}</font>
+<a name='L226'> 226           <b>break</b>;
+<a name='L227'> 227           
+<a name='L228'> 228         <b>case</b> 'o':
+<a name='L229'> 229         <b>case</b> 'u':
+<a name='L230'> 230         <b>case</b> 'x':
+<a name='L231'> 231         <b>case</b> 'X':
+<a name='L232'> 232           <font color='red'>{</font>
+<a name='L233'> 233             <i><font color='green'>/* Unsigned integer conversions. */</font></i>
+<a name='L234'> 234             <a href='../S/87.html#L43' title='Defined at 43 in src/lib/stdint.h.'>uintmax_t</a> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L235'> 235             <b>const</b> <b>struct</b> <a href='../S/115.html#L130' title='Defined at 130 in src/lib/stdio.c.'>integer_base</a> *b;
+<a name='L236'> 236 
+<a name='L237'> 237             <b>switch</b> (c.type) 
+<a name='L238'> 238               <font color='red'>{</font>
+<a name='L239'> 239               <b>case</b> CHAR: 
+<a name='L240'> 240                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = (<b>unsigned</b> <b>char</b>) <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>unsigned</b>);
+<a name='L241'> 241                 <b>break</b>;
+<a name='L242'> 242               <b>case</b> SHORT:
+<a name='L243'> 243                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = (<b>unsigned</b> <b>short</b>) <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>unsigned</b>);
+<a name='L244'> 244                 <b>break</b>;
+<a name='L245'> 245               <b>case</b> INT:
+<a name='L246'> 246                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>unsigned</b>);
+<a name='L247'> 247                 <b>break</b>;
+<a name='L248'> 248               <b>case</b> INTMAX:
+<a name='L249'> 249                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <a href='../S/87.html#L43' title='Defined at 43 in src/lib/stdint.h.'>uintmax_t</a>);
+<a name='L250'> 250                 <b>break</b>;
+<a name='L251'> 251               <b>case</b> LONG:
+<a name='L252'> 252                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>unsigned</b> <b>long</b>);
+<a name='L253'> 253                 <b>break</b>;
+<a name='L254'> 254               <b>case</b> LONGLONG:
+<a name='L255'> 255                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>unsigned</b> <b>long</b> <b>long</b>);
+<a name='L256'> 256                 <b>break</b>;
+<a name='L257'> 257               <b>case</b> PTRDIFFT:
+<a name='L258'> 258                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <a href='../S/92.html#L9' title='Defined at 9 in src/lib/stddef.h.'>ptrdiff_t</a>);
+<a name='L259'> 259 <font color='darkred'>#if</font> <a href='../S/87.html#L44' title='Defined at 44 in src/lib/stdint.h.'>UINTMAX_MAX</a> != <a href='../S/87.html#L47' title='Defined at 47 in src/lib/stdint.h.'>PTRDIFF_MAX</a>
+<a name='L260'> 260                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &amp;= ((<a href='../S/87.html#L43' title='Defined at 43 in src/lib/stdint.h.'>uintmax_t</a>) <a href='../S/87.html#L47' title='Defined at 47 in src/lib/stdint.h.'>PTRDIFF_MAX</a> &lt;&lt; 1) | 1;
+<a name='L261'> 261 <font color='darkred'>#endif</font>
+<a name='L262'> 262                 <b>break</b>;
+<a name='L263'> 263               <b>case</b> SIZET:
+<a name='L264'> 264                 <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L265'> 265                 <b>break</b>;
+<a name='L266'> 266               <b>default</b>:
+<a name='L267'> 267                 <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a> ();
+<a name='L268'> 268               <font color='red'>}</font>
+<a name='L269'> 269 
+<a name='L270'> 270             <b>switch</b> (*format) 
+<a name='L271'> 271               <font color='red'>{</font>
+<a name='L272'> 272               <b>case</b> 'o': b = &amp;base_o; <b>break</b>;
+<a name='L273'> 273               <b>case</b> 'u': b = &amp;base_d; <b>break</b>;
+<a name='L274'> 274               <b>case</b> 'x': b = &amp;base_x; <b>break</b>;
+<a name='L275'> 275               <b>case</b> 'X': b = &amp;base_X; <b>break</b>;
+<a name='L276'> 276               <b>default</b>: <a href='../D/135.html' title='Multiple defined in 2 places.'>NOT_REACHED</a> ();
+<a name='L277'> 277               <font color='red'>}</font>
+<a name='L278'> 278 
+<a name='L279'> 279             <a href='../S/115.html#L470' title='Defined at 470 in src/lib/stdio.c.'>format_integer</a> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>, b, &amp;c, output, aux);
+<a name='L280'> 280           <font color='red'>}</font>
+<a name='L281'> 281           <b>break</b>;
+<a name='L282'> 282 
+<a name='L283'> 283         <b>case</b> 'c': 
+<a name='L284'> 284           <font color='red'>{</font>
+<a name='L285'> 285             <i><font color='green'>/* Treat character as single-character string. */</font></i>
+<a name='L286'> 286             <b>char</b> ch = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>int</b>);
+<a name='L287'> 287             <a href='../S/115.html#L561' title='Defined at 561 in src/lib/stdio.c.'>format_string</a> (&amp;ch, 1, &amp;c, output, aux);
+<a name='L288'> 288           <font color='red'>}</font>
+<a name='L289'> 289           <b>break</b>;
+<a name='L290'> 290 
+<a name='L291'> 291         <b>case</b> 's':
+<a name='L292'> 292           <font color='red'>{</font>
+<a name='L293'> 293             <i><font color='green'>/* String conversion. */</font></i>
+<a name='L294'> 294             <b>const</b> <b>char</b> *s = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>char</b> *);
+<a name='L295'> 295             <b>if</b> (s == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L296'> 296               s = "(null)";
+<a name='L297'> 297 
+<a name='L298'> 298             <i><font color='green'>/* Limit string length according to precision.</font></i>
+<a name='L299'> 299 <i><font color='green'>               Note: if c.precision == -1 then strnlen() will get</font></i>
+<a name='L300'> 300 <i><font color='green'>               SIZE_MAX for MAXLEN, which is just what we want. */</font></i>
+<a name='L301'> 301             <a href='../S/115.html#L561' title='Defined at 561 in src/lib/stdio.c.'>format_string</a> (s, <a href='../S/83.html#L307' title='Defined at 307 in src/lib/string.c.'>strnlen</a> (s, c.precision), &amp;c, output, aux);
+<a name='L302'> 302           <font color='red'>}</font>
+<a name='L303'> 303           <b>break</b>;
+<a name='L304'> 304           
+<a name='L305'> 305         <b>case</b> 'p':
+<a name='L306'> 306           <font color='red'>{</font>
+<a name='L307'> 307             <i><font color='green'>/* Pointer conversion.</font></i>
+<a name='L308'> 308 <i><font color='green'>               Format pointers as %#x. */</font></i>
+<a name='L309'> 309             <b>void</b> *p = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (args, <b>void</b> *);
+<a name='L310'> 310 
+<a name='L311'> 311             c.flags = POUND;
+<a name='L312'> 312             <a href='../S/115.html#L470' title='Defined at 470 in src/lib/stdio.c.'>format_integer</a> ((<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) p, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>,
+<a name='L313'> 313                             &amp;base_x, &amp;c, output, aux);
+<a name='L314'> 314           <font color='red'>}</font>
+<a name='L315'> 315           <b>break</b>;
+<a name='L316'> 316       
+<a name='L317'> 317         <b>case</b> 'f':
+<a name='L318'> 318         <b>case</b> 'e':
+<a name='L319'> 319         <b>case</b> 'E':
+<a name='L320'> 320         <b>case</b> 'g':
+<a name='L321'> 321         <b>case</b> 'G':
+<a name='L322'> 322         <b>case</b> 'n':
+<a name='L323'> 323           <i><font color='green'>/* We don't support floating-point arithmetic,</font></i>
+<a name='L324'> 324 <i><font color='green'>             and %n can be part of a security hole. */</font></i>
+<a name='L325'> 325           <a href='../S/115.html#L577' title='Defined at 577 in src/lib/stdio.c.'>__printf</a> ("&lt;&lt;no %%%c in kernel&gt;&gt;", output, aux, *format);
+<a name='L326'> 326           <b>break</b>;
+<a name='L327'> 327 
+<a name='L328'> 328         <b>default</b>:
+<a name='L329'> 329           <a href='../S/115.html#L577' title='Defined at 577 in src/lib/stdio.c.'>__printf</a> ("&lt;&lt;no %%%c conversion&gt;&gt;", output, aux, *format);
+<a name='L330'> 330           <b>break</b>;
+<a name='L331'> 331         <font color='red'>}</font>
+<a name='L332'> 332     <font color='red'>}</font>
+<a name='L333'> 333 <font color='red'>}</font>
+<a name='L334'> 334 
+<a name='L335'> 335 <i><font color='green'>/* Parses conversion option characters starting at FORMAT and</font></i>
+<a name='L336'> 336 <i><font color='green'>   initializes C appropriately.  Returns the character in FORMAT</font></i>
+<a name='L337'> 337 <i><font color='green'>   that indicates the conversion (e.g. the `d' in `%d').  Uses</font></i>
+<a name='L338'> 338 <i><font color='green'>   *ARGS for `*' field widths and precisions. */</font></i>
+<a name='L339'> 339 <b>static</b> <b>const</b> <b>char</b> *
+<a name='L340'> 340 <a href='../R/699.html' title='Multiple refered from 2 places.'>parse_conversion</a> (<b>const</b> <b>char</b> *format, <b>struct</b> printf_conversion *c,
+<a name='L341'> 341                   va_list *args) 
+<a name='L342'> 342 <font color='red'>{</font>
+<a name='L343'> 343   <i><font color='green'>/* Parse flag characters. */</font></i>
+<a name='L344'> 344   c-&gt;flags = 0;
+<a name='L345'> 345   <b>for</b> (;;) 
+<a name='L346'> 346     <font color='red'>{</font>
+<a name='L347'> 347       <b>switch</b> (*format++) 
+<a name='L348'> 348         <font color='red'>{</font>
+<a name='L349'> 349         <b>case</b> '-':
+<a name='L350'> 350           c-&gt;flags |= MINUS;
+<a name='L351'> 351           <b>break</b>;
+<a name='L352'> 352         <b>case</b> '+':
+<a name='L353'> 353           c-&gt;flags |= PLUS;
+<a name='L354'> 354           <b>break</b>;
+<a name='L355'> 355         <b>case</b> ' ':
+<a name='L356'> 356           c-&gt;flags |= SPACE;
+<a name='L357'> 357           <b>break</b>;
+<a name='L358'> 358         <b>case</b> '#':
+<a name='L359'> 359           c-&gt;flags |= POUND;
+<a name='L360'> 360           <b>break</b>;
+<a name='L361'> 361         <b>case</b> '0':
+<a name='L362'> 362           c-&gt;flags |= ZERO;
+<a name='L363'> 363           <b>break</b>;
+<a name='L364'> 364         <b>case</b> '\'':
+<a name='L365'> 365           c-&gt;flags |= GROUP;
+<a name='L366'> 366           <b>break</b>;
+<a name='L367'> 367         <b>default</b>:
+<a name='L368'> 368           format--;
+<a name='L369'> 369           <b>goto</b> not_a_flag;
+<a name='L370'> 370         <font color='red'>}</font>
+<a name='L371'> 371     <font color='red'>}</font>
+<a name='L372'> 372  not_a_flag:
+<a name='L373'> 373   <b>if</b> (c-&gt;flags &amp; MINUS)
+<a name='L374'> 374     c-&gt;flags &amp;= ~ZERO;
+<a name='L375'> 375   <b>if</b> (c-&gt;flags &amp; PLUS)
+<a name='L376'> 376     c-&gt;flags &amp;= ~SPACE;
+<a name='L377'> 377 
+<a name='L378'> 378   <i><font color='green'>/* Parse field width. */</font></i>
+<a name='L379'> 379   c-&gt;width = 0;
+<a name='L380'> 380   <b>if</b> (*format == '*')
+<a name='L381'> 381     <font color='red'>{</font>
+<a name='L382'> 382       format++;
+<a name='L383'> 383       c-&gt;width = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (*args, <b>int</b>);
+<a name='L384'> 384     <font color='red'>}</font>
+<a name='L385'> 385   <b>else</b> 
+<a name='L386'> 386     <font color='red'>{</font>
+<a name='L387'> 387       <b>for</b> (; <a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (*format); format++)
+<a name='L388'> 388         c-&gt;width = c-&gt;width * 10 + *format - '0';
+<a name='L389'> 389     <font color='red'>}</font>
+<a name='L390'> 390   <b>if</b> (c-&gt;width &lt; 0) 
+<a name='L391'> 391     <font color='red'>{</font>
+<a name='L392'> 392       c-&gt;width = -c-&gt;width;
+<a name='L393'> 393       c-&gt;flags |= MINUS;
+<a name='L394'> 394     <font color='red'>}</font>
+<a name='L395'> 395       
+<a name='L396'> 396   <i><font color='green'>/* Parse precision. */</font></i>
+<a name='L397'> 397   c-&gt;precision = -1;
+<a name='L398'> 398   <b>if</b> (*format == '.') 
+<a name='L399'> 399     <font color='red'>{</font>
+<a name='L400'> 400       format++;
+<a name='L401'> 401       <b>if</b> (*format == '*') 
+<a name='L402'> 402         <font color='red'>{</font>
+<a name='L403'> 403           format++;
+<a name='L404'> 404           c-&gt;precision = <a href='../S/80.html#L11' title='Defined at 11 in src/lib/stdarg.h.'>va_arg</a> (*args, <b>int</b>);
+<a name='L405'> 405         <font color='red'>}</font>
+<a name='L406'> 406       <b>else</b> 
+<a name='L407'> 407         <font color='red'>{</font>
+<a name='L408'> 408           c-&gt;precision = 0;
+<a name='L409'> 409           <b>for</b> (; <a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (*format); format++)
+<a name='L410'> 410             c-&gt;precision = c-&gt;precision * 10 + *format - '0';
+<a name='L411'> 411         <font color='red'>}</font>
+<a name='L412'> 412       <b>if</b> (c-&gt;precision &lt; 0) 
+<a name='L413'> 413         c-&gt;precision = -1;
+<a name='L414'> 414     <font color='red'>}</font>
+<a name='L415'> 415   <b>if</b> (c-&gt;precision &gt;= 0)
+<a name='L416'> 416     c-&gt;flags &amp;= ~ZERO;
+<a name='L417'> 417 
+<a name='L418'> 418   <i><font color='green'>/* Parse type. */</font></i>
+<a name='L419'> 419   c-&gt;type = INT;
+<a name='L420'> 420   <b>switch</b> (*format++) 
+<a name='L421'> 421     <font color='red'>{</font>
+<a name='L422'> 422     <b>case</b> 'h':
+<a name='L423'> 423       <b>if</b> (*format == 'h') 
+<a name='L424'> 424         <font color='red'>{</font>
+<a name='L425'> 425           format++;
+<a name='L426'> 426           c-&gt;type = CHAR;
+<a name='L427'> 427         <font color='red'>}</font>
+<a name='L428'> 428       <b>else</b>
+<a name='L429'> 429         c-&gt;type = SHORT;
+<a name='L430'> 430       <b>break</b>;
+<a name='L431'> 431       
+<a name='L432'> 432     <b>case</b> 'j':
+<a name='L433'> 433       c-&gt;type = INTMAX;
+<a name='L434'> 434       <b>break</b>;
+<a name='L435'> 435 
+<a name='L436'> 436     <b>case</b> 'l':
+<a name='L437'> 437       <b>if</b> (*format == 'l')
+<a name='L438'> 438         <font color='red'>{</font>
+<a name='L439'> 439           format++;
+<a name='L440'> 440           c-&gt;type = LONGLONG;
+<a name='L441'> 441         <font color='red'>}</font>
+<a name='L442'> 442       <b>else</b>
+<a name='L443'> 443         c-&gt;type = LONG;
+<a name='L444'> 444       <b>break</b>;
+<a name='L445'> 445 
+<a name='L446'> 446     <b>case</b> 't':
+<a name='L447'> 447       c-&gt;type = PTRDIFFT;
+<a name='L448'> 448       <b>break</b>;
+<a name='L449'> 449 
+<a name='L450'> 450     <b>case</b> 'z':
+<a name='L451'> 451       c-&gt;type = SIZET;
+<a name='L452'> 452       <b>break</b>;
+<a name='L453'> 453 
+<a name='L454'> 454     <b>default</b>:
+<a name='L455'> 455       format--;
+<a name='L456'> 456       <b>break</b>;
+<a name='L457'> 457     <font color='red'>}</font>
+<a name='L458'> 458 
+<a name='L459'> 459   <b>return</b> format;
+<a name='L460'> 460 <font color='red'>}</font>
+<a name='L461'> 461 
+<a name='L462'> 462 <i><font color='green'>/* Performs an integer conversion, writing output to OUTPUT with</font></i>
+<a name='L463'> 463 <i><font color='green'>   auxiliary data AUX.  The integer converted has absolute value</font></i>
+<a name='L464'> 464 <i><font color='green'>   VALUE.  If IS_SIGNED is true, does a signed conversion with</font></i>
+<a name='L465'> 465 <i><font color='green'>   NEGATIVE indicating a negative value; otherwise does an</font></i>
+<a name='L466'> 466 <i><font color='green'>   unsigned conversion and ignores NEGATIVE.  The output is done</font></i>
+<a name='L467'> 467 <i><font color='green'>   according to the provided base B.  Details of the conversion</font></i>
+<a name='L468'> 468 <i><font color='green'>   are in C. */</font></i>
+<a name='L469'> 469 <b>static</b> <b>void</b>
+<a name='L470'> 470 <a href='../R/452.html' title='Multiple refered from 4 places.'>format_integer</a> (<a href='../S/87.html#L43' title='Defined at 43 in src/lib/stdint.h.'>uintmax_t</a> value, bool is_signed, bool negative, 
+<a name='L471'> 471                 <b>const</b> <b>struct</b> integer_base *b,
+<a name='L472'> 472                 <b>const</b> <b>struct</b> printf_conversion *c,
+<a name='L473'> 473                 <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux)
+<a name='L474'> 474 <font color='red'>{</font>
+<a name='L475'> 475   <b>char</b> buf[64], *cp;            <i><font color='green'>/* Buffer and current position. */</font></i>
+<a name='L476'> 476   <b>int</b> x;                        <i><font color='green'>/* `x' character to use or 0 if none. */</font></i>
+<a name='L477'> 477   <b>int</b> sign;                     <i><font color='green'>/* Sign character or 0 if none. */</font></i>
+<a name='L478'> 478   <b>int</b> precision;                <i><font color='green'>/* Rendered precision. */</font></i>
+<a name='L479'> 479   <b>int</b> pad_cnt;                  <i><font color='green'>/* # of pad characters to fill field width. */</font></i>
+<a name='L480'> 480   <b>int</b> digit_cnt;                <i><font color='green'>/* # of digits output so far. */</font></i>
+<a name='L481'> 481 
+<a name='L482'> 482   <i><font color='green'>/* Determine sign character, if any.</font></i>
+<a name='L483'> 483 <i><font color='green'>     An unsigned conversion will never have a sign character,</font></i>
+<a name='L484'> 484 <i><font color='green'>     even if one of the flags requests one. */</font></i>
+<a name='L485'> 485   sign = 0;
+<a name='L486'> 486   <b>if</b> (is_signed) 
+<a name='L487'> 487     <font color='red'>{</font>
+<a name='L488'> 488       <b>if</b> (c-&gt;flags &amp; PLUS)
+<a name='L489'> 489         sign = negative ? '-' : '+';
+<a name='L490'> 490       <b>else</b> <b>if</b> (c-&gt;flags &amp; SPACE)
+<a name='L491'> 491         sign = negative ? '-' : ' ';
+<a name='L492'> 492       <b>else</b> <b>if</b> (negative)
+<a name='L493'> 493         sign = '-';
+<a name='L494'> 494     <font color='red'>}</font>
+<a name='L495'> 495 
+<a name='L496'> 496   <i><font color='green'>/* Determine whether to include `0x' or `0X'.</font></i>
+<a name='L497'> 497 <i><font color='green'>     It will only be included with a hexadecimal conversion of a</font></i>
+<a name='L498'> 498 <i><font color='green'>     nonzero value with the # flag. */</font></i>
+<a name='L499'> 499   x = (c-&gt;flags &amp; POUND) &amp;&amp; <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> ? b-&gt;x : 0;
+<a name='L500'> 500 
+<a name='L501'> 501   <i><font color='green'>/* Accumulate digits into buffer.</font></i>
+<a name='L502'> 502 <i><font color='green'>     This algorithm produces digits in reverse order, so later we</font></i>
+<a name='L503'> 503 <i><font color='green'>     will output the buffer's content in reverse. */</font></i>
+<a name='L504'> 504   cp = buf;
+<a name='L505'> 505   digit_cnt = 0;
+<a name='L506'> 506   <b>while</b> (<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &gt; 0) 
+<a name='L507'> 507     <font color='red'>{</font>
+<a name='L508'> 508       <b>if</b> ((c-&gt;flags &amp; GROUP) &amp;&amp; digit_cnt &gt; 0 &amp;&amp; digit_cnt % b-&gt;group == 0)
+<a name='L509'> 509         *cp++ = ',';
+<a name='L510'> 510       *cp++ = b-&gt;digits[<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> % b-&gt;base];
+<a name='L511'> 511       <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> /= b-&gt;base;
+<a name='L512'> 512       digit_cnt++;
+<a name='L513'> 513     <font color='red'>}</font>
+<a name='L514'> 514 
+<a name='L515'> 515   <i><font color='green'>/* Append enough zeros to match precision.</font></i>
+<a name='L516'> 516 <i><font color='green'>     If requested precision is 0, then a value of zero is</font></i>
+<a name='L517'> 517 <i><font color='green'>     rendered as a null string, otherwise as "0".</font></i>
+<a name='L518'> 518 <i><font color='green'>     If the # flag is used with base 8, the result must always</font></i>
+<a name='L519'> 519 <i><font color='green'>     begin with a zero. */</font></i>
+<a name='L520'> 520   precision = c-&gt;precision &lt; 0 ? 1 : c-&gt;precision;
+<a name='L521'> 521   <b>while</b> (cp - buf &lt; precision &amp;&amp; cp &lt; buf + <b>sizeof</b> buf - 1)
+<a name='L522'> 522     *cp++ = '0';
+<a name='L523'> 523   <b>if</b> ((c-&gt;flags &amp; POUND) &amp;&amp; b-&gt;base == 8 &amp;&amp; (cp == buf || cp[-1] != '0'))
+<a name='L524'> 524     *cp++ = '0';
+<a name='L525'> 525 
+<a name='L526'> 526   <i><font color='green'>/* Calculate number of pad characters to fill field width. */</font></i>
+<a name='L527'> 527   pad_cnt = c-&gt;width - (cp - buf) - (x ? 2 : 0) - (sign != 0);
+<a name='L528'> 528   <b>if</b> (pad_cnt &lt; 0)
+<a name='L529'> 529     pad_cnt = 0;
+<a name='L530'> 530 
+<a name='L531'> 531   <i><font color='green'>/* Do output. */</font></i>
+<a name='L532'> 532   <b>if</b> ((c-&gt;flags &amp; (MINUS | ZERO)) == 0)
+<a name='L533'> 533     <a href='../S/115.html#L551' title='Defined at 551 in src/lib/stdio.c.'>output_dup</a> (' ', pad_cnt, output, aux);
+<a name='L534'> 534   <b>if</b> (sign)
+<a name='L535'> 535     output (sign, aux);
+<a name='L536'> 536   <b>if</b> (x) 
+<a name='L537'> 537     <font color='red'>{</font>
+<a name='L538'> 538       output ('0', aux);
+<a name='L539'> 539       output (x, aux); 
+<a name='L540'> 540     <font color='red'>}</font>
+<a name='L541'> 541   <b>if</b> (c-&gt;flags &amp; ZERO)
+<a name='L542'> 542     <a href='../S/115.html#L551' title='Defined at 551 in src/lib/stdio.c.'>output_dup</a> ('0', pad_cnt, output, aux);
+<a name='L543'> 543   <b>while</b> (cp &gt; buf)
+<a name='L544'> 544     output (*--cp, aux);
+<a name='L545'> 545   <b>if</b> (c-&gt;flags &amp; MINUS)
+<a name='L546'> 546     <a href='../S/115.html#L551' title='Defined at 551 in src/lib/stdio.c.'>output_dup</a> (' ', pad_cnt, output, aux);
+<a name='L547'> 547 <font color='red'>}</font>
+<a name='L548'> 548 
+<a name='L549'> 549 <i><font color='green'>/* Writes CH to OUTPUT with auxiliary data AUX, CNT times. */</font></i>
+<a name='L550'> 550 <b>static</b> <b>void</b>
+<a name='L551'> 551 <a href='../R/676.html' title='Multiple refered from 6 places.'>output_dup</a> (<b>char</b> ch, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux) 
+<a name='L552'> 552 <font color='red'>{</font>
+<a name='L553'> 553   <b>while</b> (cnt-- &gt; 0)
+<a name='L554'> 554     output (ch, aux);
+<a name='L555'> 555 <font color='red'>}</font>
+<a name='L556'> 556 
+<a name='L557'> 557 <i><font color='green'>/* Formats the LENGTH characters starting at STRING according to</font></i>
+<a name='L558'> 558 <i><font color='green'>   the conversion specified in C.  Writes output to OUTPUT with</font></i>
+<a name='L559'> 559 <i><font color='green'>   auxiliary data AUX. */</font></i>
+<a name='L560'> 560 <b>static</b> <b>void</b>
+<a name='L561'> 561 <a href='../R/453.html' title='Multiple refered from 3 places.'>format_string</a> (<b>const</b> <b>char</b> *string, <b>int</b> length,
+<a name='L562'> 562                <b>struct</b> printf_conversion *c,
+<a name='L563'> 563                <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux) 
+<a name='L564'> 564 <font color='red'>{</font>
+<a name='L565'> 565   <b>int</b> i;
+<a name='L566'> 566   <b>if</b> (c-&gt;width &gt; length &amp;&amp; (c-&gt;flags &amp; MINUS) == 0)
+<a name='L567'> 567     <a href='../S/115.html#L551' title='Defined at 551 in src/lib/stdio.c.'>output_dup</a> (' ', c-&gt;width - length, output, aux);
+<a name='L568'> 568   <b>for</b> (i = 0; i &lt; length; i++)
+<a name='L569'> 569     output (string[i], aux);
+<a name='L570'> 570   <b>if</b> (c-&gt;width &gt; length &amp;&amp; (c-&gt;flags &amp; MINUS) != 0)
+<a name='L571'> 571     <a href='../S/115.html#L551' title='Defined at 551 in src/lib/stdio.c.'>output_dup</a> (' ', c-&gt;width - length, output, aux);
+<a name='L572'> 572 <font color='red'>}</font>
+<a name='L573'> 573 
+<a name='L574'> 574 <i><font color='green'>/* Wrapper for __vprintf() that converts varargs into a</font></i>
+<a name='L575'> 575 <i><font color='green'>   va_list. */</font></i>
+<a name='L576'> 576 <b>void</b>
+<a name='L577'> 577 <a href='../R/275.html' title='Multiple refered from 2 places.'>__printf</a> (<b>const</b> <b>char</b> *format,
+<a name='L578'> 578           <b>void</b> (*output) (<b>char</b>, <b>void</b> *), <b>void</b> *aux, ...) 
+<a name='L579'> 579 <font color='red'>{</font>
+<a name='L580'> 580   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L581'> 581 
+<a name='L582'> 582   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, aux);
+<a name='L583'> 583   <a href='../S/115.html#L157' title='Defined at 157 in src/lib/stdio.c.'>__vprintf</a> (format, args, output, aux);
+<a name='L584'> 584   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L585'> 585 <font color='red'>}</font>
+<a name='L586'> 586 
+<a name='L587'> 587 <i><font color='green'>/* Dumps the SIZE bytes in BUF to the console as hex bytes</font></i>
+<a name='L588'> 588 <i><font color='green'>   arranged 16 per line.  Numeric offsets are also included,</font></i>
+<a name='L589'> 589 <i><font color='green'>   starting at OFS for the first byte in BUF.  If ASCII is true</font></i>
+<a name='L590'> 590 <i><font color='green'>   then the corresponding ASCII characters are also rendered</font></i>
+<a name='L591'> 591 <i><font color='green'>   alongside. */</font></i>   
+<a name='L592'> 592 <b>void</b>
+<a name='L593'> 593 <a href='../R/495.html' title='Multiple refered from 5 places.'>hex_dump</a> (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a> ofs, <b>const</b> <b>void</b> *buf_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, bool ascii)
+<a name='L594'> 594 <font color='red'>{</font>
+<a name='L595'> 595   <b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *buf = buf_;
+<a name='L596'> 596   <b>const</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> per_line = 16; <i><font color='green'>/* Maximum bytes per line. */</font></i>
+<a name='L597'> 597 
+<a name='L598'> 598   <b>while</b> (size &gt; 0)
+<a name='L599'> 599     <font color='red'>{</font>
+<a name='L600'> 600       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>, end, n;
+<a name='L601'> 601       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L602'> 602       
+<a name='L603'> 603       <i><font color='green'>/* Number of bytes on this line. */</font></i>
+<a name='L604'> 604       <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> = ofs % per_line;
+<a name='L605'> 605       end = per_line;
+<a name='L606'> 606       <b>if</b> (end - <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> &gt; size)
+<a name='L607'> 607         end = <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + size;
+<a name='L608'> 608       n = end - <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>;
+<a name='L609'> 609 
+<a name='L610'> 610       <i><font color='green'>/* Print line. */</font></i>
+<a name='L611'> 611       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%08jx  ", (<a href='../S/87.html#L43' title='Defined at 43 in src/lib/stdint.h.'>uintmax_t</a>) <a href='../S/79.html#L14' title='Defined at 14 in src/lib/round.h.'>ROUND_DOWN</a> (ofs, per_line));
+<a name='L612'> 612       <b>for</b> (i = 0; i &lt; <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>; i++)
+<a name='L613'> 613         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("   ");
+<a name='L614'> 614       <b>for</b> (; i &lt; end; i++) 
+<a name='L615'> 615         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%02hhx%c",
+<a name='L616'> 616                 buf[i - <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>], i == per_line / 2 - 1? '-' : ' ');
+<a name='L617'> 617       <b>if</b> (ascii) 
+<a name='L618'> 618         <font color='red'>{</font>
+<a name='L619'> 619           <b>for</b> (; i &lt; per_line; i++)
+<a name='L620'> 620             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("   ");
+<a name='L621'> 621           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("|");
+<a name='L622'> 622           <b>for</b> (i = 0; i &lt; <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>; i++)
+<a name='L623'> 623             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" ");
+<a name='L624'> 624           <b>for</b> (; i &lt; end; i++)
+<a name='L625'> 625             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%c",
+<a name='L626'> 626                     <a href='../S/93.html#L18' title='Defined at 18 in src/lib/ctype.h.'>isprint</a> (buf[i - <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>]) ? buf[i - <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>] : '.');
+<a name='L627'> 627           <b>for</b> (; i &lt; per_line; i++)
+<a name='L628'> 628             <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" ");
+<a name='L629'> 629           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("|");
+<a name='L630'> 630         <font color='red'>}</font>
+<a name='L631'> 631       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\n");
+<a name='L632'> 632 
+<a name='L633'> 633       ofs += n;
+<a name='L634'> 634       buf += n;
+<a name='L635'> 635       size -= n;
+<a name='L636'> 636     <font color='red'>}</font>
+<a name='L637'> 637 <font color='red'>}</font>
+<a name='L638'> 638 
+<a name='L639'> 639 <i><font color='green'>/* Prints SIZE, which represents a number of bytes, in a</font></i>
+<a name='L640'> 640 <i><font color='green'>   human-readable format, e.g. "256 kB". */</font></i>
+<a name='L641'> 641 <b>void</b>
+<a name='L642'> 642 <a href='../R/724.html' title='Multiple refered from 2 places.'>print_human_readable_size</a> (<a href='../S/87.html#L29' title='Defined at 29 in src/lib/stdint.h.'>uint64_t</a> size) 
+<a name='L643'> 643 <font color='red'>{</font>
+<a name='L644'> 644   <b>if</b> (size == 1)
+<a name='L645'> 645     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("1 byte");
+<a name='L646'> 646   <b>else</b> 
+<a name='L647'> 647     <font color='red'>{</font>
+<a name='L648'> 648       <b>static</b> <b>const</b> <b>char</b> *factors[] = <font color='red'>{</font>"bytes", "kB", "MB", "GB", "TB", <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a><font color='red'>}</font>;
+<a name='L649'> 649       <b>const</b> <b>char</b> **fp;
+<a name='L650'> 650 
+<a name='L651'> 651       <b>for</b> (fp = factors; size &gt;= 1024 &amp;&amp; fp[1] != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>; fp++)
+<a name='L652'> 652         size /= 1024;
+<a name='L653'> 653       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%"<a href='../S/81.html#L30' title='Defined at 30 in src/lib/inttypes.h.'>PRIu64</a>" %s", size, *fp);
+<a name='L654'> 654     <font color='red'>}</font>
+<a name='L655'> 655 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L26'>[^]</a><a href='#L642'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

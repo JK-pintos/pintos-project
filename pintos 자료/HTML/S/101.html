@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>src/lib/stdlib.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/stdlib.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/85.html' title='Multiple included from 19 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/101.html#L2' title='Defined at 2 in src/lib/stdlib.h.'>__LIB_STDLIB_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/101.html#L1' title='Refered from 1 in src/lib/stdlib.h.'>__LIB_STDLIB_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* Standard functions. */</font></i>
+<a name='L7'>   7 <b>int</b> <a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (<b>const</b> <b>char</b> *);
+<a name='L8'>   8 <b>void</b> <a href='../S/103.html#L58' title='Defined at 58 in src/lib/stdlib.c.'>qsort</a> (<b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L9'>   9             <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *));
+<a name='L10'>  10 <b>void</b> *<a href='../S/103.html#L166' title='Defined at 166 in src/lib/stdlib.c.'>bsearch</a> (<b>const</b> <b>void</b> *key, <b>const</b> <b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt,
+<a name='L11'>  11                <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *));
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* Nonstandard functions. */</font></i>
+<a name='L14'>  14 <b>void</b> <a href='../S/103.html#L132' title='Defined at 132 in src/lib/stdlib.c.'>sort</a> (<b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L15'>  15            <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <b>void</b> *aux),
+<a name='L16'>  16            <b>void</b> *aux);
+<a name='L17'>  17 <b>void</b> *<a href='../S/103.html#L185' title='Defined at 185 in src/lib/stdlib.c.'>binary_search</a> (<b>const</b> <b>void</b> *key, <b>const</b> <b>void</b> *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt,
+<a name='L18'>  18                      <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L19'>  19                      <b>int</b> (*compare) (<b>const</b> <b>void</b> *, <b>const</b> <b>void</b> *, <b>void</b> *aux),
+<a name='L20'>  20                      <b>void</b> *aux);
+<a name='L21'>  21 
+<a name='L22'>  22 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/stdlib.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

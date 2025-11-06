@@ -1,0 +1,256 @@
+<html>
+<head>
+<title>src/lib/ustar.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/ustar.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L37'>[^]</a><a href='#L182'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L37' title='Defined at 37.'>calculate_chksum</a>
+<li><a href='#L66' title='Defined at 66.'>strip_antisocial_prefixes</a>
+<li><a href='#L83' title='Defined at 83.'>ustar_make_header</a>
+<li><a href='#L130' title='Defined at 130.'>parse_octal_field</a>
+<li><a href='#L167' title='Defined at 167.'>is_all_zeros</a>
+<li><a href='#L182' title='Defined at 182.'>ustar_parse_header</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='88.html'>ustar.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='90.html'>limits.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='77.html'>packed.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Header for ustar-format tar archive.  See the documentation of</font></i>
+<a name='L8'>   8 <i><font color='green'>   the "pax" utility in [SUSv3] for the the "ustar" format</font></i>
+<a name='L9'>   9 <i><font color='green'>   specification. */</font></i>
+<a name='L10'>  10 <b>struct</b> <a href='../R/944.html' title='Multiple refered from 5 places.'>ustar_header</a>
+<a name='L11'>  11   <font color='red'>{</font>
+<a name='L12'>  12     <b>char</b> name[100];             <i><font color='green'>/* File name.  Null-terminated if room. */</font></i>
+<a name='L13'>  13     <b>char</b> mode[8];               <i><font color='green'>/* Permissions as octal string. */</font></i>
+<a name='L14'>  14     <b>char</b> uid[8];                <i><font color='green'>/* User ID as octal string. */</font></i>
+<a name='L15'>  15     <b>char</b> gid[8];                <i><font color='green'>/* Group ID as octal string. */</font></i>
+<a name='L16'>  16     <b>char</b> size[12];              <i><font color='green'>/* File size in bytes as octal string. */</font></i>
+<a name='L17'>  17     <b>char</b> mtime[12];             <i><font color='green'>/* Modification time in seconds</font></i>
+<a name='L18'>  18 <i><font color='green'>                                   from Jan 1, 1970, as octal string. */</font></i>
+<a name='L19'>  19     <b>char</b> chksum[8];             <i><font color='green'>/* Sum of octets in header as octal string. */</font></i>
+<a name='L20'>  20     <b>char</b> typeflag;              <i><font color='green'>/* An enum ustar_type value. */</font></i>
+<a name='L21'>  21     <b>char</b> linkname[100];         <i><font color='green'>/* Name of link target.</font></i>
+<a name='L22'>  22 <i><font color='green'>                                   Null-terminated if room. */</font></i>
+<a name='L23'>  23     <b>char</b> magic[6];              <i><font color='green'>/* "ustar\0" */</font></i>
+<a name='L24'>  24     <b>char</b> version[2];            <i><font color='green'>/* "00" */</font></i>
+<a name='L25'>  25     <b>char</b> uname[32];             <i><font color='green'>/* User name, always null-terminated. */</font></i>
+<a name='L26'>  26     <b>char</b> gname[32];             <i><font color='green'>/* Group name, always null-terminated. */</font></i>
+<a name='L27'>  27     <b>char</b> devmajor[8];           <i><font color='green'>/* Device major number as octal string. */</font></i>
+<a name='L28'>  28     <b>char</b> devminor[8];           <i><font color='green'>/* Device minor number as octal string. */</font></i>
+<a name='L29'>  29     <b>char</b> prefix[155];           <i><font color='green'>/* Prefix to file name.</font></i>
+<a name='L30'>  30 <i><font color='green'>                                   Null-terminated if room. */</font></i>
+<a name='L31'>  31     <b>char</b> padding[12];           <i><font color='green'>/* Pad to 512 bytes. */</font></i>
+<a name='L32'>  32   <font color='red'>}</font>
+<a name='L33'>  33 <a href='../S/77.html#L8' title='Defined at 8 in src/lib/packed.h.'>PACKED</a>;
+<a name='L34'>  34 
+<a name='L35'>  35 <i><font color='green'>/* Returns the checksum for the given ustar format HEADER. */</font></i>
+<a name='L36'>  36 <b>static</b> <b>unsigned</b> <b>int</b>
+<a name='L37'>  37 <a href='../R/357.html' title='Multiple refered from 2 places.'>calculate_chksum</a> (<b>const</b> <b>struct</b> ustar_header *h)
+<a name='L38'>  38 <font color='red'>{</font>
+<a name='L39'>  39   <b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *header = (<b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *) h;
+<a name='L40'>  40   <b>unsigned</b> <b>int</b> chksum;
+<a name='L41'>  41   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L42'>  42 
+<a name='L43'>  43   chksum = 0;
+<a name='L44'>  44   <b>for</b> (i = 0; i &lt; <a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>; i++)
+<a name='L45'>  45     <font color='red'>{</font>
+<a name='L46'>  46       <i><font color='green'>/* The ustar checksum is calculated as if the chksum field</font></i>
+<a name='L47'>  47 <i><font color='green'>         were all spaces. */</font></i>
+<a name='L48'>  48       <b>const</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> chksum_start = <a href='../S/92.html#L5' title='Defined at 5 in src/lib/stddef.h.'>offsetof</a> (<b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a>, chksum);
+<a name='L49'>  49       <b>const</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> chksum_end = chksum_start + <b>sizeof</b> h-&gt;chksum;
+<a name='L50'>  50       <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> in_chksum_field = i &gt;= chksum_start &amp;&amp; i &lt; chksum_end;
+<a name='L51'>  51       chksum += in_chksum_field ? ' ' : header[i];
+<a name='L52'>  52     <font color='red'>}</font>
+<a name='L53'>  53   <b>return</b> chksum;
+<a name='L54'>  54 <font color='red'>}</font>
+<a name='L55'>  55 
+<a name='L56'>  56 <i><font color='green'>/* Drop possibly dangerous prefixes from FILE_NAME and return the</font></i>
+<a name='L57'>  57 <i><font color='green'>   stripped name.  An archive with file names that start with "/"</font></i>
+<a name='L58'>  58 <i><font color='green'>   or "../" could cause a naive tar extractor to write to</font></i>
+<a name='L59'>  59 <i><font color='green'>   arbitrary parts of the file system, not just the destination</font></i>
+<a name='L60'>  60 <i><font color='green'>   directory.  We don't want to create such archives or be such a</font></i>
+<a name='L61'>  61 <i><font color='green'>   naive extractor.</font></i>
+<a name='L62'>  62 <i><font color='green'></font></i>
+<a name='L63'>  63 <i><font color='green'>   The return value can be a suffix of FILE_NAME or a string</font></i>
+<a name='L64'>  64 <i><font color='green'>   literal. */</font></i>
+<a name='L65'>  65 <b>static</b> <b>const</b> <b>char</b> *
+<a name='L66'>  66 <a href='../R/832.html' title='Multiple refered from 2 places.'>strip_antisocial_prefixes</a> (<b>const</b> <b>char</b> *file_name)
+<a name='L67'>  67 <font color='red'>{</font>
+<a name='L68'>  68   <b>while</b> (*file_name == '/'
+<a name='L69'>  69          || !<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (file_name, "./", 2)
+<a name='L70'>  70          || !<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (file_name, "../", 3))
+<a name='L71'>  71     file_name = <a href='../S/83.html#L113' title='Defined at 113 in src/lib/string.c.'>strchr</a> (file_name, '/') + 1;
+<a name='L72'>  72   <b>return</b> *file_name == '\0' || !<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (file_name, "..") ? "." : file_name;
+<a name='L73'>  73 <font color='red'>}</font>
+<a name='L74'>  74 
+<a name='L75'>  75 <i><font color='green'>/* Composes HEADER as a USTAR_HEADER_SIZE (512)-byte archive</font></i>
+<a name='L76'>  76 <i><font color='green'>   header in ustar format for a SIZE-byte file named FILE_NAME of</font></i>
+<a name='L77'>  77 <i><font color='green'>   the given TYPE.  The caller is responsible for writing the</font></i>
+<a name='L78'>  78 <i><font color='green'>   header to a file or device.</font></i>
+<a name='L79'>  79 <i><font color='green'></font></i>
+<a name='L80'>  80 <i><font color='green'>   If successful, returns true.  On failure (due to an</font></i>
+<a name='L81'>  81 <i><font color='green'>   excessively long file name), returns false. */</font></i>
+<a name='L82'>  82 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L83'>  83 <a href='../R/945.html' title='Multiple refered from 3 places.'>ustar_make_header</a> (<b>const</b> <b>char</b> *file_name, <b>enum</b> ustar_type type,
+<a name='L84'>  84                    <b>int</b> size, <b>char</b> header[<a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>])
+<a name='L85'>  85 <font color='red'>{</font>
+<a name='L86'>  86   <b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a> *h = (<b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a> *) header;
+<a name='L87'>  87 
+<a name='L88'>  88   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<b>sizeof</b> (<b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a>) == <a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>);
+<a name='L89'>  89   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (type == USTAR_REGULAR || type == USTAR_DIRECTORY);
+<a name='L90'>  90 
+<a name='L91'>  91   <i><font color='green'>/* Check file name. */</font></i>
+<a name='L92'>  92   file_name = <a href='../S/116.html#L66' title='Defined at 66 in src/lib/ustar.c.'>strip_antisocial_prefixes</a> (file_name);
+<a name='L93'>  93   <b>if</b> (<a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (file_name) &gt; 99)
+<a name='L94'>  94     <font color='red'>{</font>
+<a name='L95'>  95       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: file name too long\n", file_name);
+<a name='L96'>  96       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L97'>  97     <font color='red'>}</font>
+<a name='L98'>  98 
+<a name='L99'>  99   <i><font color='green'>/* Fill in header except for final checksum. */</font></i>
+<a name='L100'> 100   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (h, 0, <b>sizeof</b> *h);
+<a name='L101'> 101   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (h-&gt;name, file_name, <b>sizeof</b> h-&gt;name);
+<a name='L102'> 102   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (h-&gt;mode, <b>sizeof</b> h-&gt;mode, "%07o",
+<a name='L103'> 103             type == USTAR_REGULAR ? 0644 : 0755);
+<a name='L104'> 104   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (h-&gt;uid, "0000000", <b>sizeof</b> h-&gt;uid);
+<a name='L105'> 105   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (h-&gt;gid, "0000000", <b>sizeof</b> h-&gt;gid);
+<a name='L106'> 106   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (h-&gt;size, <b>sizeof</b> h-&gt;size, "%011o", size);
+<a name='L107'> 107   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (h-&gt;mtime, <b>sizeof</b> h-&gt;size, "%011o", 1136102400);
+<a name='L108'> 108   h-&gt;typeflag = type;
+<a name='L109'> 109   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (h-&gt;magic, "ustar", <b>sizeof</b> h-&gt;magic);
+<a name='L110'> 110   h-&gt;version[0] = h-&gt;version[1] = '0';
+<a name='L111'> 111   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (h-&gt;gname, "root", <b>sizeof</b> h-&gt;gname);
+<a name='L112'> 112   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (h-&gt;uname, "root", <b>sizeof</b> h-&gt;uname);
+<a name='L113'> 113 
+<a name='L114'> 114   <i><font color='green'>/* Compute and fill in final checksum. */</font></i>
+<a name='L115'> 115   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (h-&gt;chksum, <b>sizeof</b> h-&gt;chksum, "%07o", <a href='../S/116.html#L37' title='Defined at 37 in src/lib/ustar.c.'>calculate_chksum</a> (h));
+<a name='L116'> 116 
+<a name='L117'> 117   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L118'> 118 <font color='red'>}</font>
+<a name='L119'> 119 
+<a name='L120'> 120 <i><font color='green'>/* Parses a SIZE-byte octal field in S in the format used by</font></i>
+<a name='L121'> 121 <i><font color='green'>   ustar format.  If successful, stores the field's value in</font></i>
+<a name='L122'> 122 <i><font color='green'>   *VALUE and returns true; on failure, returns false.</font></i>
+<a name='L123'> 123 <i><font color='green'></font></i>
+<a name='L124'> 124 <i><font color='green'>   ustar octal fields consist of a sequence of octal digits</font></i>
+<a name='L125'> 125 <i><font color='green'>   terminated by a space or a null byte.  The ustar specification</font></i>
+<a name='L126'> 126 <i><font color='green'>   seems ambiguous as to whether these fields must be padded on</font></i>
+<a name='L127'> 127 <i><font color='green'>   the left with '0's, so we accept any field that fits in the</font></i>
+<a name='L128'> 128 <i><font color='green'>   available space, regardless of whether it fills the space. */</font></i>
+<a name='L129'> 129 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L130'> 130 <a href='../R/700.html' title='Multiple refered from 2 places.'>parse_octal_field</a> (<b>const</b> <b>char</b> *s, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, <b>unsigned</b> <b>long</b> <b>int</b> *value)
+<a name='L131'> 131 <font color='red'>{</font>
+<a name='L132'> 132   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs;
+<a name='L133'> 133 
+<a name='L134'> 134   *<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = 0;
+<a name='L135'> 135   <b>for</b> (ofs = 0; ofs &lt; size; ofs++)
+<a name='L136'> 136     <font color='red'>{</font>
+<a name='L137'> 137       <b>char</b> c = s[ofs];
+<a name='L138'> 138       <b>if</b> (c &gt;= '0' &amp;&amp; c &lt;= '7')
+<a name='L139'> 139         <font color='red'>{</font>
+<a name='L140'> 140           <b>if</b> (*<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &gt; <a href='../S/90.html#L28' title='Defined at 28 in src/lib/limits.h.'>ULONG_MAX</a> / 8)
+<a name='L141'> 141             <font color='red'>{</font>
+<a name='L142'> 142               <i><font color='green'>/* Overflow. */</font></i>
+<a name='L143'> 143               <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L144'> 144             <font color='red'>}</font>
+<a name='L145'> 145           *<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = c - '0' + *<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> * 8;
+<a name='L146'> 146         <font color='red'>}</font>
+<a name='L147'> 147       <b>else</b> <b>if</b> (c == ' ' || c == '\0')
+<a name='L148'> 148         <font color='red'>{</font>
+<a name='L149'> 149           <i><font color='green'>/* End of field, but disallow completely empty</font></i>
+<a name='L150'> 150 <i><font color='green'>             fields. */</font></i>
+<a name='L151'> 151           <b>return</b> ofs &gt; 0;
+<a name='L152'> 152         <font color='red'>}</font>
+<a name='L153'> 153       <b>else</b>
+<a name='L154'> 154         <font color='red'>{</font>
+<a name='L155'> 155           <i><font color='green'>/* Bad character. */</font></i>
+<a name='L156'> 156           <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L157'> 157         <font color='red'>}</font>
+<a name='L158'> 158     <font color='red'>}</font>
+<a name='L159'> 159 
+<a name='L160'> 160   <i><font color='green'>/* Field did not end in space or null byte. */</font></i>
+<a name='L161'> 161   <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L162'> 162 <font color='red'>}</font>
+<a name='L163'> 163 
+<a name='L164'> 164 <i><font color='green'>/* Returns true if the CNT bytes starting at BLOCK are all zero,</font></i>
+<a name='L165'> 165 <i><font color='green'>   false otherwise. */</font></i>
+<a name='L166'> 166 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L167'> 167 <a href='../S/116.html#L191' title='Refered from 191 in src/lib/ustar.c.'>is_all_zeros</a> (<b>const</b> <b>char</b> *block, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt)
+<a name='L168'> 168 <font color='red'>{</font>
+<a name='L169'> 169   <b>while</b> (cnt-- &gt; 0)
+<a name='L170'> 170     <b>if</b> (*<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>++ != 0)
+<a name='L171'> 171       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L172'> 172   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L173'> 173 <font color='red'>}</font>
+<a name='L174'> 174 
+<a name='L175'> 175 <i><font color='green'>/* Parses HEADER as a ustar-format archive header for a regular</font></i>
+<a name='L176'> 176 <i><font color='green'>   file or directory.  If successful, stores the archived file's</font></i>
+<a name='L177'> 177 <i><font color='green'>   name in *FILE_NAME (as a pointer into HEADER or a string</font></i>
+<a name='L178'> 178 <i><font color='green'>   literal), its type in *TYPE, and its size in bytes in *SIZE,</font></i>
+<a name='L179'> 179 <i><font color='green'>   and returns a null pointer.  On failure, returns a</font></i>
+<a name='L180'> 180 <i><font color='green'>   human-readable error message. */</font></i>
+<a name='L181'> 181 <b>const</b> <b>char</b> *
+<a name='L182'> 182 <a href='../R/946.html' title='Multiple refered from 2 places.'>ustar_parse_header</a> (<b>const</b> <b>char</b> header[<a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>],
+<a name='L183'> 183                     <b>const</b> <b>char</b> **file_name, <b>enum</b> ustar_type *type, <b>int</b> *size)
+<a name='L184'> 184 <font color='red'>{</font>
+<a name='L185'> 185   <b>const</b> <b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a> *h = (<b>const</b> <b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a> *) header;
+<a name='L186'> 186   <b>unsigned</b> <b>long</b> <b>int</b> chksum, size_ul;
+<a name='L187'> 187 
+<a name='L188'> 188   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<b>sizeof</b> (<b>struct</b> <a href='../S/116.html#L10' title='Defined at 10 in src/lib/ustar.c.'>ustar_header</a>) == <a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>);
+<a name='L189'> 189 
+<a name='L190'> 190   <i><font color='green'>/* Detect end of archive. */</font></i>
+<a name='L191'> 191   <b>if</b> (<a href='../S/116.html#L167' title='Defined at 167 in src/lib/ustar.c.'>is_all_zeros</a> (header, <a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>))
+<a name='L192'> 192     <font color='red'>{</font>
+<a name='L193'> 193       *file_name = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L194'> 194       *type = USTAR_EOF;
+<a name='L195'> 195       *size = 0;
+<a name='L196'> 196       <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L197'> 197     <font color='red'>}</font>
+<a name='L198'> 198 
+<a name='L199'> 199   <i><font color='green'>/* Validate ustar header. */</font></i>
+<a name='L200'> 200   <b>if</b> (<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (h-&gt;magic, "ustar", 6))
+<a name='L201'> 201     <b>return</b> "not a ustar archive";
+<a name='L202'> 202   <b>else</b> <b>if</b> (h-&gt;version[0] != '0' || h-&gt;version[1] != '0')
+<a name='L203'> 203     <b>return</b> "invalid ustar version";
+<a name='L204'> 204   <b>else</b> <b>if</b> (!<a href='../S/116.html#L130' title='Defined at 130 in src/lib/ustar.c.'>parse_octal_field</a> (h-&gt;chksum, <b>sizeof</b> h-&gt;chksum, &amp;chksum))
+<a name='L205'> 205     <b>return</b> "corrupt chksum field";
+<a name='L206'> 206   <b>else</b> <b>if</b> (chksum != <a href='../S/116.html#L37' title='Defined at 37 in src/lib/ustar.c.'>calculate_chksum</a> (h))
+<a name='L207'> 207     <b>return</b> "checksum mismatch";
+<a name='L208'> 208   <b>else</b> <b>if</b> (h-&gt;name[<b>sizeof</b> h-&gt;name - 1] != '\0' || h-&gt;prefix[0] != '\0')
+<a name='L209'> 209     <b>return</b> "file name too long";
+<a name='L210'> 210   <b>else</b> <b>if</b> (h-&gt;typeflag != USTAR_REGULAR &amp;&amp; h-&gt;typeflag != USTAR_DIRECTORY)
+<a name='L211'> 211     <b>return</b> "unimplemented file type";
+<a name='L212'> 212   <b>if</b> (h-&gt;typeflag == USTAR_REGULAR)
+<a name='L213'> 213     <font color='red'>{</font>
+<a name='L214'> 214       <b>if</b> (!<a href='../S/116.html#L130' title='Defined at 130 in src/lib/ustar.c.'>parse_octal_field</a> (h-&gt;size, <b>sizeof</b> h-&gt;size, &amp;size_ul))
+<a name='L215'> 215         <b>return</b> "corrupt file size field";
+<a name='L216'> 216       <b>else</b> <b>if</b> (size_ul &gt; <a href='../S/90.html#L22' title='Defined at 22 in src/lib/limits.h.'>INT_MAX</a>)
+<a name='L217'> 217         <b>return</b> "file too large";
+<a name='L218'> 218     <font color='red'>}</font>
+<a name='L219'> 219   <b>else</b>
+<a name='L220'> 220     size_ul = 0;
+<a name='L221'> 221 
+<a name='L222'> 222   <i><font color='green'>/* Success. */</font></i>
+<a name='L223'> 223   *file_name = <a href='../S/116.html#L66' title='Defined at 66 in src/lib/ustar.c.'>strip_antisocial_prefixes</a> (h-&gt;name);
+<a name='L224'> 224   *type = h-&gt;typeflag;
+<a name='L225'> 225   *size = size_ul;
+<a name='L226'> 226   <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L227'> 227 <font color='red'>}</font>
+<a name='L228'> 228 
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L37'>[^]</a><a href='#L182'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

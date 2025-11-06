@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/grow-file-size.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/grow-file-size.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L28'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L13' title='Defined at 13.'>return_block_size</a>
+<li><a href='#L19' title='Defined at 19.'>check_file_size</a>
+<li><a href='#L28' title='Defined at 28.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Grows a file from 0 bytes to 2,134 bytes, 37 bytes at a time,</font></i>
+<a name='L2'>   2 <i><font color='green'>   and checks that the file's size is reported correctly at each</font></i>
+<a name='L3'>   3 <i><font color='green'>   step. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='295.html'>tests/filesys/seq-test.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>static</b> <b>char</b> buf[2134];
+<a name='L11'>  11 
+<a name='L12'>  12 <b>static</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L13'>  13 <a href='../R/776.html' title='Multiple refered from 2 places.'>return_block_size</a> (<b>void</b>) 
+<a name='L14'>  14 <font color='red'>{</font>
+<a name='L15'>  15   <b>return</b> 37;
+<a name='L16'>  16 <font color='red'>}</font>
+<a name='L17'>  17 
+<a name='L18'>  18 <b>static</b> <b>void</b>
+<a name='L19'>  19 <a href='../S/293.html#L32' title='Refered from 32 in src/tests/filesys/extended/grow-file-size.c.'>check_file_size</a> (<b>int</b> fd, <b>long</b> ofs) 
+<a name='L20'>  20 <font color='red'>{</font>
+<a name='L21'>  21   <b>long</b> size = <a href='../S/97.html#L109' title='Defined at 109 in src/lib/user/syscall.c.'>filesize</a> (fd);
+<a name='L22'>  22   <b>if</b> (size != ofs)
+<a name='L23'>  23     <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("filesize not updated properly: should be %ld, actually %ld",
+<a name='L24'>  24           ofs, size);
+<a name='L25'>  25 <font color='red'>}</font>
+<a name='L26'>  26 
+<a name='L27'>  27 <b>void</b>
+<a name='L28'>  28 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L29'>  29 <font color='red'>{</font>
+<a name='L30'>  30   <a href='../S/296.html#L7' title='Defined at 7 in src/tests/filesys/seq-test.c.'>seq_test</a> ("testfile",
+<a name='L31'>  31             buf, <b>sizeof</b> buf, 0,
+<a name='L32'>  32             <a href='../D/884.html' title='Multiple defined in 2 places.'>return_block_size</a>, <a href='../S/293.html#L19' title='Defined at 19 in src/tests/filesys/extended/grow-file-size.c.'>check_file_size</a>);
+<a name='L33'>  33 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a><a href='#L28'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

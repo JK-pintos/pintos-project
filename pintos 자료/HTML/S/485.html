@@ -1,0 +1,51 @@
+<html>
+<head>
+<title>src/tests/userprog/child-close.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/child-close.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L19'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L19' title='Defined at 19.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Child process run by multi-child-fd test.</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Attempts to close the file descriptor passed as the first</font></i>
+<a name='L4'>   4 <i><font color='green'>   command-line argument.  This is invalid, because file</font></i>
+<a name='L5'>   5 <i><font color='green'>   descriptors are not inherited in Pintos.  Two results are</font></i>
+<a name='L6'>   6 <i><font color='green'>   allowed: either the system call should return without taking</font></i>
+<a name='L7'>   7 <i><font color='green'>   any action, or the kernel should terminate the process with a</font></i>
+<a name='L8'>   8 <i><font color='green'>   -1 exit code. */</font></i>
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L14'>  14 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L15'>  15 
+<a name='L16'>  16 <b>const</b> <b>char</b> *test_name = "child-close";
+<a name='L17'>  17 
+<a name='L18'>  18 <b>int</b>
+<a name='L19'>  19 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>, <b>char</b> *argv[]) 
+<a name='L20'>  20 <font color='red'>{</font>
+<a name='L21'>  21   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("begin");
+<a name='L22'>  22   <b>if</b> (!<a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (*argv[1]))
+<a name='L23'>  23     <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("bad command-line arguments");
+<a name='L24'>  24   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (<a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[1]));
+<a name='L25'>  25   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("end");
+<a name='L26'>  26 
+<a name='L27'>  27   <b>return</b> 0;
+<a name='L28'>  28 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L19'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<html>
+<head>
+<title>src/utils/setitimer-helper.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/613.html'>utils</a>/setitimer-helper.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;errno.h&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='90.html'>limits.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;math.h&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;sys/time.h&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;unistd.h&gt;
+<a name='L9'>   9 
+<a name='L10'>  10 <b>int</b>
+<a name='L11'>  11 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <b>const</b> <b>char</b> *program_name = argv[0];
+<a name='L14'>  14   <b>double</b> timeout;
+<a name='L15'>  15 
+<a name='L16'>  16   <b>if</b> (argc &lt; 3)
+<a name='L17'>  17     <font color='red'>{</font>
+<a name='L18'>  18       fprintf (stderr,
+<a name='L19'>  19                "setitimer-helper: runs a program with a virtual CPU limit\n"
+<a name='L20'>  20                "usage: %s TIMEOUT PROGRAM [ARG...]\n"
+<a name='L21'>  21                "  where TIMEOUT is the virtual CPU limit, in seconds,\n"
+<a name='L22'>  22                "    and remaining arguments specify the program to run\n"
+<a name='L23'>  23                "    and its argument.\n",
+<a name='L24'>  24                program_name);
+<a name='L25'>  25       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L26'>  26     <font color='red'>}</font>
+<a name='L27'>  27 
+<a name='L28'>  28   timeout = strtod (argv[1], <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L29'>  29   <b>if</b> (timeout &gt;= 0.0 &amp;&amp; timeout &lt; <a href='../S/90.html#L26' title='Defined at 26 in src/lib/limits.h.'>LONG_MAX</a>)
+<a name='L30'>  30     <font color='red'>{</font>
+<a name='L31'>  31       <b>struct</b> itimerval it;
+<a name='L32'>  32 
+<a name='L33'>  33       it.it_interval.tv_sec = 0;
+<a name='L34'>  34       it.it_interval.tv_usec = 0;
+<a name='L35'>  35       it.it_value.tv_sec = timeout;
+<a name='L36'>  36       it.it_value.tv_usec = (timeout - floor (timeout)) * 1000000;
+<a name='L37'>  37       <b>if</b> (setitimer (ITIMER_VIRTUAL, &amp;it, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) &lt; 0)
+<a name='L38'>  38         fprintf (stderr, "%s: setitimer: %s\n",
+<a name='L39'>  39                  program_name, strerror (errno));
+<a name='L40'>  40     <font color='red'>}</font>
+<a name='L41'>  41   <b>else</b>
+<a name='L42'>  42     fprintf (stderr, "%s: invalid timeout value \"%s\"\n",
+<a name='L43'>  43              program_name, argv[1]);
+<a name='L44'>  44   
+<a name='L45'>  45   execvp (argv[2], &amp;argv[2]);
+<a name='L46'>  46   fprintf (stderr, "%s: couldn't exec \"%s\": %s\n",
+<a name='L47'>  47            program_name, argv[2], strerror (errno));
+<a name='L48'>  48   <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L49'>  49 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

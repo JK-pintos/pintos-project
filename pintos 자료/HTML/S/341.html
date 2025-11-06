@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>src/tests/vm/child-qsort.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/child-qsort.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Reads a 128 kB file onto the stack and "sorts" the bytes in</font></i>
+<a name='L2'>   2 <i><font color='green'>   it, using quick sort, a multi-pass divide and conquer</font></i>
+<a name='L3'>   3 <i><font color='green'>   algorithm.  The sorted data is written back to the same file</font></i>
+<a name='L4'>   4 <i><font color='green'>   in-place. */</font></i>
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='374.html'>tests/vm/qsort.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <b>const</b> <b>char</b> *test_name = "child-qsort";
+<a name='L13'>  13 
+<a name='L14'>  14 <b>int</b>
+<a name='L15'>  15 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>, <b>char</b> *argv[]) 
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <b>int</b> handle;
+<a name='L18'>  18   <b>unsigned</b> <b>char</b> buf[128 * 1024];
+<a name='L19'>  19   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size;
+<a name='L20'>  20 
+<a name='L21'>  21   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L22'>  22 
+<a name='L23'>  23   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[1])) &gt; 1, "open \"%s\"", argv[1]);
+<a name='L24'>  24 
+<a name='L25'>  25   size = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (handle, buf, <b>sizeof</b> buf);
+<a name='L26'>  26   <a href='../S/360.html#L114' title='Defined at 114 in src/tests/vm/qsort.c.'>qsort_bytes</a> (buf, <b>sizeof</b> buf);
+<a name='L27'>  27   <a href='../S/97.html#L127' title='Defined at 127 in src/lib/user/syscall.c.'>seek</a> (handle, 0);
+<a name='L28'>  28   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, buf, size);
+<a name='L29'>  29   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L30'>  30   
+<a name='L31'>  31   <b>return</b> 72;
+<a name='L32'>  32 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L15'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

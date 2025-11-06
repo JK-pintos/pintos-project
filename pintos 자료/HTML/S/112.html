@@ -1,0 +1,579 @@
+<html>
+<head>
+<title>src/lib/kernel/list.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/600.html'>kernel</a>/list.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L34'>[^]</a><a href='#L512'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L34' title='Defined at 34.'>is_sorted</a>
+<li><a href='#L47' title='Defined at 47.'>is_interior</a>
+<li><a href='#L54' title='Defined at 54.'>is_tail</a>
+<li><a href='#L61' title='Defined at 61.'>list_init</a>
+<li><a href='#L72' title='Defined at 72.'>list_begin</a>
+<li><a href='#L82' title='Defined at 82.'>list_next</a>
+<li><a href='#L94' title='Defined at 94.'>list_end</a>
+<li><a href='#L103' title='Defined at 103.'>list_rbegin</a>
+<li><a href='#L113' title='Defined at 113.'>list_prev</a>
+<li><a href='#L133' title='Defined at 133.'>list_rend</a>
+<li><a href='#L151' title='Defined at 151.'>list_head</a>
+<li><a href='#L159' title='Defined at 159.'>list_tail</a>
+<li><a href='#L169' title='Defined at 169.'>list_insert</a>
+<li><a href='#L184' title='Defined at 184.'>list_splice</a>
+<li><a href='#L209' title='Defined at 209.'>list_push_front</a>
+<li><a href='#L217' title='Defined at 217.'>list_push_back</a>
+<li><a href='#L249' title='Defined at 249.'>list_remove</a>
+<li><a href='#L260' title='Defined at 260.'>list_pop_front</a>
+<li><a href='#L270' title='Defined at 270.'>list_pop_back</a>
+<li><a href='#L280' title='Defined at 280.'>list_front</a>
+<li><a href='#L289' title='Defined at 289.'>list_back</a>
+<li><a href='#L298' title='Defined at 298.'>list_size</a>
+<li><a href='#L310' title='Defined at 310.'>list_empty</a>
+<li><a href='#L317' title='Defined at 317.'>swap</a>
+<li><a href='#L326' title='Defined at 326.'>list_reverse</a>
+<li><a href='#L342' title='Defined at 342.'>is_sorted</a>
+<li><a href='#L358' title='Defined at 358.'>find_end_of_run</a>
+<li><a href='#L380' title='Defined at 380.'>inplace_merge</a>
+<li><a href='#L405' title='Defined at 405.'>list_sort</a>
+<li><a href='#L446' title='Defined at 446.'>list_insert_ordered</a>
+<li><a href='#L466' title='Defined at 466.'>list_unique</a>
+<li><a href='#L493' title='Defined at 493.'>list_max</a>
+<li><a href='#L512' title='Defined at 512.'>list_min</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='107.html'>list.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> "<a href='104.html'>../debug.h</a>"
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Our doubly linked lists have two header elements: the "head"</font></i>
+<a name='L5'>   5 <i><font color='green'>   just before the first element and the "tail" just after the</font></i>
+<a name='L6'>   6 <i><font color='green'>   last element.  The `prev' link of the front header is null, as</font></i>
+<a name='L7'>   7 <i><font color='green'>   is the `next' link of the back header.  Their other two links</font></i>
+<a name='L8'>   8 <i><font color='green'>   point toward each other via the interior elements of the list.</font></i>
+<a name='L9'>   9 <i><font color='green'></font></i>
+<a name='L10'>  10 <i><font color='green'>   An empty list looks like this:</font></i>
+<a name='L11'>  11 <i><font color='green'></font></i>
+<a name='L12'>  12 <i><font color='green'>                      +------+     +------+</font></i>
+<a name='L13'>  13 <i><font color='green'>                  &lt;---| head |&lt;---&gt;| tail |---&gt;</font></i>
+<a name='L14'>  14 <i><font color='green'>                      +------+     +------+</font></i>
+<a name='L15'>  15 <i><font color='green'></font></i>
+<a name='L16'>  16 <i><font color='green'>   A list with two elements in it looks like this:</font></i>
+<a name='L17'>  17 <i><font color='green'></font></i>
+<a name='L18'>  18 <i><font color='green'>        +------+     +-------+     +-------+     +------+</font></i>
+<a name='L19'>  19 <i><font color='green'>    &lt;---| head |&lt;---&gt;|   1   |&lt;---&gt;|   2   |&lt;---&gt;| tail |&lt;---&gt;</font></i>
+<a name='L20'>  20 <i><font color='green'>        +------+     +-------+     +-------+     +------+</font></i>
+<a name='L21'>  21 <i><font color='green'></font></i>
+<a name='L22'>  22 <i><font color='green'>   The symmetry of this arrangement eliminates lots of special</font></i>
+<a name='L23'>  23 <i><font color='green'>   cases in list processing.  For example, take a look at</font></i>
+<a name='L24'>  24 <i><font color='green'>   list_remove(): it takes only two pointer assignments and no</font></i>
+<a name='L25'>  25 <i><font color='green'>   conditionals.  That's a lot simpler than the code would be</font></i>
+<a name='L26'>  26 <i><font color='green'>   without header elements.</font></i>
+<a name='L27'>  27 <i><font color='green'></font></i>
+<a name='L28'>  28 <i><font color='green'>   (Because only one of the pointers in each header element is used,</font></i>
+<a name='L29'>  29 <i><font color='green'>   we could in fact combine them into a single header element</font></i>
+<a name='L30'>  30 <i><font color='green'>   without sacrificing this simplicity.  But using two separate</font></i>
+<a name='L31'>  31 <i><font color='green'>   elements allows us to do a little bit of checking on some</font></i>
+<a name='L32'>  32 <i><font color='green'>   operations, which can be valuable.) */</font></i>
+<a name='L33'>  33 
+<a name='L34'>  34 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../R/567.html' title='Multiple refered from 4 places.'>is_sorted</a> (<b>struct</b> list_elem *a, <b>struct</b> list_elem *b,
+<a name='L35'>  35                        list_less_func *less, <b>void</b> *aux) <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>;
+<a name='L36'>  36 
+<a name='L37'>  37 <i><font color='green'>/* Returns true if ELEM is a head, false otherwise. */</font></i>
+<a name='L38'>  38 <b>static</b> <b>inline</b> bool
+<a name='L39'>  39 is_head (<b>struct</b> list_elem *elem)
+<a name='L40'>  40 <font color='red'>{</font>
+<a name='L41'>  41   <b>return</b> elem != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; elem-&gt;prev == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L42'>  42 <font color='red'>}</font>
+<a name='L43'>  43 
+<a name='L44'>  44 <i><font color='green'>/* Returns true if ELEM is an interior element,</font></i>
+<a name='L45'>  45 <i><font color='green'>   false otherwise. */</font></i>
+<a name='L46'>  46 <b>static</b> <b>inline</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L47'>  47 <a href='../R/563.html' title='Multiple refered from 7 places.'>is_interior</a> (<b>struct</b> list_elem *elem)
+<a name='L48'>  48 <font color='red'>{</font>
+<a name='L49'>  49   <b>return</b> elem != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; elem-&gt;prev != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L50'>  50 <font color='red'>}</font>
+<a name='L51'>  51 
+<a name='L52'>  52 <i><font color='green'>/* Returns true if ELEM is a tail, false otherwise. */</font></i>
+<a name='L53'>  53 <b>static</b> <b>inline</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L54'>  54 <a href='../R/568.html' title='Multiple refered from 3 places.'>is_tail</a> (<b>struct</b> list_elem *elem)
+<a name='L55'>  55 <font color='red'>{</font>
+<a name='L56'>  56   <b>return</b> elem != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; elem-&gt;prev != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L57'>  57 <font color='red'>}</font>
+<a name='L58'>  58 
+<a name='L59'>  59 <i><font color='green'>/* Initializes LIST as an empty list. */</font></i>
+<a name='L60'>  60 <b>void</b>
+<a name='L61'>  61 <a href='../R/602.html' title='Multiple refered from 11 places.'>list_init</a> (<b>struct</b> list *list)
+<a name='L62'>  62 <font color='red'>{</font>
+<a name='L63'>  63   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L64'>  64   <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head.prev = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L65'>  65   <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail;
+<a name='L66'>  66   <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail.prev = &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head;
+<a name='L67'>  67   <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L68'>  68 <font color='red'>}</font>
+<a name='L69'>  69 
+<a name='L70'>  70 <i><font color='green'>/* Returns the beginning of LIST.  */</font></i>
+<a name='L71'>  71 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L72'>  72 <a href='../R/592.html' title='Multiple refered from 23 places.'>list_begin</a> (<b>struct</b> list *list)
+<a name='L73'>  73 <font color='red'>{</font>
+<a name='L74'>  74   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L75'>  75   <b>return</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L76'>  76 <font color='red'>}</font>
+<a name='L77'>  77 
+<a name='L78'>  78 <i><font color='green'>/* Returns the element after ELEM in its list.  If ELEM is the</font></i>
+<a name='L79'>  79 <i><font color='green'>   last element in its list, returns the list tail.  Results are</font></i>
+<a name='L80'>  80 <i><font color='green'>   undefined if ELEM is itself a list tail. */</font></i>
+<a name='L81'>  81 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L82'>  82 <a href='../R/607.html' title='Multiple refered from 20 places.'>list_next</a> (<b>struct</b> list_elem *elem)
+<a name='L83'>  83 <font color='red'>{</font>
+<a name='L84'>  84   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (is_head (elem) || <a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (elem));
+<a name='L85'>  85   <b>return</b> elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L86'>  86 <font color='red'>}</font>
+<a name='L87'>  87 
+<a name='L88'>  88 <i><font color='green'>/* Returns LIST's tail.</font></i>
+<a name='L89'>  89 <i><font color='green'></font></i>
+<a name='L90'>  90 <i><font color='green'>   list_end() is often used in iterating through a list from</font></i>
+<a name='L91'>  91 <i><font color='green'>   front to back.  See the big comment at the top of list.h for</font></i>
+<a name='L92'>  92 <i><font color='green'>   an example. */</font></i>
+<a name='L93'>  93 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L94'>  94 <a href='../R/598.html' title='Multiple refered from 27 places.'>list_end</a> (<b>struct</b> list *list)
+<a name='L95'>  95 <font color='red'>{</font>
+<a name='L96'>  96   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L97'>  97   <b>return</b> &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail;
+<a name='L98'>  98 <font color='red'>}</font>
+<a name='L99'>  99 
+<a name='L100'> 100 <i><font color='green'>/* Returns the LIST's reverse beginning, for iterating through</font></i>
+<a name='L101'> 101 <i><font color='green'>   LIST in reverse order, from back to front. */</font></i>
+<a name='L102'> 102 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L103'> 103 <a href='../R/613.html' title='Multiple refered from 2 places.'>list_rbegin</a> (<b>struct</b> list *list) 
+<a name='L104'> 104 <font color='red'>{</font>
+<a name='L105'> 105   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L106'> 106   <b>return</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail.prev;
+<a name='L107'> 107 <font color='red'>}</font>
+<a name='L108'> 108 
+<a name='L109'> 109 <i><font color='green'>/* Returns the element before ELEM in its list.  If ELEM is the</font></i>
+<a name='L110'> 110 <i><font color='green'>   first element in its list, returns the list head.  Results are</font></i>
+<a name='L111'> 111 <i><font color='green'>   undefined if ELEM is itself a list head. */</font></i>
+<a name='L112'> 112 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L113'> 113 <a href='../R/610.html' title='Multiple refered from 6 places.'>list_prev</a> (<b>struct</b> list_elem *elem)
+<a name='L114'> 114 <font color='red'>{</font>
+<a name='L115'> 115   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (elem) || <a href='../S/112.html#L54' title='Defined at 54 in src/lib/kernel/list.c.'>is_tail</a> (elem));
+<a name='L116'> 116   <b>return</b> elem-&gt;prev;
+<a name='L117'> 117 <font color='red'>}</font>
+<a name='L118'> 118 
+<a name='L119'> 119 <i><font color='green'>/* Returns LIST's head.</font></i>
+<a name='L120'> 120 <i><font color='green'></font></i>
+<a name='L121'> 121 <i><font color='green'>   list_rend() is often used in iterating through a list in</font></i>
+<a name='L122'> 122 <i><font color='green'>   reverse order, from back to front.  Here's typical usage,</font></i>
+<a name='L123'> 123 <i><font color='green'>   following the example from the top of list.h:</font></i>
+<a name='L124'> 124 <i><font color='green'></font></i>
+<a name='L125'> 125 <i><font color='green'>      for (e = list_rbegin (&amp;foo_list); e != list_rend (&amp;foo_list);</font></i>
+<a name='L126'> 126 <i><font color='green'>           e = list_prev (e))</font></i>
+<a name='L127'> 127 <i><font color='green'>        {</font></i>
+<a name='L128'> 128 <i><font color='green'>          struct foo *f = list_entry (e, struct foo, elem);</font></i>
+<a name='L129'> 129 <i><font color='green'>          ...do something with f...</font></i>
+<a name='L130'> 130 <i><font color='green'>        }</font></i>
+<a name='L131'> 131 <i><font color='green'>*/</font></i>
+<a name='L132'> 132 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L133'> 133 <a href='../R/615.html' title='Multiple refered from 3 places.'>list_rend</a> (<b>struct</b> list *list) 
+<a name='L134'> 134 <font color='red'>{</font>
+<a name='L135'> 135   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L136'> 136   <b>return</b> &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head;
+<a name='L137'> 137 <font color='red'>}</font>
+<a name='L138'> 138 
+<a name='L139'> 139 <i><font color='green'>/* Return's LIST's head.</font></i>
+<a name='L140'> 140 <i><font color='green'></font></i>
+<a name='L141'> 141 <i><font color='green'>   list_head() can be used for an alternate style of iterating</font></i>
+<a name='L142'> 142 <i><font color='green'>   through a list, e.g.:</font></i>
+<a name='L143'> 143 <i><font color='green'></font></i>
+<a name='L144'> 144 <i><font color='green'>      e = list_head (&amp;list);</font></i>
+<a name='L145'> 145 <i><font color='green'>      while ((e = list_next (e)) != list_end (&amp;list)) </font></i>
+<a name='L146'> 146 <i><font color='green'>        {</font></i>
+<a name='L147'> 147 <i><font color='green'>          ...</font></i>
+<a name='L148'> 148 <i><font color='green'>        }</font></i>
+<a name='L149'> 149 <i><font color='green'>*/</font></i>
+<a name='L150'> 150 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L151'> 151 <a href='../R/601.html' title='Multiple refered from 2 places.'>list_head</a> (<b>struct</b> list *list) 
+<a name='L152'> 152 <font color='red'>{</font>
+<a name='L153'> 153   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L154'> 154   <b>return</b> &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head;
+<a name='L155'> 155 <font color='red'>}</font>
+<a name='L156'> 156 
+<a name='L157'> 157 <i><font color='green'>/* Return's LIST's tail. */</font></i>
+<a name='L158'> 158 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L159'> 159 <a href='../S/107.html#L137' title='Refered from 137 in src/lib/kernel/list.h.'>list_tail</a> (<b>struct</b> list *list) 
+<a name='L160'> 160 <font color='red'>{</font>
+<a name='L161'> 161   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L162'> 162   <b>return</b> &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail;
+<a name='L163'> 163 <font color='red'>}</font>
+<a name='L164'> 164 
+<a name='L165'> 165 <i><font color='green'>/* Inserts ELEM just before BEFORE, which may be either an</font></i>
+<a name='L166'> 166 <i><font color='green'>   interior element or a tail.  The latter case is equivalent to</font></i>
+<a name='L167'> 167 <i><font color='green'>   list_push_back(). */</font></i>
+<a name='L168'> 168 <b>void</b>
+<a name='L169'> 169 <a href='../R/603.html' title='Multiple refered from 5 places.'>list_insert</a> (<b>struct</b> list_elem *before, <b>struct</b> list_elem *elem)
+<a name='L170'> 170 <font color='red'>{</font>
+<a name='L171'> 171   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (before) || <a href='../S/112.html#L54' title='Defined at 54 in src/lib/kernel/list.c.'>is_tail</a> (before));
+<a name='L172'> 172   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (elem != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L173'> 173 
+<a name='L174'> 174   elem-&gt;prev = before-&gt;prev;
+<a name='L175'> 175   elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = before;
+<a name='L176'> 176   before-&gt;prev-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = elem;
+<a name='L177'> 177   before-&gt;prev = elem;
+<a name='L178'> 178 <font color='red'>}</font>
+<a name='L179'> 179 
+<a name='L180'> 180 <i><font color='green'>/* Removes elements FIRST though LAST (exclusive) from their</font></i>
+<a name='L181'> 181 <i><font color='green'>   current list, then inserts them just before BEFORE, which may</font></i>
+<a name='L182'> 182 <i><font color='green'>   be either an interior element or a tail. */</font></i>
+<a name='L183'> 183 <b>void</b>
+<a name='L184'> 184 <a href='../R/619.html' title='Multiple refered from 2 places.'>list_splice</a> (<b>struct</b> list_elem *before,
+<a name='L185'> 185              <b>struct</b> list_elem *first, <b>struct</b> list_elem *last)
+<a name='L186'> 186 <font color='red'>{</font>
+<a name='L187'> 187   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (before) || <a href='../S/112.html#L54' title='Defined at 54 in src/lib/kernel/list.c.'>is_tail</a> (before));
+<a name='L188'> 188   <b>if</b> (first == last)
+<a name='L189'> 189     <b>return</b>;
+<a name='L190'> 190   last = <a href='../S/112.html#L113' title='Defined at 113 in src/lib/kernel/list.c.'>list_prev</a> (last);
+<a name='L191'> 191 
+<a name='L192'> 192   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (first));
+<a name='L193'> 193   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (last));
+<a name='L194'> 194 
+<a name='L195'> 195   <i><font color='green'>/* Cleanly remove FIRST...LAST from its current list. */</font></i>
+<a name='L196'> 196   first-&gt;prev-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = last-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L197'> 197   last-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>-&gt;prev = first-&gt;prev;
+<a name='L198'> 198 
+<a name='L199'> 199   <i><font color='green'>/* Splice FIRST...LAST into new list. */</font></i>
+<a name='L200'> 200   first-&gt;prev = before-&gt;prev;
+<a name='L201'> 201   last-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = before;
+<a name='L202'> 202   before-&gt;prev-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = first;
+<a name='L203'> 203   before-&gt;prev = last;
+<a name='L204'> 204 <font color='red'>}</font>
+<a name='L205'> 205 
+<a name='L206'> 206 <i><font color='green'>/* Inserts ELEM at the beginning of LIST, so that it becomes the</font></i>
+<a name='L207'> 207 <i><font color='green'>   front in LIST. */</font></i>
+<a name='L208'> 208 <b>void</b>
+<a name='L209'> 209 <a href='../R/612.html' title='Multiple refered from 5 places.'>list_push_front</a> (<b>struct</b> list *list, <b>struct</b> list_elem *elem)
+<a name='L210'> 210 <font color='red'>{</font>
+<a name='L211'> 211   <a href='../S/112.html#L169' title='Defined at 169 in src/lib/kernel/list.c.'>list_insert</a> (<a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>), elem);
+<a name='L212'> 212 <font color='red'>}</font>
+<a name='L213'> 213 
+<a name='L214'> 214 <i><font color='green'>/* Inserts ELEM at the end of LIST, so that it becomes the</font></i>
+<a name='L215'> 215 <i><font color='green'>   back in LIST. */</font></i>
+<a name='L216'> 216 <b>void</b>
+<a name='L217'> 217 <a href='../R/611.html' title='Multiple refered from 10 places.'>list_push_back</a> (<b>struct</b> list *list, <b>struct</b> list_elem *elem)
+<a name='L218'> 218 <font color='red'>{</font>
+<a name='L219'> 219   <a href='../S/112.html#L169' title='Defined at 169 in src/lib/kernel/list.c.'>list_insert</a> (<a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>), elem);
+<a name='L220'> 220 <font color='red'>}</font>
+<a name='L221'> 221 
+<a name='L222'> 222 <i><font color='green'>/* Removes ELEM from its list and returns the element that</font></i>
+<a name='L223'> 223 <i><font color='green'>   followed it.  Undefined behavior if ELEM is not in a list.</font></i>
+<a name='L224'> 224 <i><font color='green'></font></i>
+<a name='L225'> 225 <i><font color='green'>   A list element must be treated very carefully after removing</font></i>
+<a name='L226'> 226 <i><font color='green'>   it from its list.  Calling list_next() or list_prev() on ELEM</font></i>
+<a name='L227'> 227 <i><font color='green'>   will return the item that was previously before or after ELEM,</font></i>
+<a name='L228'> 228 <i><font color='green'>   but, e.g., list_prev(list_next(ELEM)) is no longer ELEM!</font></i>
+<a name='L229'> 229 <i><font color='green'></font></i>
+<a name='L230'> 230 <i><font color='green'>   The list_remove() return value provides a convenient way to</font></i>
+<a name='L231'> 231 <i><font color='green'>   iterate and remove elements from a list:</font></i>
+<a name='L232'> 232 <i><font color='green'></font></i>
+<a name='L233'> 233 <i><font color='green'>   for (e = list_begin (&amp;list); e != list_end (&amp;list); e = list_remove (e))</font></i>
+<a name='L234'> 234 <i><font color='green'>     {</font></i>
+<a name='L235'> 235 <i><font color='green'>       ...do something with e...</font></i>
+<a name='L236'> 236 <i><font color='green'>     }</font></i>
+<a name='L237'> 237 <i><font color='green'></font></i>
+<a name='L238'> 238 <i><font color='green'>   If you need to free() elements of the list then you need to be</font></i>
+<a name='L239'> 239 <i><font color='green'>   more conservative.  Here's an alternate strategy that works</font></i>
+<a name='L240'> 240 <i><font color='green'>   even in that case:</font></i>
+<a name='L241'> 241 <i><font color='green'></font></i>
+<a name='L242'> 242 <i><font color='green'>   while (!list_empty (&amp;list))</font></i>
+<a name='L243'> 243 <i><font color='green'>     {</font></i>
+<a name='L244'> 244 <i><font color='green'>       struct list_elem *e = list_pop_front (&amp;list);</font></i>
+<a name='L245'> 245 <i><font color='green'>       ...do something with e...</font></i>
+<a name='L246'> 246 <i><font color='green'>     }</font></i>
+<a name='L247'> 247 <i><font color='green'>*/</font></i>
+<a name='L248'> 248 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L249'> 249 <a href='../R/614.html' title='Multiple refered from 9 places.'>list_remove</a> (<b>struct</b> list_elem *elem)
+<a name='L250'> 250 <font color='red'>{</font>
+<a name='L251'> 251   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/112.html#L47' title='Defined at 47 in src/lib/kernel/list.c.'>is_interior</a> (elem));
+<a name='L252'> 252   elem-&gt;prev-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L253'> 253   elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>-&gt;prev = elem-&gt;prev;
+<a name='L254'> 254   <b>return</b> elem-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L255'> 255 <font color='red'>}</font>
+<a name='L256'> 256 
+<a name='L257'> 257 <i><font color='green'>/* Removes the front element from LIST and returns it.</font></i>
+<a name='L258'> 258 <i><font color='green'>   Undefined behavior if LIST is empty before removal. */</font></i>
+<a name='L259'> 259 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L260'> 260 <a href='../R/609.html' title='Multiple refered from 6 places.'>list_pop_front</a> (<b>struct</b> list *list)
+<a name='L261'> 261 <font color='red'>{</font>
+<a name='L262'> 262   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *front = <a href='../S/112.html#L280' title='Defined at 280 in src/lib/kernel/list.c.'>list_front</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L263'> 263   <a href='../S/112.html#L249' title='Defined at 249 in src/lib/kernel/list.c.'>list_remove</a> (front);
+<a name='L264'> 264   <b>return</b> front;
+<a name='L265'> 265 <font color='red'>}</font>
+<a name='L266'> 266 
+<a name='L267'> 267 <i><font color='green'>/* Removes the back element from LIST and returns it.</font></i>
+<a name='L268'> 268 <i><font color='green'>   Undefined behavior if LIST is empty before removal. */</font></i>
+<a name='L269'> 269 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L270'> 270 <a href='../S/107.html#L149' title='Refered from 149 in src/lib/kernel/list.h.'>list_pop_back</a> (<b>struct</b> list *list)
+<a name='L271'> 271 <font color='red'>{</font>
+<a name='L272'> 272   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *back = <a href='../S/112.html#L289' title='Defined at 289 in src/lib/kernel/list.c.'>list_back</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L273'> 273   <a href='../S/112.html#L249' title='Defined at 249 in src/lib/kernel/list.c.'>list_remove</a> (back);
+<a name='L274'> 274   <b>return</b> back;
+<a name='L275'> 275 <font color='red'>}</font>
+<a name='L276'> 276 
+<a name='L277'> 277 <i><font color='green'>/* Returns the front element in LIST.</font></i>
+<a name='L278'> 278 <i><font color='green'>   Undefined behavior if LIST is empty. */</font></i>
+<a name='L279'> 279 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L280'> 280 <a href='../R/600.html' title='Multiple refered from 2 places.'>list_front</a> (<b>struct</b> list *list)
+<a name='L281'> 281 <font color='red'>{</font>
+<a name='L282'> 282   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>));
+<a name='L283'> 283   <b>return</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L284'> 284 <font color='red'>}</font>
+<a name='L285'> 285 
+<a name='L286'> 286 <i><font color='green'>/* Returns the back element in LIST.</font></i>
+<a name='L287'> 287 <i><font color='green'>   Undefined behavior if LIST is empty. */</font></i>
+<a name='L288'> 288 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L289'> 289 <a href='../R/591.html' title='Multiple refered from 2 places.'>list_back</a> (<b>struct</b> list *list)
+<a name='L290'> 290 <font color='red'>{</font>
+<a name='L291'> 291   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>));
+<a name='L292'> 292   <b>return</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail.prev;
+<a name='L293'> 293 <font color='red'>}</font>
+<a name='L294'> 294 
+<a name='L295'> 295 <i><font color='green'>/* Returns the number of elements in LIST.</font></i>
+<a name='L296'> 296 <i><font color='green'>   Runs in O(n) in the number of elements. */</font></i>
+<a name='L297'> 297 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>
+<a name='L298'> 298 <a href='../S/107.html#L156' title='Refered from 156 in src/lib/kernel/list.h.'>list_size</a> (<b>struct</b> list *list)
+<a name='L299'> 299 <font color='red'>{</font>
+<a name='L300'> 300   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L301'> 301   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt = 0;
+<a name='L302'> 302 
+<a name='L303'> 303   <b>for</b> (e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e))
+<a name='L304'> 304     cnt++;
+<a name='L305'> 305   <b>return</b> cnt;
+<a name='L306'> 306 <font color='red'>}</font>
+<a name='L307'> 307 
+<a name='L308'> 308 <i><font color='green'>/* Returns true if LIST is empty, false otherwise. */</font></i>
+<a name='L309'> 309 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L310'> 310 <a href='../R/597.html' title='Multiple refered from 11 places.'>list_empty</a> (<b>struct</b> list *list)
+<a name='L311'> 311 <font color='red'>{</font>
+<a name='L312'> 312   <b>return</b> <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>) == <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L313'> 313 <font color='red'>}</font>
+<a name='L314'> 314 
+<a name='L315'> 315 <i><font color='green'>/* Swaps the `struct list_elem *'s that A and B point to. */</font></i>
+<a name='L316'> 316 <b>static</b> <b>void</b>
+<a name='L317'> 317 <a href='../R/844.html' title='Multiple refered from 5 places.'>swap</a> (<b>struct</b> list_elem **a, <b>struct</b> list_elem **b) 
+<a name='L318'> 318 <font color='red'>{</font>
+<a name='L319'> 319   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *t = *a;
+<a name='L320'> 320   *a = *b;
+<a name='L321'> 321   *b = t;
+<a name='L322'> 322 <font color='red'>}</font>
+<a name='L323'> 323 
+<a name='L324'> 324 <i><font color='green'>/* Reverses the order of LIST. */</font></i>
+<a name='L325'> 325 <b>void</b>
+<a name='L326'> 326 <a href='../R/616.html' title='Multiple refered from 2 places.'>list_reverse</a> (<b>struct</b> list *list)
+<a name='L327'> 327 <font color='red'>{</font>
+<a name='L328'> 328   <b>if</b> (!<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>)) 
+<a name='L329'> 329     <font color='red'>{</font>
+<a name='L330'> 330       <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L331'> 331 
+<a name='L332'> 332       <b>for</b> (e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e = e-&gt;prev)
+<a name='L333'> 333         <a href='../D/957.html' title='Multiple defined in 3 places.'>swap</a> (&amp;e-&gt;prev, &amp;e-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>);
+<a name='L334'> 334       <a href='../D/957.html' title='Multiple defined in 3 places.'>swap</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>, &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail.prev);
+<a name='L335'> 335       <a href='../D/957.html' title='Multiple defined in 3 places.'>swap</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;head.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>-&gt;prev, &amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>-&gt;tail.prev-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>);
+<a name='L336'> 336     <font color='red'>}</font>
+<a name='L337'> 337 <font color='red'>}</font>
+<a name='L338'> 338 
+<a name='L339'> 339 <i><font color='green'>/* Returns true only if the list elements A through B (exclusive)</font></i>
+<a name='L340'> 340 <i><font color='green'>   are in order according to LESS given auxiliary data AUX. */</font></i>
+<a name='L341'> 341 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L342'> 342 <a href='../R/567.html' title='Multiple refered from 4 places.'>is_sorted</a> (<b>struct</b> list_elem *a, <b>struct</b> list_elem *b,
+<a name='L343'> 343            list_less_func *less, <b>void</b> *aux)
+<a name='L344'> 344 <font color='red'>{</font>
+<a name='L345'> 345   <b>if</b> (a != b)
+<a name='L346'> 346     <b>while</b> ((a = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (a)) != b) 
+<a name='L347'> 347       <b>if</b> (less (a, <a href='../S/112.html#L113' title='Defined at 113 in src/lib/kernel/list.c.'>list_prev</a> (a), aux))
+<a name='L348'> 348         <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L349'> 349   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L350'> 350 <font color='red'>}</font>
+<a name='L351'> 351 
+<a name='L352'> 352 <i><font color='green'>/* Finds a run, starting at A and ending not after B, of list</font></i>
+<a name='L353'> 353 <i><font color='green'>   elements that are in nondecreasing order according to LESS</font></i>
+<a name='L354'> 354 <i><font color='green'>   given auxiliary data AUX.  Returns the (exclusive) end of the</font></i>
+<a name='L355'> 355 <i><font color='green'>   run.</font></i>
+<a name='L356'> 356 <i><font color='green'>   A through B (exclusive) must form a non-empty range. */</font></i>
+<a name='L357'> 357 <b>static</b> <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L358'> 358 <a href='../R/450.html' title='Multiple refered from 2 places.'>find_end_of_run</a> (<b>struct</b> list_elem *a, <b>struct</b> list_elem *b,
+<a name='L359'> 359                  list_less_func *less, <b>void</b> *aux)
+<a name='L360'> 360 <font color='red'>{</font>
+<a name='L361'> 361   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L362'> 362   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L363'> 363   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (less != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L364'> 364   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a != b);
+<a name='L365'> 365   
+<a name='L366'> 366   <b>do</b> 
+<a name='L367'> 367     <font color='red'>{</font>
+<a name='L368'> 368       a = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (a);
+<a name='L369'> 369     <font color='red'>}</font>
+<a name='L370'> 370   <b>while</b> (a != b &amp;&amp; !less (a, <a href='../S/112.html#L113' title='Defined at 113 in src/lib/kernel/list.c.'>list_prev</a> (a), aux));
+<a name='L371'> 371   <b>return</b> a;
+<a name='L372'> 372 <font color='red'>}</font>
+<a name='L373'> 373 
+<a name='L374'> 374 <i><font color='green'>/* Merges A0 through A1B0 (exclusive) with A1B0 through B1</font></i>
+<a name='L375'> 375 <i><font color='green'>   (exclusive) to form a combined range also ending at B1</font></i>
+<a name='L376'> 376 <i><font color='green'>   (exclusive).  Both input ranges must be nonempty and sorted in</font></i>
+<a name='L377'> 377 <i><font color='green'>   nondecreasing order according to LESS given auxiliary data</font></i>
+<a name='L378'> 378 <i><font color='green'>   AUX.  The output range will be sorted the same way. */</font></i>
+<a name='L379'> 379 <b>static</b> <b>void</b>
+<a name='L380'> 380 <a href='../S/112.html#L434' title='Refered from 434 in src/lib/kernel/list.c.'>inplace_merge</a> (<b>struct</b> list_elem *a0, <b>struct</b> list_elem *a1b0,
+<a name='L381'> 381                <b>struct</b> list_elem *b1,
+<a name='L382'> 382                list_less_func *less, <b>void</b> *aux)
+<a name='L383'> 383 <font color='red'>{</font>
+<a name='L384'> 384   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a0 != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L385'> 385   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (a1b0 != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L386'> 386   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (b1 != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L387'> 387   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (less != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L388'> 388   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../D/663.html' title='Multiple defined in 3 places.'>is_sorted</a> (a0, a1b0, less, aux));
+<a name='L389'> 389   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../D/663.html' title='Multiple defined in 3 places.'>is_sorted</a> (a1b0, b1, less, aux));
+<a name='L390'> 390 
+<a name='L391'> 391   <b>while</b> (a0 != a1b0 &amp;&amp; a1b0 != b1)
+<a name='L392'> 392     <b>if</b> (!less (a1b0, a0, aux)) 
+<a name='L393'> 393       a0 = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (a0);
+<a name='L394'> 394     <b>else</b> 
+<a name='L395'> 395       <font color='red'>{</font>
+<a name='L396'> 396         a1b0 = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (a1b0);
+<a name='L397'> 397         <a href='../S/112.html#L184' title='Defined at 184 in src/lib/kernel/list.c.'>list_splice</a> (a0, <a href='../S/112.html#L113' title='Defined at 113 in src/lib/kernel/list.c.'>list_prev</a> (a1b0), a1b0);
+<a name='L398'> 398       <font color='red'>}</font>
+<a name='L399'> 399 <font color='red'>}</font>
+<a name='L400'> 400 
+<a name='L401'> 401 <i><font color='green'>/* Sorts LIST according to LESS given auxiliary data AUX, using a</font></i>
+<a name='L402'> 402 <i><font color='green'>   natural iterative merge sort that runs in O(n lg n) time and</font></i>
+<a name='L403'> 403 <i><font color='green'>   O(1) space in the number of elements in LIST. */</font></i>
+<a name='L404'> 404 <b>void</b>
+<a name='L405'> 405 <a href='../R/618.html' title='Multiple refered from 2 places.'>list_sort</a> (<b>struct</b> list *list, list_less_func *less, <b>void</b> *aux)
+<a name='L406'> 406 <font color='red'>{</font>
+<a name='L407'> 407   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> output_run_cnt;        <i><font color='green'>/* Number of runs output in current pass. */</font></i>
+<a name='L408'> 408 
+<a name='L409'> 409   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L410'> 410   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (less != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L411'> 411 
+<a name='L412'> 412   <i><font color='green'>/* Pass over the list repeatedly, merging adjacent runs of</font></i>
+<a name='L413'> 413 <i><font color='green'>     nondecreasing elements, until only one run is left. */</font></i>
+<a name='L414'> 414   <b>do</b>
+<a name='L415'> 415     <font color='red'>{</font>
+<a name='L416'> 416       <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *a0;     <i><font color='green'>/* Start of first run. */</font></i>
+<a name='L417'> 417       <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *a1b0;   <i><font color='green'>/* End of first run, start of second. */</font></i>
+<a name='L418'> 418       <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *b1;     <i><font color='green'>/* End of second run. */</font></i>
+<a name='L419'> 419 
+<a name='L420'> 420       output_run_cnt = 0;
+<a name='L421'> 421       <b>for</b> (a0 = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); a0 != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); a0 = b1)
+<a name='L422'> 422         <font color='red'>{</font>
+<a name='L423'> 423           <i><font color='green'>/* Each iteration produces one output run. */</font></i>
+<a name='L424'> 424           output_run_cnt++;
+<a name='L425'> 425 
+<a name='L426'> 426           <i><font color='green'>/* Locate two adjacent runs of nondecreasing elements</font></i>
+<a name='L427'> 427 <i><font color='green'>             A0...A1B0 and A1B0...B1. */</font></i>
+<a name='L428'> 428           a1b0 = <a href='../S/112.html#L358' title='Defined at 358 in src/lib/kernel/list.c.'>find_end_of_run</a> (a0, <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>), less, aux);
+<a name='L429'> 429           <b>if</b> (a1b0 == <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>))
+<a name='L430'> 430             <b>break</b>;
+<a name='L431'> 431           b1 = <a href='../S/112.html#L358' title='Defined at 358 in src/lib/kernel/list.c.'>find_end_of_run</a> (a1b0, <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>), less, aux);
+<a name='L432'> 432 
+<a name='L433'> 433           <i><font color='green'>/* Merge the runs. */</font></i>
+<a name='L434'> 434           <a href='../S/112.html#L380' title='Defined at 380 in src/lib/kernel/list.c.'>inplace_merge</a> (a0, a1b0, b1, less, aux);
+<a name='L435'> 435         <font color='red'>}</font>
+<a name='L436'> 436     <font color='red'>}</font>
+<a name='L437'> 437   <b>while</b> (output_run_cnt &gt; 1);
+<a name='L438'> 438 
+<a name='L439'> 439   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../D/663.html' title='Multiple defined in 3 places.'>is_sorted</a> (<a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>), <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>), less, aux));
+<a name='L440'> 440 <font color='red'>}</font>
+<a name='L441'> 441 
+<a name='L442'> 442 <i><font color='green'>/* Inserts ELEM in the proper position in LIST, which must be</font></i>
+<a name='L443'> 443 <i><font color='green'>   sorted according to LESS given auxiliary data AUX.</font></i>
+<a name='L444'> 444 <i><font color='green'>   Runs in O(n) average case in the number of elements in LIST. */</font></i>
+<a name='L445'> 445 <b>void</b>
+<a name='L446'> 446 <a href='../R/604.html' title='Multiple refered from 2 places.'>list_insert_ordered</a> (<b>struct</b> list *list, <b>struct</b> list_elem *elem,
+<a name='L447'> 447                      list_less_func *less, <b>void</b> *aux)
+<a name='L448'> 448 <font color='red'>{</font>
+<a name='L449'> 449   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L450'> 450 
+<a name='L451'> 451   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L452'> 452   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (elem != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L453'> 453   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (less != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L454'> 454 
+<a name='L455'> 455   <b>for</b> (e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e))
+<a name='L456'> 456     <b>if</b> (less (elem, e, aux))
+<a name='L457'> 457       <b>break</b>;
+<a name='L458'> 458   <b>return</b> <a href='../S/112.html#L169' title='Defined at 169 in src/lib/kernel/list.c.'>list_insert</a> (e, elem);
+<a name='L459'> 459 <font color='red'>}</font>
+<a name='L460'> 460 
+<a name='L461'> 461 <i><font color='green'>/* Iterates through LIST and removes all but the first in each</font></i>
+<a name='L462'> 462 <i><font color='green'>   set of adjacent elements that are equal according to LESS</font></i>
+<a name='L463'> 463 <i><font color='green'>   given auxiliary data AUX.  If DUPLICATES is non-null, then the</font></i>
+<a name='L464'> 464 <i><font color='green'>   elements from LIST are appended to DUPLICATES. */</font></i>
+<a name='L465'> 465 <b>void</b>
+<a name='L466'> 466 <a href='../R/621.html' title='Multiple refered from 2 places.'>list_unique</a> (<b>struct</b> list *list, <b>struct</b> list *duplicates,
+<a name='L467'> 467              list_less_func *less, <b>void</b> *aux)
+<a name='L468'> 468 <font color='red'>{</font>
+<a name='L469'> 469   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *elem, *<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L470'> 470 
+<a name='L471'> 471   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L472'> 472   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (less != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L473'> 473   <b>if</b> (<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>))
+<a name='L474'> 474     <b>return</b>;
+<a name='L475'> 475 
+<a name='L476'> 476   elem = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L477'> 477   <b>while</b> ((<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a> = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (elem)) != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>))
+<a name='L478'> 478     <b>if</b> (!less (elem, <a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>, aux) &amp;&amp; !less (<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>, elem, aux)) 
+<a name='L479'> 479       <font color='red'>{</font>
+<a name='L480'> 480         <a href='../S/112.html#L249' title='Defined at 249 in src/lib/kernel/list.c.'>list_remove</a> (<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>);
+<a name='L481'> 481         <b>if</b> (duplicates != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L482'> 482           <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (duplicates, <a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>);
+<a name='L483'> 483       <font color='red'>}</font>
+<a name='L484'> 484     <b>else</b>
+<a name='L485'> 485       elem = <a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;
+<a name='L486'> 486 <font color='red'>}</font>
+<a name='L487'> 487 
+<a name='L488'> 488 <i><font color='green'>/* Returns the element in LIST with the largest value according</font></i>
+<a name='L489'> 489 <i><font color='green'>   to LESS given auxiliary data AUX.  If there is more than one</font></i>
+<a name='L490'> 490 <i><font color='green'>   maximum, returns the one that appears earlier in the list.  If</font></i>
+<a name='L491'> 491 <i><font color='green'>   the list is empty, returns its tail. */</font></i>
+<a name='L492'> 492 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L493'> 493 <a href='../R/605.html' title='Multiple refered from 2 places.'>list_max</a> (<b>struct</b> list *list, list_less_func *less, <b>void</b> *aux)
+<a name='L494'> 494 <font color='red'>{</font>
+<a name='L495'> 495   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *max = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L496'> 496   <b>if</b> (max != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>)) 
+<a name='L497'> 497     <font color='red'>{</font>
+<a name='L498'> 498       <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L499'> 499       
+<a name='L500'> 500       <b>for</b> (e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (max); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e))
+<a name='L501'> 501         <b>if</b> (less (max, e, aux))
+<a name='L502'> 502           max = e; 
+<a name='L503'> 503     <font color='red'>}</font>
+<a name='L504'> 504   <b>return</b> max;
+<a name='L505'> 505 <font color='red'>}</font>
+<a name='L506'> 506 
+<a name='L507'> 507 <i><font color='green'>/* Returns the element in LIST with the smallest value according</font></i>
+<a name='L508'> 508 <i><font color='green'>   to LESS given auxiliary data AUX.  If there is more than one</font></i>
+<a name='L509'> 509 <i><font color='green'>   minimum, returns the one that appears earlier in the list.  If</font></i>
+<a name='L510'> 510 <i><font color='green'>   the list is empty, returns its tail. */</font></i>
+<a name='L511'> 511 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *
+<a name='L512'> 512 <a href='../R/606.html' title='Multiple refered from 2 places.'>list_min</a> (<b>struct</b> list *list, list_less_func *less, <b>void</b> *aux)
+<a name='L513'> 513 <font color='red'>{</font>
+<a name='L514'> 514   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *min = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L515'> 515   <b>if</b> (min != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>)) 
+<a name='L516'> 516     <font color='red'>{</font>
+<a name='L517'> 517       <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L518'> 518       
+<a name='L519'> 519       <b>for</b> (e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (min); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e))
+<a name='L520'> 520         <b>if</b> (less (e, min, aux))
+<a name='L521'> 521           min = e; 
+<a name='L522'> 522     <font color='red'>}</font>
+<a name='L523'> 523   <b>return</b> min;
+<a name='L524'> 524 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L34'>[^]</a><a href='#L512'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

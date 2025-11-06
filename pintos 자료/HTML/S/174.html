@@ -1,0 +1,232 @@
+<html>
+<head>
+<title>src/tests/internal/stdio.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/606.html'>internal</a>/stdio.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L23'>[^]</a><a href='#L45'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L23' title='Defined at 23.'>checkf</a>
+<li><a href='#L45' title='Defined at 45.'>test</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Test program for printf() in lib/stdio.c.</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Attempts to test printf() functionality that is not</font></i>
+<a name='L4'>   4 <i><font color='green'>   sufficiently tested elsewhere in Pintos.</font></i>
+<a name='L5'>   5 <i><font color='green'></font></i>
+<a name='L6'>   6 <i><font color='green'>   This is not a test we will run on your submitted projects.</font></i>
+<a name='L7'>   7 <i><font color='green'>   It is here for completeness.</font></i>
+<a name='L8'>   8 <i><font color='green'>*/</font></i>
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#undef</font> <a href='../R/112.html' title='Multiple refered from 3 places.'>NDEBUG</a>
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='90.html'>limits.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L14'>  14 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L15'>  15 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L16'>  16 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L17'>  17 <font color='darkred'>#include</font> "threads/test.h"
+<a name='L18'>  18 
+<a name='L19'>  19 <i><font color='green'>/* Number of failures so far. */</font></i>
+<a name='L20'>  20 <b>static</b> <b>int</b> failure_cnt;
+<a name='L21'>  21 
+<a name='L22'>  22 <b>static</b> <b>void</b>
+<a name='L23'>  23 <a href='../R/368.html' title='Multiple refered from 135 places.'>checkf</a> (<b>const</b> <b>char</b> *expect, <b>const</b> <b>char</b> *format, ...) 
+<a name='L24'>  24 <font color='red'>{</font>
+<a name='L25'>  25   <b>char</b> output[128];
+<a name='L26'>  26   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L27'>  27 
+<a name='L28'>  28   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\"%s\" -&gt; \"%s\": ", format, expect);
+<a name='L29'>  29   
+<a name='L30'>  30   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L31'>  31   <a href='../S/115.html#L26' title='Defined at 26 in src/lib/stdio.c.'>vsnprintf</a> (output, <b>sizeof</b> output, format, args);
+<a name='L32'>  32   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L33'>  33 
+<a name='L34'>  34   <b>if</b> (<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (expect, output)) 
+<a name='L35'>  35     <font color='red'>{</font>
+<a name='L36'>  36       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\nFAIL: actual output \"%s\"\n", output);
+<a name='L37'>  37       failure_cnt++;
+<a name='L38'>  38     <font color='red'>}</font>
+<a name='L39'>  39   <b>else</b>
+<a name='L40'>  40     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("okay\n");
+<a name='L41'>  41 <font color='red'>}</font>
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>/* Test printf() implementation. */</font></i>
+<a name='L44'>  44 <b>void</b>
+<a name='L45'>  45 <a href='../R/855.html' title='Multiple refered from 28 places.'>test</a> (<b>void</b>) 
+<a name='L46'>  46 <font color='red'>{</font>
+<a name='L47'>  47   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Testing formats:");
+<a name='L48'>  48 
+<a name='L49'>  49   <i><font color='green'>/* Check that commas show up in the right places, for positive</font></i>
+<a name='L50'>  50 <i><font color='green'>     numbers. */</font></i>
+<a name='L51'>  51   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1", "%'d", 1);
+<a name='L52'>  52   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12", "%'d", 12);
+<a name='L53'>  53   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123", "%'d", 123);
+<a name='L54'>  54   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1,234", "%'d", 1234);
+<a name='L55'>  55   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12,345", "%'d", 12345);
+<a name='L56'>  56   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123,456", "%'ld", 123456L);
+<a name='L57'>  57   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1,234,567", "%'ld", 1234567L);
+<a name='L58'>  58   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12,345,678", "%'ld", 12345678L);
+<a name='L59'>  59   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123,456,789", "%'ld", 123456789L);
+<a name='L60'>  60   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1,234,567,890", "%'ld", 1234567890L);
+<a name='L61'>  61   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12,345,678,901", "%'lld", 12345678901LL);
+<a name='L62'>  62   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123,456,789,012", "%'lld", 123456789012LL);
+<a name='L63'>  63   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1,234,567,890,123", "%'lld", 1234567890123LL);
+<a name='L64'>  64   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12,345,678,901,234", "%'lld", 12345678901234LL);
+<a name='L65'>  65   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123,456,789,012,345", "%'lld", 123456789012345LL);
+<a name='L66'>  66   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1,234,567,890,123,456", "%'lld", 1234567890123456LL);
+<a name='L67'>  67   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12,345,678,901,234,567", "%'lld", 12345678901234567LL);
+<a name='L68'>  68   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123,456,789,012,345,678", "%'lld", 123456789012345678LL);
+<a name='L69'>  69   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1,234,567,890,123,456,789", "%'lld", 1234567890123456789LL);
+<a name='L70'>  70 
+<a name='L71'>  71   <i><font color='green'>/* Check that commas show up in the right places, for positive</font></i>
+<a name='L72'>  72 <i><font color='green'>     numbers. */</font></i>
+<a name='L73'>  73   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1", "%'d", -1);
+<a name='L74'>  74   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-12", "%'d", -12);
+<a name='L75'>  75   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-123", "%'d", -123);
+<a name='L76'>  76   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1,234", "%'d", -1234);
+<a name='L77'>  77   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-12,345", "%'d", -12345);
+<a name='L78'>  78   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-123,456", "%'ld", -123456L);
+<a name='L79'>  79   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1,234,567", "%'ld", -1234567L);
+<a name='L80'>  80   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-12,345,678", "%'ld", -12345678L);
+<a name='L81'>  81   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-123,456,789", "%'ld", -123456789L);
+<a name='L82'>  82   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1,234,567,890", "%'ld", -1234567890L);
+<a name='L83'>  83   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-12,345,678,901", "%'lld", -12345678901LL);
+<a name='L84'>  84   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-123,456,789,012", "%'lld", -123456789012LL);
+<a name='L85'>  85   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1,234,567,890,123", "%'lld", -1234567890123LL);
+<a name='L86'>  86   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-12,345,678,901,234", "%'lld", -12345678901234LL);
+<a name='L87'>  87   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-123,456,789,012,345", "%'lld", -123456789012345LL);
+<a name='L88'>  88   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1,234,567,890,123,456", "%'lld", -1234567890123456LL);
+<a name='L89'>  89   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-12,345,678,901,234,567", "%'lld", -12345678901234567LL);
+<a name='L90'>  90   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-123,456,789,012,345,678", "%'lld", -123456789012345678LL);
+<a name='L91'>  91   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1,234,567,890,123,456,789", "%'lld", -1234567890123456789LL);
+<a name='L92'>  92   
+<a name='L93'>  93   <i><font color='green'>/* Check signed integer conversions. */</font></i>
+<a name='L94'>  94   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%5d", 0);
+<a name='L95'>  95   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0    ", "%-5d", 0);
+<a name='L96'>  96   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   +0", "%+5d", 0);
+<a name='L97'>  97   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("+0   ", "%+-5d", 0);
+<a name='L98'>  98   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "% 5d", 0);
+<a name='L99'>  99   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("00000", "%05d", 0);
+<a name='L100'> 100   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("     ", "%5.0d", 0);
+<a name='L101'> 101   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   00", "%5.2d", 0);
+<a name='L102'> 102   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0", "%d", 0);
+<a name='L103'> 103 
+<a name='L104'> 104   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "%5d", 1);
+<a name='L105'> 105   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1    ", "%-5d", 1);
+<a name='L106'> 106   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   +1", "%+5d", 1);
+<a name='L107'> 107   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("+1   ", "%+-5d", 1);
+<a name='L108'> 108   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "% 5d", 1);
+<a name='L109'> 109   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("00001", "%05d", 1);
+<a name='L110'> 110   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "%5.0d", 1);
+<a name='L111'> 111   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   01", "%5.2d", 1);
+<a name='L112'> 112   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1", "%d", 1);
+<a name='L113'> 113 
+<a name='L114'> 114   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   -1", "%5d", -1);
+<a name='L115'> 115   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1   ", "%-5d", -1);
+<a name='L116'> 116   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   -1", "%+5d", -1);
+<a name='L117'> 117   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1   ", "%+-5d", -1);
+<a name='L118'> 118   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   -1", "% 5d", -1);
+<a name='L119'> 119   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-0001", "%05d", -1);
+<a name='L120'> 120   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   -1", "%5.0d", -1);
+<a name='L121'> 121   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("  -01", "%5.2d", -1);
+<a name='L122'> 122   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-1", "%d", -1);
+<a name='L123'> 123 
+<a name='L124'> 124   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12345", "%5d", 12345);
+<a name='L125'> 125   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12345", "%-5d", 12345);
+<a name='L126'> 126   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("+12345", "%+5d", 12345);
+<a name='L127'> 127   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("+12345", "%+-5d", 12345);
+<a name='L128'> 128   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> (" 12345", "% 5d", 12345);
+<a name='L129'> 129   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12345", "%05d", 12345);
+<a name='L130'> 130   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12345", "%5.0d", 12345);
+<a name='L131'> 131   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12345", "%5.2d", 12345);
+<a name='L132'> 132   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("12345", "%d", 12345);
+<a name='L133'> 133 
+<a name='L134'> 134   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%5d", 123456);
+<a name='L135'> 135   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%-5d", 123456);
+<a name='L136'> 136   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("+123456", "%+5d", 123456);
+<a name='L137'> 137   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("+123456", "%+-5d", 123456);
+<a name='L138'> 138   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> (" 123456", "% 5d", 123456);
+<a name='L139'> 139   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%05d", 123456);
+<a name='L140'> 140   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%5.0d", 123456);
+<a name='L141'> 141   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%5.2d", 123456);
+<a name='L142'> 142   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%d", 123456);
+<a name='L143'> 143 
+<a name='L144'> 144   <i><font color='green'>/* Check unsigned integer conversions. */</font></i>
+<a name='L145'> 145   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%5u", 0);
+<a name='L146'> 146   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%5o", 0);
+<a name='L147'> 147   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%5x", 0);
+<a name='L148'> 148   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%5X", 0);
+<a name='L149'> 149   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%#5o", 0);
+<a name='L150'> 150   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%#5x", 0);
+<a name='L151'> 151   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    0", "%#5X", 0);
+<a name='L152'> 152   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("  00000000", "%#10.8x", 0);
+<a name='L153'> 153   
+<a name='L154'> 154   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "%5u", 1);
+<a name='L155'> 155   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "%5o", 1);
+<a name='L156'> 156   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "%5x", 1);
+<a name='L157'> 157   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("    1", "%5X", 1);
+<a name='L158'> 158   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("   01", "%#5o", 1);
+<a name='L159'> 159   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("  0x1", "%#5x", 1);
+<a name='L160'> 160   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("  0X1", "%#5X", 1);
+<a name='L161'> 161   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0x00000001", "%#10.8x", 1);
+<a name='L162'> 162 
+<a name='L163'> 163   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("123456", "%5u", 123456);
+<a name='L164'> 164   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("361100", "%5o", 123456);
+<a name='L165'> 165   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1e240", "%5x", 123456);
+<a name='L166'> 166   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("1E240", "%5X", 123456);
+<a name='L167'> 167   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0361100", "%#5o", 123456);
+<a name='L168'> 168   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0x1e240", "%#5x", 123456);
+<a name='L169'> 169   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0X1E240", "%#5X", 123456);
+<a name='L170'> 170   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0x0001e240", "%#10.8x", 123456);
+<a name='L171'> 171 
+<a name='L172'> 172   <i><font color='green'>/* Character and string conversions. */</font></i>
+<a name='L173'> 173   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("foobar", "%c%c%c%c%c%c", 'f', 'o', 'o', 'b', 'a', 'r');
+<a name='L174'> 174   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("  left-right  ", "%6s%s%-7s", "left", "-", "right");
+<a name='L175'> 175   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("trim", "%.4s", "trimoff");
+<a name='L176'> 176   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("%%", "%%%%");
+<a name='L177'> 177 
+<a name='L178'> 178   <i><font color='green'>/* From Cristian Cadar's automatic test case generator. */</font></i>
+<a name='L179'> 179   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> (" abcdefgh", "%9s", "abcdefgh");
+<a name='L180'> 180   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("36657730000", "%- o", (<b>unsigned</b>) 036657730000);
+<a name='L181'> 181   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("4139757568", "%- u", (<b>unsigned</b>) 4139757568UL);
+<a name='L182'> 182   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("f6bfb000", "%- x", (<b>unsigned</b>) 0xf6bfb000);
+<a name='L183'> 183   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("36657730000", "%-to", (<a href='../S/92.html#L9' title='Defined at 9 in src/lib/stddef.h.'>ptrdiff_t</a>) 036657730000);
+<a name='L184'> 184   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("4139757568", "%-tu", (<a href='../S/92.html#L9' title='Defined at 9 in src/lib/stddef.h.'>ptrdiff_t</a>) 4139757568UL);
+<a name='L185'> 185   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%-zi", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L186'> 186   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%-zd", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L187'> 187   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("036657730000", "%+#o", (<b>unsigned</b>) 036657730000);
+<a name='L188'> 188   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0xf6bfb000", "%+#x", (<b>unsigned</b>) 0xf6bfb000);
+<a name='L189'> 189   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "% zi", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L190'> 190   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "% zd", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L191'> 191   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("4139757568", "% tu", (<a href='../S/92.html#L9' title='Defined at 9 in src/lib/stddef.h.'>ptrdiff_t</a>) 4139757568UL);
+<a name='L192'> 192   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("036657730000", "% #o", (<b>unsigned</b>) 036657730000);
+<a name='L193'> 193   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0xf6bfb000", "% #x", (<b>unsigned</b>) 0xf6bfb000);
+<a name='L194'> 194   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("0xf6bfb000", "%# x", (<b>unsigned</b>) 0xf6bfb000);
+<a name='L195'> 195   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%#zd", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L196'> 196   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%0zi", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L197'> 197   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("4,139,757,568", "%'tu", (<a href='../S/92.html#L9' title='Defined at 9 in src/lib/stddef.h.'>ptrdiff_t</a>) 4139757568UL);
+<a name='L198'> 198   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155,209,728", "%-'d", -155209728);
+<a name='L199'> 199   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%.zi", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L200'> 200   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%zi", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L201'> 201   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%zd", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L202'> 202   <a href='../S/174.html#L23' title='Defined at 23 in src/tests/internal/stdio.c.'>checkf</a> ("-155209728", "%+zi", (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) -155209728);
+<a name='L203'> 203 
+<a name='L204'> 204   <b>if</b> (failure_cnt == 0)
+<a name='L205'> 205     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\nstdio: PASS\n");
+<a name='L206'> 206   <b>else</b>
+<a name='L207'> 207     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\nstdio: FAIL: %d tests failed\n", failure_cnt);
+<a name='L208'> 208 <font color='red'>}</font>                                                                  
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L23'>[^]</a><a href='#L45'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<html>
+<head>
+<title>src/threads/synch.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/synch.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L45'>[^]</a><a href='#L331'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L45' title='Defined at 45.'>sema_init</a>
+<li><a href='#L61' title='Defined at 61.'>sema_down</a>
+<li><a href='#L84' title='Defined at 84.'>sema_try_down</a>
+<li><a href='#L109' title='Defined at 109.'>sema_up</a>
+<li><a href='#L129' title='Defined at 129.'>sema_self_test</a>
+<li><a href='#L148' title='Defined at 148.'>sema_test_helper</a>
+<li><a href='#L176' title='Defined at 176.'>lock_init</a>
+<li><a href='#L193' title='Defined at 193.'>lock_acquire</a>
+<li><a href='#L210' title='Defined at 210.'>lock_try_acquire</a>
+<li><a href='#L229' title='Defined at 229.'>lock_release</a>
+<li><a href='#L242' title='Defined at 242.'>lock_held_by_current_thread</a>
+<li><a href='#L260' title='Defined at 260.'>cond_init</a>
+<li><a href='#L288' title='Defined at 288.'>cond_wait</a>
+<li><a href='#L312' title='Defined at 312.'>cond_signal</a>
+<li><a href='#L331' title='Defined at 331.'>cond_broadcast</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* This file is derived from source code for the Nachos</font></i>
+<a name='L2'>   2 <i><font color='green'>   instructional operating system.  The Nachos copyright notice</font></i>
+<a name='L3'>   3 <i><font color='green'>   is reproduced in full below. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <i><font color='green'>/* Copyright (c) 1992-1996 The Regents of the University of California.</font></i>
+<a name='L6'>   6 <i><font color='green'>   All rights reserved.</font></i>
+<a name='L7'>   7 <i><font color='green'></font></i>
+<a name='L8'>   8 <i><font color='green'>   Permission to use, copy, modify, and distribute this software</font></i>
+<a name='L9'>   9 <i><font color='green'>   and its documentation for any purpose, without fee, and</font></i>
+<a name='L10'>  10 <i><font color='green'>   without written agreement is hereby granted, provided that the</font></i>
+<a name='L11'>  11 <i><font color='green'>   above copyright notice and the following two paragraphs appear</font></i>
+<a name='L12'>  12 <i><font color='green'>   in all copies of this software.</font></i>
+<a name='L13'>  13 <i><font color='green'></font></i>
+<a name='L14'>  14 <i><font color='green'>   IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO</font></i>
+<a name='L15'>  15 <i><font color='green'>   ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR</font></i>
+<a name='L16'>  16 <i><font color='green'>   CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE</font></i>
+<a name='L17'>  17 <i><font color='green'>   AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF CALIFORNIA</font></i>
+<a name='L18'>  18 <i><font color='green'>   HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</font></i>
+<a name='L19'>  19 <i><font color='green'></font></i>
+<a name='L20'>  20 <i><font color='green'>   THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY</font></i>
+<a name='L21'>  21 <i><font color='green'>   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED</font></i>
+<a name='L22'>  22 <i><font color='green'>   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR</font></i>
+<a name='L23'>  23 <i><font color='green'>   PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS"</font></i>
+<a name='L24'>  24 <i><font color='green'>   BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO</font></i>
+<a name='L25'>  25 <i><font color='green'>   PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR</font></i>
+<a name='L26'>  26 <i><font color='green'>   MODIFICATIONS.</font></i>
+<a name='L27'>  27 <i><font color='green'>*/</font></i>
+<a name='L28'>  28 
+<a name='L29'>  29 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L30'>  30 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L31'>  31 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L32'>  32 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L33'>  33 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L34'>  34 
+<a name='L35'>  35 <i><font color='green'>/* Initializes semaphore SEMA to VALUE.  A semaphore is a</font></i>
+<a name='L36'>  36 <i><font color='green'>   nonnegative integer along with two atomic operators for</font></i>
+<a name='L37'>  37 <i><font color='green'>   manipulating it:</font></i>
+<a name='L38'>  38 <i><font color='green'></font></i>
+<a name='L39'>  39 <i><font color='green'>   - down or "P": wait for the value to become positive, then</font></i>
+<a name='L40'>  40 <i><font color='green'>     decrement it.</font></i>
+<a name='L41'>  41 <i><font color='green'></font></i>
+<a name='L42'>  42 <i><font color='green'>   - up or "V": increment the value (and wake up one waiting</font></i>
+<a name='L43'>  43 <i><font color='green'>     thread, if any). */</font></i>
+<a name='L44'>  44 <b>void</b>
+<a name='L45'>  45 <a href='../R/789.html' title='Multiple refered from 10 places.'>sema_init</a> (<b>struct</b> semaphore *sema, <b>unsigned</b> value) 
+<a name='L46'>  46 <font color='red'>{</font>
+<a name='L47'>  47   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (sema != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L48'>  48 
+<a name='L49'>  49   sema-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L50'>  50   <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (&amp;sema-&gt;waiters);
+<a name='L51'>  51 <font color='red'>}</font>
+<a name='L52'>  52 
+<a name='L53'>  53 <i><font color='green'>/* Down or "P" operation on a semaphore.  Waits for SEMA's value</font></i>
+<a name='L54'>  54 <i><font color='green'>   to become positive and then atomically decrements it.</font></i>
+<a name='L55'>  55 <i><font color='green'></font></i>
+<a name='L56'>  56 <i><font color='green'>   This function may sleep, so it must not be called within an</font></i>
+<a name='L57'>  57 <i><font color='green'>   interrupt handler.  This function may be called with</font></i>
+<a name='L58'>  58 <i><font color='green'>   interrupts disabled, but if it sleeps then the next scheduled</font></i>
+<a name='L59'>  59 <i><font color='green'>   thread will probably turn interrupts back on. */</font></i>
+<a name='L60'>  60 <b>void</b>
+<a name='L61'>  61 <a href='../R/788.html' title='Multiple refered from 13 places.'>sema_down</a> (<b>struct</b> semaphore *sema) 
+<a name='L62'>  62 <font color='red'>{</font>
+<a name='L63'>  63   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level;
+<a name='L64'>  64 
+<a name='L65'>  65   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (sema != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L66'>  66   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> ());
+<a name='L67'>  67 
+<a name='L68'>  68   old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L69'>  69   <b>while</b> (sema-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> == 0) 
+<a name='L70'>  70     <font color='red'>{</font>
+<a name='L71'>  71       <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (&amp;sema-&gt;waiters, &amp;<a href='../S/163.html#L264' title='Defined at 264 in src/threads/thread.c.'>thread_current</a> ()-&gt;elem);
+<a name='L72'>  72       <a href='../S/163.html#L222' title='Defined at 222 in src/threads/thread.c.'>thread_block</a> ();
+<a name='L73'>  73     <font color='red'>}</font>
+<a name='L74'>  74   sema-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>--;
+<a name='L75'>  75   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L76'>  76 <font color='red'>}</font>
+<a name='L77'>  77 
+<a name='L78'>  78 <i><font color='green'>/* Down or "P" operation on a semaphore, but only if the</font></i>
+<a name='L79'>  79 <i><font color='green'>   semaphore is not already 0.  Returns true if the semaphore is</font></i>
+<a name='L80'>  80 <i><font color='green'>   decremented, false otherwise.</font></i>
+<a name='L81'>  81 <i><font color='green'></font></i>
+<a name='L82'>  82 <i><font color='green'>   This function may be called from an interrupt handler. */</font></i>
+<a name='L83'>  83 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L84'>  84 <a href='../R/792.html' title='Multiple refered from 2 places.'>sema_try_down</a> (<b>struct</b> semaphore *sema) 
+<a name='L85'>  85 <font color='red'>{</font>
+<a name='L86'>  86   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level;
+<a name='L87'>  87   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success;
+<a name='L88'>  88 
+<a name='L89'>  89   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (sema != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L90'>  90 
+<a name='L91'>  91   old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L92'>  92   <b>if</b> (sema-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &gt; 0) 
+<a name='L93'>  93     <font color='red'>{</font>
+<a name='L94'>  94       sema-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>--;
+<a name='L95'>  95       success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>; 
+<a name='L96'>  96     <font color='red'>}</font>
+<a name='L97'>  97   <b>else</b>
+<a name='L98'>  98     success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L99'>  99   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L100'> 100 
+<a name='L101'> 101   <b>return</b> success;
+<a name='L102'> 102 <font color='red'>}</font>
+<a name='L103'> 103 
+<a name='L104'> 104 <i><font color='green'>/* Up or "V" operation on a semaphore.  Increments SEMA's value</font></i>
+<a name='L105'> 105 <i><font color='green'>   and wakes up one thread of those waiting for SEMA, if any.</font></i>
+<a name='L106'> 106 <i><font color='green'></font></i>
+<a name='L107'> 107 <i><font color='green'>   This function may be called from an interrupt handler. */</font></i>
+<a name='L108'> 108 <b>void</b>
+<a name='L109'> 109 <a href='../R/793.html' title='Multiple refered from 11 places.'>sema_up</a> (<b>struct</b> semaphore *sema) 
+<a name='L110'> 110 <font color='red'>{</font>
+<a name='L111'> 111   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level;
+<a name='L112'> 112 
+<a name='L113'> 113   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (sema != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L114'> 114 
+<a name='L115'> 115   old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L116'> 116   <b>if</b> (!<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (&amp;sema-&gt;waiters)) 
+<a name='L117'> 117     <a href='../S/163.html#L240' title='Defined at 240 in src/threads/thread.c.'>thread_unblock</a> (<a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (<a href='../S/112.html#L260' title='Defined at 260 in src/lib/kernel/list.c.'>list_pop_front</a> (&amp;sema-&gt;waiters),
+<a name='L118'> 118                                 <b>struct</b> <a href='../S/164.html#L83' title='Defined at 83 in src/threads/thread.h.'>thread</a>, elem));
+<a name='L119'> 119   sema-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>++;
+<a name='L120'> 120   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L121'> 121 <font color='red'>}</font>
+<a name='L122'> 122 
+<a name='L123'> 123 <b>static</b> <b>void</b> <a href='../S/167.html#L148' title='Defined at 148 in src/threads/synch.c.'>sema_test_helper</a> (<b>void</b> *sema_);
+<a name='L124'> 124 
+<a name='L125'> 125 <i><font color='green'>/* Self-test for semaphores that makes control "ping-pong"</font></i>
+<a name='L126'> 126 <i><font color='green'>   between a pair of threads.  Insert calls to printf() to see</font></i>
+<a name='L127'> 127 <i><font color='green'>   what's going on. */</font></i>
+<a name='L128'> 128 <b>void</b>
+<a name='L129'> 129 <a href='../S/155.html#L18' title='Refered from 18 in src/threads/synch.h.'>sema_self_test</a> (<b>void</b>) 
+<a name='L130'> 130 <font color='red'>{</font>
+<a name='L131'> 131   <b>struct</b> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a> sema[2];
+<a name='L132'> 132   <b>int</b> i;
+<a name='L133'> 133 
+<a name='L134'> 134   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Testing semaphores...");
+<a name='L135'> 135   <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (&amp;sema[0], 0);
+<a name='L136'> 136   <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (&amp;sema[1], 0);
+<a name='L137'> 137   <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> ("sema-test", <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a>, <a href='../S/167.html#L148' title='Defined at 148 in src/threads/synch.c.'>sema_test_helper</a>, &amp;sema);
+<a name='L138'> 138   <b>for</b> (i = 0; i &lt; 10; i++) 
+<a name='L139'> 139     <font color='red'>{</font>
+<a name='L140'> 140       <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (&amp;sema[0]);
+<a name='L141'> 141       <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;sema[1]);
+<a name='L142'> 142     <font color='red'>}</font>
+<a name='L143'> 143   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("done.\n");
+<a name='L144'> 144 <font color='red'>}</font>
+<a name='L145'> 145 
+<a name='L146'> 146 <i><font color='green'>/* Thread function used by sema_self_test(). */</font></i>
+<a name='L147'> 147 <b>static</b> <b>void</b>
+<a name='L148'> 148 <a href='../R/791.html' title='Multiple refered from 2 places.'>sema_test_helper</a> (<b>void</b> *sema_) 
+<a name='L149'> 149 <font color='red'>{</font>
+<a name='L150'> 150   <b>struct</b> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a> *sema = sema_;
+<a name='L151'> 151   <b>int</b> i;
+<a name='L152'> 152 
+<a name='L153'> 153   <b>for</b> (i = 0; i &lt; 10; i++) 
+<a name='L154'> 154     <font color='red'>{</font>
+<a name='L155'> 155       <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;sema[0]);
+<a name='L156'> 156       <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (&amp;sema[1]);
+<a name='L157'> 157     <font color='red'>}</font>
+<a name='L158'> 158 <font color='red'>}</font>
+<a name='L159'> 159 
+<a name='L160'> 160 <i><font color='green'>/* Initializes LOCK.  A lock can be held by at most a single</font></i>
+<a name='L161'> 161 <i><font color='green'>   thread at any given time.  Our locks are not "recursive", that</font></i>
+<a name='L162'> 162 <i><font color='green'>   is, it is an error for the thread currently holding a lock to</font></i>
+<a name='L163'> 163 <i><font color='green'>   try to acquire that lock.</font></i>
+<a name='L164'> 164 <i><font color='green'></font></i>
+<a name='L165'> 165 <i><font color='green'>   A lock is a specialization of a semaphore with an initial</font></i>
+<a name='L166'> 166 <i><font color='green'>   value of 1.  The difference between a lock and such a</font></i>
+<a name='L167'> 167 <i><font color='green'>   semaphore is twofold.  First, a semaphore can have a value</font></i>
+<a name='L168'> 168 <i><font color='green'>   greater than 1, but a lock can only be owned by a single</font></i>
+<a name='L169'> 169 <i><font color='green'>   thread at a time.  Second, a semaphore does not have an owner,</font></i>
+<a name='L170'> 170 <i><font color='green'>   meaning that one thread can "down" the semaphore and then</font></i>
+<a name='L171'> 171 <i><font color='green'>   another one "up" it, but with a lock the same thread must both</font></i>
+<a name='L172'> 172 <i><font color='green'>   acquire and release it.  When these restrictions prove</font></i>
+<a name='L173'> 173 <i><font color='green'>   onerous, it's a good sign that a semaphore should be used,</font></i>
+<a name='L174'> 174 <i><font color='green'>   instead of a lock. */</font></i>
+<a name='L175'> 175 <b>void</b>
+<a name='L176'> 176 <a href='../R/631.html' title='Multiple refered from 21 places.'>lock_init</a> (<b>struct</b> lock *lock)
+<a name='L177'> 177 <font color='red'>{</font>
+<a name='L178'> 178   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L179'> 179 
+<a name='L180'> 180   <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;holder = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L181'> 181   <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>, 1);
+<a name='L182'> 182 <font color='red'>}</font>
+<a name='L183'> 183 
+<a name='L184'> 184 <i><font color='green'>/* Acquires LOCK, sleeping until it becomes available if</font></i>
+<a name='L185'> 185 <i><font color='green'>   necessary.  The lock must not already be held by the current</font></i>
+<a name='L186'> 186 <i><font color='green'>   thread.</font></i>
+<a name='L187'> 187 <i><font color='green'></font></i>
+<a name='L188'> 188 <i><font color='green'>   This function may sleep, so it must not be called within an</font></i>
+<a name='L189'> 189 <i><font color='green'>   interrupt handler.  This function may be called with</font></i>
+<a name='L190'> 190 <i><font color='green'>   interrupts disabled, but interrupts will be turned back on if</font></i>
+<a name='L191'> 191 <i><font color='green'>   we need to sleep. */</font></i>
+<a name='L192'> 192 <b>void</b>
+<a name='L193'> 193 <a href='../R/628.html' title='Multiple refered from 40 places.'>lock_acquire</a> (<b>struct</b> lock *lock)
+<a name='L194'> 194 <font color='red'>{</font>
+<a name='L195'> 195   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L196'> 196   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> ());
+<a name='L197'> 197   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>));
+<a name='L198'> 198 
+<a name='L199'> 199   <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>);
+<a name='L200'> 200   <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;holder = <a href='../S/163.html#L264' title='Defined at 264 in src/threads/thread.c.'>thread_current</a> ();
+<a name='L201'> 201 <font color='red'>}</font>
+<a name='L202'> 202 
+<a name='L203'> 203 <i><font color='green'>/* Tries to acquires LOCK and returns true if successful or false</font></i>
+<a name='L204'> 204 <i><font color='green'>   on failure.  The lock must not already be held by the current</font></i>
+<a name='L205'> 205 <i><font color='green'>   thread.</font></i>
+<a name='L206'> 206 <i><font color='green'></font></i>
+<a name='L207'> 207 <i><font color='green'>   This function will not sleep, so it may be called within an</font></i>
+<a name='L208'> 208 <i><font color='green'>   interrupt handler. */</font></i>
+<a name='L209'> 209 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L210'> 210 <a href='../S/155.html#L29' title='Refered from 29 in src/threads/synch.h.'>lock_try_acquire</a> (<b>struct</b> lock *lock)
+<a name='L211'> 211 <font color='red'>{</font>
+<a name='L212'> 212   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success;
+<a name='L213'> 213 
+<a name='L214'> 214   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L215'> 215   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>));
+<a name='L216'> 216 
+<a name='L217'> 217   success = <a href='../S/167.html#L84' title='Defined at 84 in src/threads/synch.c.'>sema_try_down</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>);
+<a name='L218'> 218   <b>if</b> (success)
+<a name='L219'> 219     <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;holder = <a href='../S/163.html#L264' title='Defined at 264 in src/threads/thread.c.'>thread_current</a> ();
+<a name='L220'> 220   <b>return</b> success;
+<a name='L221'> 221 <font color='red'>}</font>
+<a name='L222'> 222 
+<a name='L223'> 223 <i><font color='green'>/* Releases LOCK, which must be owned by the current thread.</font></i>
+<a name='L224'> 224 <i><font color='green'></font></i>
+<a name='L225'> 225 <i><font color='green'>   An interrupt handler cannot acquire a lock, so it does not</font></i>
+<a name='L226'> 226 <i><font color='green'>   make sense to try to release a lock within an interrupt</font></i>
+<a name='L227'> 227 <i><font color='green'>   handler. */</font></i>
+<a name='L228'> 228 <b>void</b>
+<a name='L229'> 229 <a href='../R/633.html' title='Multiple refered from 40 places.'>lock_release</a> (<b>struct</b> lock *lock) 
+<a name='L230'> 230 <font color='red'>{</font>
+<a name='L231'> 231   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L232'> 232   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>));
+<a name='L233'> 233 
+<a name='L234'> 234   <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;holder = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L235'> 235   <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>);
+<a name='L236'> 236 <font color='red'>}</font>
+<a name='L237'> 237 
+<a name='L238'> 238 <i><font color='green'>/* Returns true if the current thread holds LOCK, false</font></i>
+<a name='L239'> 239 <i><font color='green'>   otherwise.  (Note that testing whether some other thread holds</font></i>
+<a name='L240'> 240 <i><font color='green'>   a lock would be racy.) */</font></i>
+<a name='L241'> 241 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L242'> 242 <a href='../R/630.html' title='Multiple refered from 8 places.'>lock_held_by_current_thread</a> (<b>const</b> <b>struct</b> lock *lock) 
+<a name='L243'> 243 <font color='red'>{</font>
+<a name='L244'> 244   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L245'> 245 
+<a name='L246'> 246   <b>return</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>-&gt;holder == <a href='../S/163.html#L264' title='Defined at 264 in src/threads/thread.c.'>thread_current</a> ();
+<a name='L247'> 247 <font color='red'>}</font>
+<a name='L248'> 248 
+<a name='L249'> 249 <i><font color='green'>/* One semaphore in a list. */</font></i>
+<a name='L250'> 250 <b>struct</b> <a href='../R/795.html' title='Multiple refered from 2 places.'>semaphore_elem</a> 
+<a name='L251'> 251   <font color='red'>{</font>
+<a name='L252'> 252     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> elem;              <i><font color='green'>/* List element. */</font></i>
+<a name='L253'> 253     <b>struct</b> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>;         <i><font color='green'>/* This semaphore. */</font></i>
+<a name='L254'> 254   <font color='red'>}</font>;
+<a name='L255'> 255 
+<a name='L256'> 256 <i><font color='green'>/* Initializes condition variable COND.  A condition variable</font></i>
+<a name='L257'> 257 <i><font color='green'>   allows one piece of code to signal a condition and cooperating</font></i>
+<a name='L258'> 258 <i><font color='green'>   code to receive the signal and act upon it. */</font></i>
+<a name='L259'> 259 <b>void</b>
+<a name='L260'> 260 <a href='../R/378.html' title='Multiple refered from 2 places.'>cond_init</a> (<b>struct</b> condition *cond)
+<a name='L261'> 261 <font color='red'>{</font>
+<a name='L262'> 262   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (cond != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L263'> 263 
+<a name='L264'> 264   <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (&amp;cond-&gt;waiters);
+<a name='L265'> 265 <font color='red'>}</font>
+<a name='L266'> 266 
+<a name='L267'> 267 <i><font color='green'>/* Atomically releases LOCK and waits for COND to be signaled by</font></i>
+<a name='L268'> 268 <i><font color='green'>   some other piece of code.  After COND is signaled, LOCK is</font></i>
+<a name='L269'> 269 <i><font color='green'>   reacquired before returning.  LOCK must be held before calling</font></i>
+<a name='L270'> 270 <i><font color='green'>   this function.</font></i>
+<a name='L271'> 271 <i><font color='green'></font></i>
+<a name='L272'> 272 <i><font color='green'>   The monitor implemented by this function is "Mesa" style, not</font></i>
+<a name='L273'> 273 <i><font color='green'>   "Hoare" style, that is, sending and receiving a signal are not</font></i>
+<a name='L274'> 274 <i><font color='green'>   an atomic operation.  Thus, typically the caller must recheck</font></i>
+<a name='L275'> 275 <i><font color='green'>   the condition after the wait completes and, if necessary, wait</font></i>
+<a name='L276'> 276 <i><font color='green'>   again.</font></i>
+<a name='L277'> 277 <i><font color='green'></font></i>
+<a name='L278'> 278 <i><font color='green'>   A given condition variable is associated with only a single</font></i>
+<a name='L279'> 279 <i><font color='green'>   lock, but one lock may be associated with any number of</font></i>
+<a name='L280'> 280 <i><font color='green'>   condition variables.  That is, there is a one-to-many mapping</font></i>
+<a name='L281'> 281 <i><font color='green'>   from locks to condition variables.</font></i>
+<a name='L282'> 282 <i><font color='green'></font></i>
+<a name='L283'> 283 <i><font color='green'>   This function may sleep, so it must not be called within an</font></i>
+<a name='L284'> 284 <i><font color='green'>   interrupt handler.  This function may be called with</font></i>
+<a name='L285'> 285 <i><font color='green'>   interrupts disabled, but interrupts will be turned back on if</font></i>
+<a name='L286'> 286 <i><font color='green'>   we need to sleep. */</font></i>
+<a name='L287'> 287 <b>void</b>
+<a name='L288'> 288 <a href='../R/380.html' title='Multiple refered from 2 places.'>cond_wait</a> (<b>struct</b> condition *cond, <b>struct</b> lock *lock) 
+<a name='L289'> 289 <font color='red'>{</font>
+<a name='L290'> 290   <b>struct</b> <a href='../S/167.html#L250' title='Defined at 250 in src/threads/synch.c.'>semaphore_elem</a> waiter;
+<a name='L291'> 291 
+<a name='L292'> 292   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (cond != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L293'> 293   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L294'> 294   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> ());
+<a name='L295'> 295   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>));
+<a name='L296'> 296   
+<a name='L297'> 297   <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (&amp;waiter.<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>, 0);
+<a name='L298'> 298   <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (&amp;cond-&gt;waiters, &amp;waiter.elem);
+<a name='L299'> 299   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L300'> 300   <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;waiter.<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>);
+<a name='L301'> 301   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L302'> 302 <font color='red'>}</font>
+<a name='L303'> 303 
+<a name='L304'> 304 <i><font color='green'>/* If any threads are waiting on COND (protected by LOCK), then</font></i>
+<a name='L305'> 305 <i><font color='green'>   this function signals one of them to wake up from its wait.</font></i>
+<a name='L306'> 306 <i><font color='green'>   LOCK must be held before calling this function.</font></i>
+<a name='L307'> 307 <i><font color='green'></font></i>
+<a name='L308'> 308 <i><font color='green'>   An interrupt handler cannot acquire a lock, so it does not</font></i>
+<a name='L309'> 309 <i><font color='green'>   make sense to try to signal a condition variable within an</font></i>
+<a name='L310'> 310 <i><font color='green'>   interrupt handler. */</font></i>
+<a name='L311'> 311 <b>void</b>
+<a name='L312'> 312 <a href='../R/379.html' title='Multiple refered from 3 places.'>cond_signal</a> (<b>struct</b> condition *cond, <b>struct</b> lock *lock <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L313'> 313 <font color='red'>{</font>
+<a name='L314'> 314   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (cond != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L315'> 315   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L316'> 316   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!<a href='../S/168.html#L212' title='Defined at 212 in src/threads/interrupt.c.'>intr_context</a> ());
+<a name='L317'> 317   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/167.html#L242' title='Defined at 242 in src/threads/synch.c.'>lock_held_by_current_thread</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>));
+<a name='L318'> 318 
+<a name='L319'> 319   <b>if</b> (!<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (&amp;cond-&gt;waiters)) 
+<a name='L320'> 320     <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (&amp;<a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (<a href='../S/112.html#L260' title='Defined at 260 in src/lib/kernel/list.c.'>list_pop_front</a> (&amp;cond-&gt;waiters),
+<a name='L321'> 321                           <b>struct</b> <a href='../S/167.html#L250' title='Defined at 250 in src/threads/synch.c.'>semaphore_elem</a>, elem)-&gt;<a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a>);
+<a name='L322'> 322 <font color='red'>}</font>
+<a name='L323'> 323 
+<a name='L324'> 324 <i><font color='green'>/* Wakes up all threads, if any, waiting on COND (protected by</font></i>
+<a name='L325'> 325 <i><font color='green'>   LOCK).  LOCK must be held before calling this function.</font></i>
+<a name='L326'> 326 <i><font color='green'></font></i>
+<a name='L327'> 327 <i><font color='green'>   An interrupt handler cannot acquire a lock, so it does not</font></i>
+<a name='L328'> 328 <i><font color='green'>   make sense to try to signal a condition variable within an</font></i>
+<a name='L329'> 329 <i><font color='green'>   interrupt handler. */</font></i>
+<a name='L330'> 330 <b>void</b>
+<a name='L331'> 331 <a href='../S/155.html#L42' title='Refered from 42 in src/threads/synch.h.'>cond_broadcast</a> (<b>struct</b> condition *cond, <b>struct</b> lock *lock) 
+<a name='L332'> 332 <font color='red'>{</font>
+<a name='L333'> 333   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (cond != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L334'> 334   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L335'> 335 
+<a name='L336'> 336   <b>while</b> (!<a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (&amp;cond-&gt;waiters))
+<a name='L337'> 337     <a href='../S/167.html#L312' title='Defined at 312 in src/threads/synch.c.'>cond_signal</a> (cond, <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L338'> 338 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L45'>[^]</a><a href='#L331'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

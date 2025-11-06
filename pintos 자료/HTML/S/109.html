@@ -1,0 +1,148 @@
+<html>
+<head>
+<title>src/lib/kernel/debug.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/600.html'>kernel</a>/debug.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L19'>[^]</a><a href='#L117'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L19' title='Defined at 19.'>debug_panic</a>
+<li><a href='#L56' title='Defined at 56.'>print_stacktrace</a>
+<li><a href='#L117' title='Defined at 117.'>debug_backtrace_all</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='110.html'>console.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='146.html'>threads/switch.h</a>"
+<a name='L12'>  12 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='137.html'>devices/serial.h</a>"
+<a name='L14'>  14 <font color='darkred'>#include</font> "<a href='141.html'>devices/shutdown.h</a>"
+<a name='L15'>  15 
+<a name='L16'>  16 <i><font color='green'>/* Halts the OS, printing the source file name, line number, and</font></i>
+<a name='L17'>  17 <i><font color='green'>   function name, plus a user-specific message. */</font></i>
+<a name='L18'>  18 <b>void</b>
+<a name='L19'>  19 <a href='../S/104.html#L14' title='Refered from 14 in src/lib/debug.h.'>debug_panic</a> (<b>const</b> <b>char</b> *file, <b>int</b> line, <b>const</b> <b>char</b> *function,
+<a name='L20'>  20              <b>const</b> <b>char</b> *message, ...)
+<a name='L21'>  21 <font color='red'>{</font>
+<a name='L22'>  22   <b>static</b> <b>int</b> level;
+<a name='L23'>  23   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L24'>  24 
+<a name='L25'>  25   <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L26'>  26   <a href='../S/105.html#L74' title='Defined at 74 in src/lib/kernel/console.c.'>console_panic</a> ();
+<a name='L27'>  27 
+<a name='L28'>  28   level++;
+<a name='L29'>  29   <b>if</b> (level == 1) 
+<a name='L30'>  30     <font color='red'>{</font>
+<a name='L31'>  31       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Kernel PANIC at %s:%d in %s(): ", <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, line, function);
+<a name='L32'>  32 
+<a name='L33'>  33       <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, message);
+<a name='L34'>  34       <a href='../D/1079.html' title='Multiple defined in 2 places.'>vprintf</a> (message, args);
+<a name='L35'>  35       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\n");
+<a name='L36'>  36       <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L37'>  37 
+<a name='L38'>  38       <a href='../S/91.html#L13' title='Defined at 13 in src/lib/debug.c.'>debug_backtrace</a> ();
+<a name='L39'>  39     <font color='red'>}</font>
+<a name='L40'>  40   <b>else</b> <b>if</b> (level == 2)
+<a name='L41'>  41     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Kernel PANIC recursion at %s:%d in %s().\n",
+<a name='L42'>  42             <a href='../S/29.html#L7' title='Defined at 7 in src/filesys/file.c.'>file</a>, line, function);
+<a name='L43'>  43   <b>else</b> 
+<a name='L44'>  44     <font color='red'>{</font>
+<a name='L45'>  45       <i><font color='green'>/* Don't print anything: that's probably why we recursed. */</font></i>
+<a name='L46'>  46     <font color='red'>}</font>
+<a name='L47'>  47 
+<a name='L48'>  48   <a href='../S/142.html#L135' title='Defined at 135 in src/devices/serial.c.'>serial_flush</a> ();
+<a name='L49'>  49   <a href='../S/136.html#L29' title='Defined at 29 in src/devices/shutdown.c.'>shutdown</a> ();
+<a name='L50'>  50   <b>for</b> (;;);
+<a name='L51'>  51 <font color='red'>}</font>
+<a name='L52'>  52 
+<a name='L53'>  53 <i><font color='green'>/* Print call stack of a thread.</font></i>
+<a name='L54'>  54 <i><font color='green'>   The thread may be running, ready, or blocked. */</font></i>
+<a name='L55'>  55 <b>static</b> <b>void</b>
+<a name='L56'>  56 <a href='../S/109.html#L121' title='Refered from 121 in src/lib/kernel/debug.c.'>print_stacktrace</a>(<b>struct</b> thread *t, <b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>)
+<a name='L57'>  57 <font color='red'>{</font>
+<a name='L58'>  58   <b>void</b> *retaddr = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, **frame = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L59'>  59   <b>const</b> <b>char</b> *status = "UNKNOWN";
+<a name='L60'>  60 
+<a name='L61'>  61   <b>switch</b> (t-&gt;status) <font color='red'>{</font>
+<a name='L62'>  62     <b>case</b> THREAD_RUNNING:  
+<a name='L63'>  63       status = "RUNNING";
+<a name='L64'>  64       <b>break</b>;
+<a name='L65'>  65 
+<a name='L66'>  66     <b>case</b> THREAD_READY:  
+<a name='L67'>  67       status = "READY";
+<a name='L68'>  68       <b>break</b>;
+<a name='L69'>  69 
+<a name='L70'>  70     <b>case</b> THREAD_BLOCKED:  
+<a name='L71'>  71       status = "BLOCKED";
+<a name='L72'>  72       <b>break</b>;
+<a name='L73'>  73 
+<a name='L74'>  74     <b>default</b>:
+<a name='L75'>  75       <b>break</b>;
+<a name='L76'>  76   <font color='red'>}</font>
+<a name='L77'>  77 
+<a name='L78'>  78   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("Call stack of thread `%s' (status %s):", t-&gt;name, status);
+<a name='L79'>  79 
+<a name='L80'>  80   <b>if</b> (t == <a href='../S/163.html#L264' title='Defined at 264 in src/threads/thread.c.'>thread_current</a>()) 
+<a name='L81'>  81     <font color='red'>{</font>
+<a name='L82'>  82       frame = __builtin_frame_address (1);
+<a name='L83'>  83       retaddr = __builtin_return_address (0);
+<a name='L84'>  84     <font color='red'>}</font>
+<a name='L85'>  85   <b>else</b>
+<a name='L86'>  86     <font color='red'>{</font>
+<a name='L87'>  87       <i><font color='green'>/* Retrieve the values of the base and instruction pointers</font></i>
+<a name='L88'>  88 <i><font color='green'>         as they were saved when this thread called switch_threads. */</font></i>
+<a name='L89'>  89       <b>struct</b> <a href='../S/146.html#L6' title='Defined at 6 in src/threads/switch.h.'>switch_threads_frame</a> * saved_frame;
+<a name='L90'>  90 
+<a name='L91'>  91       saved_frame = (<b>struct</b> <a href='../S/146.html#L6' title='Defined at 6 in src/threads/switch.h.'>switch_threads_frame</a> *)t-&gt;stack;
+<a name='L92'>  92 
+<a name='L93'>  93       <i><font color='green'>/* Skip threads if they have been added to the all threads</font></i>
+<a name='L94'>  94 <i><font color='green'>         list, but have never been scheduled.</font></i>
+<a name='L95'>  95 <i><font color='green'>         We can identify because their `stack' member either points </font></i>
+<a name='L96'>  96 <i><font color='green'>         at the top of their kernel stack page, or the </font></i>
+<a name='L97'>  97 <i><font color='green'>         switch_threads_frame's 'eip' member points at switch_entry.</font></i>
+<a name='L98'>  98 <i><font color='green'>         See also threads.c. */</font></i>
+<a name='L99'>  99       <b>if</b> (t-&gt;stack == (<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *)t + <a href='../S/153.html#L20' title='Defined at 20 in src/threads/vaddr.h.'>PGSIZE</a> || saved_frame-&gt;eip == switch_entry)
+<a name='L100'> 100         <font color='red'>{</font>
+<a name='L101'> 101           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" thread was never scheduled.\n");
+<a name='L102'> 102           <b>return</b>;
+<a name='L103'> 103         <font color='red'>}</font>
+<a name='L104'> 104 
+<a name='L105'> 105       frame = (<b>void</b> **) saved_frame-&gt;ebp;
+<a name='L106'> 106       retaddr = (<b>void</b> *) saved_frame-&gt;eip;
+<a name='L107'> 107     <font color='red'>}</font>
+<a name='L108'> 108 
+<a name='L109'> 109   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" %p", retaddr);
+<a name='L110'> 110   <b>for</b> (; (<a href='../S/87.html#L36' title='Defined at 36 in src/lib/stdint.h.'>uintptr_t</a>) frame &gt;= 0x1000 &amp;&amp; frame[0] != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>; frame = frame[0])
+<a name='L111'> 111     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" %p", frame[1]);
+<a name='L112'> 112   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (".\n");
+<a name='L113'> 113 <font color='red'>}</font>
+<a name='L114'> 114 
+<a name='L115'> 115 <i><font color='green'>/* Prints call stack of all threads. */</font></i>
+<a name='L116'> 116 <b>void</b>
+<a name='L117'> 117 debug_backtrace_all (<b>void</b>)
+<a name='L118'> 118 <font color='red'>{</font>
+<a name='L119'> 119   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> oldlevel = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L120'> 120 
+<a name='L121'> 121   <a href='../S/163.html#L328' title='Defined at 328 in src/threads/thread.c.'>thread_foreach</a> (<a href='../S/109.html#L56' title='Defined at 56 in src/lib/kernel/debug.c.'>print_stacktrace</a>, 0);
+<a name='L122'> 122   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (oldlevel);
+<a name='L123'> 123 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L19'>[^]</a><a href='#L117'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

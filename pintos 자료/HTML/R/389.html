@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>create</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/51.html#L28'>create</a>             28 src/examples/cp.c   if (!create (argv[2], filesize (in_fd))) 
+<a href='../S/55.html#L317'>create</a>            317 src/examples/insult.c 	  create (argv[i], 0);
+<a href='../S/60.html#L34'>create</a>             34 src/examples/mcp.c   if (!create (argv[2], size)) 
+<a href='../S/210.html#L22'>create</a>             22 src/tests/filesys/base/syn-read.c   CHECK (create (file_name, sizeof buf), "create \"%s\"", file_name);
+<a href='../S/209.html#L19'>create</a>             19 src/tests/filesys/base/syn-remove.c   CHECK (create (file_name, sizeof buf1), "create \"%s\"", file_name);
+<a href='../S/212.html#L22'>create</a>             22 src/tests/filesys/base/syn-write.c   CHECK (create (file_name, sizeof buf1), "create \"%s\"", file_name);
+<a href='../S/251.html#L11'>create</a>             11 src/tests/filesys/extended/dir-mkdir.c   CHECK (create ("a/b", 512), "create \"a/b\"");
+<a href='../S/222.html#L12'>create</a>             12 src/tests/filesys/extended/dir-over-file.c   CHECK (!create ("abc", 0), "create \"abc\" (must return false)");
+<a href='../S/269.html#L47'>create</a>             47 src/tests/filesys/extended/dir-rm-cwd.c       CHECK (!create ("x", 512), "create \"x\" (must fail)");
+<a href='../S/263.html#L12'>create</a>             12 src/tests/filesys/extended/dir-rm-root.c   CHECK (create ("/a", 243), "create \"/a\"");
+<a href='../S/220.html#L11'>create</a>             11 src/tests/filesys/extended/dir-under-file.c   CHECK (create ("abc", 0), "create \"abc\"");
+<a href='../S/217.html#L34'>create</a>             34 src/tests/filesys/extended/dir-vine.c       if (!create (file_name, 0))
+<a href='../S/262.html#L17'>create</a>             17 src/tests/filesys/extended/grow-sparse.c   CHECK (create (file_name, 0), "create \"%s\"", file_name);
+<a href='../S/294.html#L41'>create</a>             41 src/tests/filesys/extended/grow-two-files.c   CHECK (create ("a", 0), "create \"a\"");
+<a href='../S/294.html#L42'>create</a>             42 src/tests/filesys/extended/grow-two-files.c   CHECK (create ("b", 0), "create \"b\"");
+<a href='../S/227.html#L66'>create</a>             66 src/tests/filesys/extended/mk-tree.c   CHECK (create (file, 0), "create \"%s\"", file);
+<a href='../S/248.html#L21'>create</a>             21 src/tests/filesys/extended/syn-rw.c   CHECK (create (file_name, 0), "create \"%s\"", file_name);
+<a href='../S/233.html#L57'>create</a>             57 src/tests/filesys/extended/tar.c   if (!create (archive_name, 0)) 
+<a href='../S/296.html#L15'>create</a>             15 src/tests/filesys/seq-test.c   CHECK (create (file_name, initial_size), "create \"%s\"", file_name);
+<a href='../S/483.html#L11'>create</a>             11 src/tests/userprog/create-bad-ptr.c   msg ("create(0x20101234): %d", create ((char *) 0x20101234, 0));
+<a href='../S/500.html#L13'>create</a>             13 src/tests/userprog/create-bound.c        create (copy_string_across_boundary ("quux.dat"), 0));
+<a href='../S/441.html#L9'>create</a>              9 src/tests/userprog/create-empty.c   msg ("create(\"\"): %d", create ("", 0));
+<a href='../S/502.html#L11'>create</a>             11 src/tests/userprog/create-exists.c   CHECK (create ("quux.dat", 0), "create quux.dat");
+<a href='../S/502.html#L12'>create</a>             12 src/tests/userprog/create-exists.c   CHECK (create ("warble.dat", 0), "create warble.dat");
+<a href='../S/502.html#L13'>create</a>             13 src/tests/userprog/create-exists.c   CHECK (!create ("quux.dat", 0), "try to re-create quux.dat");
+<a href='../S/502.html#L14'>create</a>             14 src/tests/userprog/create-exists.c   CHECK (create ("baffle.dat", 0), "create baffle.dat");
+<a href='../S/502.html#L15'>create</a>             15 src/tests/userprog/create-exists.c   CHECK (!create ("warble.dat", 0), "try to re-create quux.dat");
+<a href='../S/421.html#L16'>create</a>             16 src/tests/userprog/create-long.c   msg ("create(\"x...\"): %d", create (name, 0));
+<a href='../S/521.html#L9'>create</a>              9 src/tests/userprog/create-normal.c   CHECK (create ("quux.dat", 0), "create quux.dat");
+<a href='../S/390.html#L10'>create</a>             10 src/tests/userprog/create-null.c   msg ("create(NULL): %d", create (NULL, 0));
+<a href='../S/453.html#L13'>create</a>             13 src/tests/userprog/write-normal.c   CHECK (create ("test.txt", sizeof sample - 1), "create \"test.txt\"");
+<a href='../S/366.html#L19'>create</a>             19 src/tests/vm/child-mm-wrt.c   CHECK (create ("sample.txt", sizeof sample), "create \"sample.txt\"");
+<a href='../S/385.html#L30'>create</a>             30 src/tests/vm/mmap-remove.c   CHECK (create ("another", 4096 * 10), "create \"another\"");
+<a href='../S/309.html#L23'>create</a>             23 src/tests/vm/mmap-shuffle.c   CHECK (create ("buffer", SIZE), "create \"buffer\"");
+<a href='../S/336.html#L21'>create</a>             21 src/tests/vm/mmap-write.c   CHECK (create ("sample.txt", strlen (sample)), "create \"sample.txt\"");
+<a href='../S/327.html#L16'>create</a>             16 src/tests/vm/mmap-zero.c   CHECK (create ("empty", 0), "create empty file \"empty\"");
+<a href='../S/350.html#L43'>create</a>             43 src/tests/vm/page-merge-seq.c   create ("buffer", CHUNK_SIZE);
+<a href='../S/339.html#L54'>create</a>             54 src/tests/vm/parallel-merge.c       create (fn, CHUNK_SIZE);
+<a href='../S/369.html#L21'>create</a>             21 src/tests/vm/pt-grow-stk-sc.c   CHECK (create ("sample.txt", slen), "create \"sample.txt\"");
+<a href='../S/75.html#L64'>create</a>             64 src/userprog/pagedir.c   ASSERT (!create || is_user_vaddr (vaddr));
+<a href='../S/75.html#L71'>create</a>             71 src/userprog/pagedir.c       if (create)
+</pre>
+</body>
+</html>

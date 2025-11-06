@@ -1,0 +1,33 @@
+<html>
+<head>
+<title>uintptr_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/91.html#L20'>uintptr_t</a>          20 src/lib/debug.c        (uintptr_t) frame &gt;= 0x1000 &amp;&amp; frame[0] != NULL;
+<a href='../S/109.html#L110'>uintptr_t</a>         110 src/lib/kernel/debug.c   for (; (uintptr_t) frame &gt;= 0x1000 &amp;&amp; frame[0] != NULL; frame = frame[0])
+<a href='../S/115.html#L312'>uintptr_t</a>         312 src/lib/stdio.c             format_integer ((uintptr_t) p, false, false,
+<a href='../S/115.html#L593'>uintptr_t</a>         593 src/lib/stdio.c hex_dump (uintptr_t ofs, const void *buf_, size_t size, bool ascii)
+<a href='../S/84.html#L27'>uintptr_t</a>          27 src/lib/stdio.h void hex_dump (uintptr_t ofs, const void *, size_t size, bool ascii);
+<a href='../S/496.html#L17'>uintptr_t</a>          17 src/tests/userprog/boundary.c   char *p = (char *) ROUND_UP ((uintptr_t) dst, 4096);
+<a href='../S/319.html#L12'>uintptr_t</a>          12 src/tests/vm/mmap-over-code.c   uintptr_t test_main_page = ROUND_DOWN ((uintptr_t) test_main, 4096);
+<a href='../S/355.html#L14'>uintptr_t</a>          14 src/tests/vm/mmap-over-data.c   uintptr_t x_page = ROUND_DOWN ((uintptr_t) &amp;x, 4096);
+<a href='../S/344.html#L13'>uintptr_t</a>          13 src/tests/vm/mmap-over-stk.c   uintptr_t handle_page = ROUND_DOWN ((uintptr_t) &amp;handle, 4096);
+<a href='../S/156.html#L168'>uintptr_t</a>         168 src/threads/init.c       uintptr_t paddr = page * PGSIZE;
+<a href='../S/162.html#L33'>uintptr_t</a>          33 src/threads/pte.h   return ((uintptr_t) va &amp; PTMASK) &gt;&gt; PTSHIFT;
+<a href='../S/162.html#L37'>uintptr_t</a>          37 src/threads/pte.h static inline uintptr_t pd_no (const void *va) {
+<a href='../S/162.html#L38'>uintptr_t</a>          38 src/threads/pte.h   return (uintptr_t) va &gt;&gt; PDSHIFT;
+<a href='../S/153.html#L25'>uintptr_t</a>          25 src/threads/vaddr.h   return (uintptr_t) va &amp; PGMASK;
+<a href='../S/153.html#L29'>uintptr_t</a>          29 src/threads/vaddr.h static inline uintptr_t pg_no (const void *va) {
+<a href='../S/153.html#L30'>uintptr_t</a>          30 src/threads/vaddr.h   return (uintptr_t) va &gt;&gt; PGBITS;
+<a href='../S/153.html#L35'>uintptr_t</a>          35 src/threads/vaddr.h   return (void *) (((uintptr_t) va + PGSIZE - 1) &amp; ~PGMASK);
+<a href='../S/153.html#L40'>uintptr_t</a>          40 src/threads/vaddr.h   return (void *) ((uintptr_t) va &amp; ~PGMASK);
+<a href='../S/153.html#L72'>uintptr_t</a>          72 src/threads/vaddr.h ptov (uintptr_t paddr)
+<a href='../S/153.html#L81'>uintptr_t</a>          81 src/threads/vaddr.h static inline uintptr_t
+<a href='../S/153.html#L86'>uintptr_t</a>          86 src/threads/vaddr.h   return (uintptr_t) vaddr - (uintptr_t) PHYS_BASE;
+<a href='../S/75.html#L241'>uintptr_t</a>         241 src/userprog/pagedir.c   uintptr_t pd;
+</pre>
+</body>
+</html>

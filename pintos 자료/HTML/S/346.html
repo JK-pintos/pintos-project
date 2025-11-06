@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>src/tests/vm/page-shuffle.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/page-shuffle.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Shuffles a 128 kB data buffer 10 times, printing the checksum</font></i>
+<a name='L2'>   2 <i><font color='green'>   after each time. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='300.html'>tests/cksum.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#define</font> <a href='../R/194.html' title='Multiple refered from 15 places.'>SIZE</a> (128 * 1024)
+<a name='L11'>  11 
+<a name='L12'>  12 <b>static</b> <b>char</b> buf[<a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>];
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b>
+<a name='L15'>  15 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L18'>  18 
+<a name='L19'>  19   <i><font color='green'>/* Initialize. */</font></i>
+<a name='L20'>  20   <b>for</b> (i = 0; i &lt; <b>sizeof</b> buf; i++)
+<a name='L21'>  21     buf[i] = i * 257;
+<a name='L22'>  22   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("init: cksum=%lu", <a href='../S/592.html#L63' title='Defined at 63 in src/tests/cksum.c.'>cksum</a> (buf, <b>sizeof</b> buf));
+<a name='L23'>  23     
+<a name='L24'>  24   <i><font color='green'>/* Shuffle repeatedly. */</font></i>
+<a name='L25'>  25   <b>for</b> (i = 0; i &lt; 10; i++)
+<a name='L26'>  26     <font color='red'>{</font>
+<a name='L27'>  27       <a href='../D/915.html' title='Multiple defined in 3 places.'>shuffle</a> (buf, <b>sizeof</b> buf, 1);
+<a name='L28'>  28       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("shuffle %zu: cksum=%lu", i, <a href='../S/592.html#L63' title='Defined at 63 in src/tests/cksum.c.'>cksum</a> (buf, <b>sizeof</b> buf));
+<a name='L29'>  29     <font color='red'>}</font>
+<a name='L30'>  30 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L15'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

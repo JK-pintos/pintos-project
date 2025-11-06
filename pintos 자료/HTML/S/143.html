@@ -1,0 +1,93 @@
+<html>
+<head>
+<title>src/devices/speaker.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/speaker.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L48'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>speaker_on</a>
+<li><a href='#L39' title='Defined at 39.'>speaker_off</a>
+<li><a href='#L48' title='Defined at 48.'>speaker_beep</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='121.html'>devices/speaker.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> "<a href='139.html'>devices/pit.h</a>"
+<a name='L3'>   3 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Speaker port enable I/O register. */</font></i>
+<a name='L8'>   8 <font color='darkred'>#define</font> <a href='../R/198.html' title='Multiple refered from 2 places.'>SPEAKER_PORT_GATE</a>       0x61
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Speaker port enable bits. */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> <a href='../R/197.html' title='Multiple refered from 2 places.'>SPEAKER_GATE_ENABLE</a>     0x03
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* Sets the PC speaker to emit a tone at the given FREQUENCY, in</font></i>
+<a name='L14'>  14 <i><font color='green'>   Hz. */</font></i>
+<a name='L15'>  15 <b>void</b>
+<a name='L16'>  16 <a href='../R/826.html' title='Multiple refered from 2 places.'>speaker_on</a> (<b>int</b> frequency)
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>if</b> (frequency &gt;= 20 &amp;&amp; frequency &lt;= 20000)
+<a name='L19'>  19     <font color='red'>{</font>
+<a name='L20'>  20       <i><font color='green'>/* Set the timer channel that's connected to the speaker to</font></i>
+<a name='L21'>  21 <i><font color='green'>         output a square wave at the given FREQUENCY, then</font></i>
+<a name='L22'>  22 <i><font color='green'>         connect the timer channel output to the speaker. */</font></i>
+<a name='L23'>  23       <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L24'>  24       <a href='../S/118.html#L46' title='Defined at 46 in src/devices/pit.c.'>pit_configure_channel</a> (2, 3, frequency);
+<a name='L25'>  25       <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/143.html#L8' title='Defined at 8 in src/devices/speaker.c.'>SPEAKER_PORT_GATE</a>, <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/143.html#L8' title='Defined at 8 in src/devices/speaker.c.'>SPEAKER_PORT_GATE</a>) | <a href='../S/143.html#L11' title='Defined at 11 in src/devices/speaker.c.'>SPEAKER_GATE_ENABLE</a>);
+<a name='L26'>  26       <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L27'>  27     <font color='red'>}</font>
+<a name='L28'>  28   <b>else</b>
+<a name='L29'>  29     <font color='red'>{</font>
+<a name='L30'>  30       <i><font color='green'>/* FREQUENCY is outside the range of normal human hearing.</font></i>
+<a name='L31'>  31 <i><font color='green'>         Just turn off the speaker. */</font></i>
+<a name='L32'>  32       <a href='../S/143.html#L39' title='Defined at 39 in src/devices/speaker.c.'>speaker_off</a> ();
+<a name='L33'>  33     <font color='red'>}</font>
+<a name='L34'>  34 <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36 <i><font color='green'>/* Turn off the PC speaker, by disconnecting the timer channel's</font></i>
+<a name='L37'>  37 <i><font color='green'>   output from the speaker. */</font></i>
+<a name='L38'>  38 <b>void</b>
+<a name='L39'>  39 <a href='../R/825.html' title='Multiple refered from 3 places.'>speaker_off</a> (<b>void</b>)
+<a name='L40'>  40 <font color='red'>{</font>
+<a name='L41'>  41   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L42'>  42   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/143.html#L8' title='Defined at 8 in src/devices/speaker.c.'>SPEAKER_PORT_GATE</a>, <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (<a href='../S/143.html#L8' title='Defined at 8 in src/devices/speaker.c.'>SPEAKER_PORT_GATE</a>) &amp; ~<a href='../S/143.html#L11' title='Defined at 11 in src/devices/speaker.c.'>SPEAKER_GATE_ENABLE</a>);
+<a name='L43'>  43   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L44'>  44 <font color='red'>}</font>
+<a name='L45'>  45 
+<a name='L46'>  46 <i><font color='green'>/* Briefly beep the PC speaker. */</font></i>
+<a name='L47'>  47 <b>void</b>
+<a name='L48'>  48 <a href='../R/824.html' title='Multiple refered from 2 places.'>speaker_beep</a> (<b>void</b>)
+<a name='L49'>  49 <font color='red'>{</font>
+<a name='L50'>  50   <i><font color='green'>/* Only attempt to beep the speaker if interrupts are enabled,</font></i>
+<a name='L51'>  51 <i><font color='green'>     because we don't want to freeze the machine during the beep.</font></i>
+<a name='L52'>  52 <i><font color='green'>     We could add a hook to the timer interrupt to avoid that</font></i>
+<a name='L53'>  53 <i><font color='green'>     problem, but then we'd risk failing to ever stop the beep if</font></i>
+<a name='L54'>  54 <i><font color='green'>     Pintos crashes for some unrelated reason.  There's nothing</font></i>
+<a name='L55'>  55 <i><font color='green'>     more annoying than a machine whose beeping you can't stop</font></i>
+<a name='L56'>  56 <i><font color='green'>     without a power cycle.</font></i>
+<a name='L57'>  57 <i><font color='green'></font></i>
+<a name='L58'>  58 <i><font color='green'>     We can't just enable interrupts while we sleep.  For one</font></i>
+<a name='L59'>  59 <i><font color='green'>     thing, we get called (indirectly) from printf, which should</font></i>
+<a name='L60'>  60 <i><font color='green'>     always work, even during boot before we're ready to enable</font></i>
+<a name='L61'>  61 <i><font color='green'>     interrupts. */</font></i>
+<a name='L62'>  62   <b>if</b> (<a href='../S/168.html#L65' title='Defined at 65 in src/threads/interrupt.c.'>intr_get_level</a> () == INTR_ON)
+<a name='L63'>  63     <font color='red'>{</font>
+<a name='L64'>  64       <a href='../S/143.html#L16' title='Defined at 16 in src/devices/speaker.c.'>speaker_on</a> (440);
+<a name='L65'>  65       <a href='../S/125.html#L102' title='Defined at 102 in src/devices/timer.c.'>timer_msleep</a> (250);
+<a name='L66'>  66       <a href='../S/143.html#L39' title='Defined at 39 in src/devices/speaker.c.'>speaker_off</a> ();
+<a name='L67'>  67     <font color='red'>}</font>
+<a name='L68'>  68 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L48'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

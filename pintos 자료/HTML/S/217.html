@@ -1,0 +1,108 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/dir-vine.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/dir-vine.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L17'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L17' title='Defined at 17.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Create a very deep "vine" of directories: /dir0/dir1/dir2/...</font></i>
+<a name='L2'>   2 <i><font color='green'>   and an ordinary file in each of them, until we fill up the</font></i>
+<a name='L3'>   3 <i><font color='green'>   disk.</font></i>
+<a name='L4'>   4 <i><font color='green'>   </font></i>
+<a name='L5'>   5 <i><font color='green'>   Then delete most of them, for two reasons.  First, "tar"</font></i>
+<a name='L6'>   6 <i><font color='green'>   limits file names to 100 characters (which could be extended</font></i>
+<a name='L7'>   7 <i><font color='green'>   to 256 without much trouble).  Second, a full disk has no room</font></i>
+<a name='L8'>   8 <i><font color='green'>   for the tar archive. */</font></i>
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L14'>  14 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L15'>  15 
+<a name='L16'>  16 <b>void</b>
+<a name='L17'>  17 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L18'>  18 <font color='red'>{</font>
+<a name='L19'>  19   <b>int</b> i;
+<a name='L20'>  20 
+<a name='L21'>  21   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("creating many levels of files and directories...");
+<a name='L22'>  22   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L23'>  23   CHECK (<a href='../S/97.html#L163' title='Defined at 163 in src/lib/user/syscall.c.'>mkdir</a> ("start"), "mkdir \"start\"");
+<a name='L24'>  24   CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> ("start"), "chdir \"start\"");
+<a name='L25'>  25   <b>for</b> (i = 0; ; i++) 
+<a name='L26'>  26     <font color='red'>{</font>
+<a name='L27'>  27       <b>char</b> name[3][<a href='../S/100.html#L16' title='Defined at 16 in src/lib/user/syscall.h.'>READDIR_MAX_LEN</a> + 1];
+<a name='L28'>  28       <b>char</b> file_name[16], dir_name[16];
+<a name='L29'>  29       <b>char</b> contents[128];
+<a name='L30'>  30       <b>int</b> fd;
+<a name='L31'>  31 
+<a name='L32'>  32       <i><font color='green'>/* Create file. */</font></i>
+<a name='L33'>  33       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (file_name, <b>sizeof</b> file_name, "file%d", i);
+<a name='L34'>  34       <b>if</b> (!<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (file_name, 0))
+<a name='L35'>  35         <b>break</b>;
+<a name='L36'>  36       CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a name='L37'>  37       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (contents, <b>sizeof</b> contents, "contents %d\n", i);
+<a name='L38'>  38       <b>if</b> (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, contents, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (contents)) != (<b>int</b>) <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (contents)) 
+<a name='L39'>  39         <font color='red'>{</font>
+<a name='L40'>  40           CHECK (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (file_name), "remove \"%s\"", file_name);
+<a name='L41'>  41           <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L42'>  42           <b>break</b>;
+<a name='L43'>  43         <font color='red'>}</font>
+<a name='L44'>  44       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L45'>  45       
+<a name='L46'>  46       <i><font color='green'>/* Create directory. */</font></i>
+<a name='L47'>  47       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (dir_name, <b>sizeof</b> dir_name, "dir%d", i);
+<a name='L48'>  48       <b>if</b> (!<a href='../S/97.html#L163' title='Defined at 163 in src/lib/user/syscall.c.'>mkdir</a> (dir_name)) 
+<a name='L49'>  49         <font color='red'>{</font>
+<a name='L50'>  50           CHECK (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (file_name), "remove \"%s\"", file_name);
+<a name='L51'>  51           <b>break</b>; 
+<a name='L52'>  52         <font color='red'>}</font>
+<a name='L53'>  53 
+<a name='L54'>  54       <i><font color='green'>/* Check for file and directory. */</font></i>
+<a name='L55'>  55       CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (".")) &gt; 1, "open \".\"");
+<a name='L56'>  56       CHECK (<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (fd, name[0]), "readdir \".\"");
+<a name='L57'>  57       CHECK (<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (fd, name[1]), "readdir \".\"");
+<a name='L58'>  58       CHECK (!<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (fd, name[2]), "readdir \".\" (should fail)");
+<a name='L59'>  59       CHECK ((!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name[0], dir_name) &amp;&amp; !<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name[1], file_name))
+<a name='L60'>  60              || (!<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name[1], dir_name) &amp;&amp; !<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name[0], file_name)),
+<a name='L61'>  61              "names should be \"%s\" and \"%s\", "
+<a name='L62'>  62              "actually \"%s\" and \"%s\"",
+<a name='L63'>  63              file_name, dir_name, name[0], name[1]);
+<a name='L64'>  64       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L65'>  65 
+<a name='L66'>  66       <i><font color='green'>/* Descend into directory. */</font></i>
+<a name='L67'>  67       CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> (dir_name), "chdir \"%s\"", dir_name);
+<a name='L68'>  68     <font color='red'>}</font>
+<a name='L69'>  69   CHECK (i &gt; 200, "created files and directories only to level %d", i);
+<a name='L70'>  70   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L71'>  71 
+<a name='L72'>  72   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("removing all but top 10 levels of files and directories...");
+<a name='L73'>  73   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L74'>  74   <b>while</b> (i-- &gt; 10) 
+<a name='L75'>  75     <font color='red'>{</font>
+<a name='L76'>  76       <b>char</b> file_name[16], dir_name[16];
+<a name='L77'>  77 
+<a name='L78'>  78       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (file_name, <b>sizeof</b> file_name, "file%d", i);
+<a name='L79'>  79       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (dir_name, <b>sizeof</b> dir_name, "dir%d", i);
+<a name='L80'>  80       CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> (".."), "chdir \"..\"");
+<a name='L81'>  81       CHECK (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (dir_name), "remove \"%s\"", dir_name);
+<a name='L82'>  82       CHECK (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (file_name), "remove \"%s\"", file_name);
+<a name='L83'>  83     <font color='red'>}</font>
+<a name='L84'>  84   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L85'>  85 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L17'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

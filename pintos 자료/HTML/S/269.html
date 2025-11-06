@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/dir-rm-cwd.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/dir-rm-cwd.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L24'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>wrap_open</a>
+<li><a href='#L24' title='Defined at 24.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tries to remove the current directory, which may succeed or</font></i>
+<a name='L2'>   2 <i><font color='green'>   fail.  The requirements in each case are different; refer to</font></i>
+<a name='L3'>   3 <i><font color='green'>   the assignment for details. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <b>static</b> <b>int</b>
+<a name='L10'>  10 <a href='../R/974.html' title='Multiple refered from 5 places.'>wrap_open</a> (<b>const</b> <b>char</b> *name) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <b>static</b> <b>int</b> fds[8], fd_cnt;
+<a name='L13'>  13   <b>int</b> fd, i;
+<a name='L14'>  14 
+<a name='L15'>  15   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (name)) &gt; 1, "open \"%s\"", name);
+<a name='L16'>  16   <b>for</b> (i = 0; i &lt; fd_cnt; i++)
+<a name='L17'>  17     <b>if</b> (fds[i] == fd)
+<a name='L18'>  18       <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("fd returned is not unique");
+<a name='L19'>  19   fds[fd_cnt++] = fd;
+<a name='L20'>  20   <b>return</b> fd;
+<a name='L21'>  21 <font color='red'>}</font>
+<a name='L22'>  22 
+<a name='L23'>  23 <b>void</b>
+<a name='L24'>  24 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L25'>  25 <font color='red'>{</font>
+<a name='L26'>  26   <b>int</b> root_fd, a_fd0;
+<a name='L27'>  27   <b>char</b> name[<a href='../S/100.html#L16' title='Defined at 16 in src/lib/user/syscall.h.'>READDIR_MAX_LEN</a> + 1];
+<a name='L28'>  28 
+<a name='L29'>  29   root_fd = <a href='../S/269.html#L10' title='Defined at 10 in src/tests/filesys/extended/dir-rm-cwd.c.'>wrap_open</a> ("/");
+<a name='L30'>  30   CHECK (<a href='../S/97.html#L163' title='Defined at 163 in src/lib/user/syscall.c.'>mkdir</a> ("a"), "mkdir \"a\"");
+<a name='L31'>  31 
+<a name='L32'>  32   a_fd0 = <a href='../S/269.html#L10' title='Defined at 10 in src/tests/filesys/extended/dir-rm-cwd.c.'>wrap_open</a> ("/a");
+<a name='L33'>  33   CHECK (!<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (a_fd0, name), "verify \"/a\" is empty");
+<a name='L34'>  34   CHECK (<a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (root_fd) != <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (a_fd0),
+<a name='L35'>  35          "\"/\" and \"/a\" must have different inumbers");
+<a name='L36'>  36 
+<a name='L37'>  37   CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> ("a"), "chdir \"a\"");
+<a name='L38'>  38 
+<a name='L39'>  39   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("try to remove \"/a\"");
+<a name='L40'>  40   <b>if</b> (<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> ("/a"))
+<a name='L41'>  41     <font color='red'>{</font>
+<a name='L42'>  42       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("remove successful");
+<a name='L43'>  43 
+<a name='L44'>  44       CHECK (<a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("/a") == -1, "open \"/a\" (must fail)");
+<a name='L45'>  45       CHECK (<a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (".") == -1, "open \".\" (must fail)");
+<a name='L46'>  46       CHECK (<a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("..") == -1, "open \"..\" (must fail)");
+<a name='L47'>  47       CHECK (!<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("x", 512), "create \"x\" (must fail)");
+<a name='L48'>  48     <font color='red'>}</font>
+<a name='L49'>  49   <b>else</b>
+<a name='L50'>  50     <font color='red'>{</font>
+<a name='L51'>  51       <b>int</b> a_fd1, a_fd2, a_fd3;
+<a name='L52'>  52 
+<a name='L53'>  53       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("remove failed");
+<a name='L54'>  54 
+<a name='L55'>  55       CHECK (!<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> ("../a"), "try to remove \"../a\" (must fail)");
+<a name='L56'>  56       CHECK (!<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> (".././a"), "try to remove \".././a\" (must fail)");
+<a name='L57'>  57       CHECK (!<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> ("/./a"), "try to remove \"/./a\" (must fail)");
+<a name='L58'>  58 
+<a name='L59'>  59       a_fd1 = <a href='../S/269.html#L10' title='Defined at 10 in src/tests/filesys/extended/dir-rm-cwd.c.'>wrap_open</a> ("/a");
+<a name='L60'>  60       a_fd2 = <a href='../S/269.html#L10' title='Defined at 10 in src/tests/filesys/extended/dir-rm-cwd.c.'>wrap_open</a> (".");
+<a name='L61'>  61       CHECK (<a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (a_fd1) == <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (a_fd2),
+<a name='L62'>  62              "\"/a\" and \".\" must have same inumber");
+<a name='L63'>  63       CHECK (<a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (root_fd) != <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (a_fd1),
+<a name='L64'>  64              "\"/\" and \"/a\" must have different inumbers");
+<a name='L65'>  65 
+<a name='L66'>  66       CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> ("/a"), "chdir \"/a\"");
+<a name='L67'>  67       a_fd3 = <a href='../S/269.html#L10' title='Defined at 10 in src/tests/filesys/extended/dir-rm-cwd.c.'>wrap_open</a> (".");
+<a name='L68'>  68       CHECK (<a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (a_fd3) == <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (a_fd1),
+<a name='L69'>  69              "\".\" must have same inumber as before");
+<a name='L70'>  70 
+<a name='L71'>  71       CHECK (<a href='../S/97.html#L157' title='Defined at 157 in src/lib/user/syscall.c.'>chdir</a> ("/"), "chdir \"/\"");
+<a name='L72'>  72       CHECK (!<a href='../S/97.html#L97' title='Defined at 97 in src/lib/user/syscall.c.'>remove</a> ("a"), "try to remove \"a\" (must fail: still open)");
+<a name='L73'>  73     <font color='red'>}</font>
+<a name='L74'>  74   CHECK (!<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (a_fd0, name), "verify \"/a\" is empty");
+<a name='L75'>  75 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a><a href='#L24'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

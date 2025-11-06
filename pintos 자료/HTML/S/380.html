@@ -1,0 +1,65 @@
+<html>
+<head>
+<title>src/tests/vm/child-sort.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/child-sort.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Reads a 128 kB file into static data and "sorts" the bytes in</font></i>
+<a name='L2'>   2 <i><font color='green'>   it, using counting sort, a single-pass algorithm.  The sorted</font></i>
+<a name='L3'>   3 <i><font color='green'>   data is written back to the same file in-place. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>const</b> <b>char</b> *test_name = "child-sort";
+<a name='L11'>  11 
+<a name='L12'>  12 <b>unsigned</b> <b>char</b> buf[128 * 1024];
+<a name='L13'>  13 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> histogram[256];
+<a name='L14'>  14 
+<a name='L15'>  15 <b>int</b>
+<a name='L16'>  16 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>, <b>char</b> *argv[]) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>int</b> handle;
+<a name='L19'>  19   <b>unsigned</b> <b>char</b> *p;
+<a name='L20'>  20   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size;
+<a name='L21'>  21   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L22'>  22 
+<a name='L23'>  23   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L24'>  24 
+<a name='L25'>  25   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (argv[1])) &gt; 1, "open \"%s\"", argv[1]);
+<a name='L26'>  26 
+<a name='L27'>  27   size = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (handle, buf, <b>sizeof</b> buf);
+<a name='L28'>  28   <b>for</b> (i = 0; i &lt; size; i++)
+<a name='L29'>  29     histogram[buf[i]]++;
+<a name='L30'>  30   p = buf;
+<a name='L31'>  31   <b>for</b> (i = 0; i &lt; <b>sizeof</b> histogram / <b>sizeof</b> *histogram; i++) 
+<a name='L32'>  32     <font color='red'>{</font>
+<a name='L33'>  33       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> j = histogram[i];
+<a name='L34'>  34       <b>while</b> (j-- &gt; 0)
+<a name='L35'>  35         *p++ = i;
+<a name='L36'>  36     <font color='red'>}</font>
+<a name='L37'>  37   <a href='../S/97.html#L127' title='Defined at 127 in src/lib/user/syscall.c.'>seek</a> (handle, 0);
+<a name='L38'>  38   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, buf, size);
+<a name='L39'>  39   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L40'>  40   
+<a name='L41'>  41   <b>return</b> 123;
+<a name='L42'>  42 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L16'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

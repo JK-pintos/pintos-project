@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>src/tests/threads/alarm-simultaneous.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/alarm-simultaneous.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L79'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>test_alarm_simultaneous</a>
+<li><a href='#L33' title='Defined at 33.'>test_sleep</a>
+<li><a href='#L79' title='Defined at 79.'>sleeper</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Creates N threads, each of which sleeps a different, fixed</font></i>
+<a name='L2'>   2 <i><font color='green'>   duration, M times.  Records the wake-up order and verifies</font></i>
+<a name='L3'>   3 <i><font color='green'>   that it is valid. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L12'>  12 
+<a name='L13'>  13 <b>static</b> <b>void</b> <a href='../D/999.html' title='Multiple defined in 2 places.'>test_sleep</a> (<b>int</b> thread_cnt, <b>int</b> iterations);
+<a name='L14'>  14 
+<a name='L15'>  15 <b>void</b>
+<a name='L16'>  16 <a href='../R/859.html' title='Multiple refered from 2 places.'>test_alarm_simultaneous</a> (<b>void</b>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <a href='../D/999.html' title='Multiple defined in 2 places.'>test_sleep</a> (3, 5);
+<a name='L19'>  19 <font color='red'>}</font>
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Information about the test. */</font></i>
+<a name='L22'>  22 <b>struct</b> <a href='../R/816.html' title='Multiple refered from 5 places.'>sleep_test</a> 
+<a name='L23'>  23   <font color='red'>{</font>
+<a name='L24'>  24     <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> <a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>;              <i><font color='green'>/* Current time at start of test. */</font></i>
+<a name='L25'>  25     <b>int</b> iterations;             <i><font color='green'>/* Number of iterations per thread. */</font></i>
+<a name='L26'>  26     <b>int</b> *output_pos;            <i><font color='green'>/* Current position in output buffer. */</font></i>
+<a name='L27'>  27   <font color='red'>}</font>;
+<a name='L28'>  28 
+<a name='L29'>  29 <b>static</b> <b>void</b> <a href='../D/928.html' title='Multiple defined in 2 places.'>sleeper</a> (<b>void</b> *);
+<a name='L30'>  30 
+<a name='L31'>  31 <i><font color='green'>/* Runs THREAD_CNT threads thread sleep ITERATIONS times each. */</font></i>
+<a name='L32'>  32 <b>static</b> <b>void</b>
+<a name='L33'>  33 <a href='../R/886.html' title='Multiple refered from 5 places.'>test_sleep</a> (<b>int</b> thread_cnt, <b>int</b> iterations) 
+<a name='L34'>  34 <font color='red'>{</font>
+<a name='L35'>  35   <b>struct</b> <a href='../D/926.html' title='Multiple defined in 2 places.'>sleep_test</a> <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>;
+<a name='L36'>  36   <b>int</b> *output;
+<a name='L37'>  37   <b>int</b> i;
+<a name='L38'>  38 
+<a name='L39'>  39   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L40'>  40   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L41'>  41 
+<a name='L42'>  42   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Creating %d threads to sleep %d times each.", thread_cnt, iterations);
+<a name='L43'>  43   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Each thread sleeps 10 ticks each time.");
+<a name='L44'>  44   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Within an iteration, all threads should wake up on the same tick.");
+<a name='L45'>  45 
+<a name='L46'>  46   <i><font color='green'>/* Allocate memory. */</font></i>
+<a name='L47'>  47   output = <a href='../S/161.html#L90' title='Defined at 90 in src/threads/malloc.c.'>malloc</a> (<b>sizeof</b> *output * iterations * thread_cnt * 2);
+<a name='L48'>  48   <b>if</b> (output == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L49'>  49     <a href='../S/104.html#L14' title='Defined at 14 in src/lib/debug.h.'>PANIC</a> ("couldn't allocate memory for test");
+<a name='L50'>  50 
+<a name='L51'>  51   <i><font color='green'>/* Initialize test. */</font></i>
+<a name='L52'>  52   <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>.<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> = <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> () + 100;
+<a name='L53'>  53   <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>.iterations = iterations;
+<a name='L54'>  54   <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>.output_pos = output;
+<a name='L55'>  55 
+<a name='L56'>  56   <i><font color='green'>/* Start threads. */</font></i>
+<a name='L57'>  57   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (output != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L58'>  58   <b>for</b> (i = 0; i &lt; thread_cnt; i++)
+<a name='L59'>  59     <font color='red'>{</font>
+<a name='L60'>  60       <b>char</b> name[16];
+<a name='L61'>  61       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (name, <b>sizeof</b> name, "thread %d", i);
+<a name='L62'>  62       <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> (name, <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a>, <a href='../D/928.html' title='Multiple defined in 2 places.'>sleeper</a>, &amp;<a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>);
+<a name='L63'>  63     <font color='red'>}</font>
+<a name='L64'>  64   
+<a name='L65'>  65   <i><font color='green'>/* Wait long enough for all the threads to finish. */</font></i>
+<a name='L66'>  66   <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (100 + iterations * 10 + 100);
+<a name='L67'>  67 
+<a name='L68'>  68   <i><font color='green'>/* Print completion order. */</font></i>
+<a name='L69'>  69   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("iteration 0, thread 0: woke up after %d ticks", output[0]);
+<a name='L70'>  70   <b>for</b> (i = 1; i &lt; <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>.output_pos - output; i++) 
+<a name='L71'>  71     <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("iteration %d, thread %d: woke up %d ticks later",
+<a name='L72'>  72          i / thread_cnt, i % thread_cnt, output[i] - output[i - 1]);
+<a name='L73'>  73   
+<a name='L74'>  74   <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (output);
+<a name='L75'>  75 <font color='red'>}</font>
+<a name='L76'>  76 
+<a name='L77'>  77 <i><font color='green'>/* Sleeper thread. */</font></i>
+<a name='L78'>  78 <b>static</b> <b>void</b>
+<a name='L79'>  79 <a href='../R/818.html' title='Multiple refered from 4 places.'>sleeper</a> (<b>void</b> *test_) 
+<a name='L80'>  80 <font color='red'>{</font>
+<a name='L81'>  81   <b>struct</b> <a href='../D/926.html' title='Multiple defined in 2 places.'>sleep_test</a> *<a href='../D/968.html' title='Multiple defined in 4 places.'>test</a> = test_;
+<a name='L82'>  82   <b>int</b> i;
+<a name='L83'>  83 
+<a name='L84'>  84   <i><font color='green'>/* Make sure we're at the beginning of a timer tick. */</font></i>
+<a name='L85'>  85   <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (1);
+<a name='L86'>  86 
+<a name='L87'>  87   <b>for</b> (i = 1; i &lt;= <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>-&gt;iterations; i++) 
+<a name='L88'>  88     <font color='red'>{</font>
+<a name='L89'>  89       <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> sleep_until = <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>-&gt;<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a> + i * 10;
+<a name='L90'>  90       <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (sleep_until - <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> ());
+<a name='L91'>  91       *<a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>-&gt;output_pos++ = <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> () - <a href='../D/968.html' title='Multiple defined in 4 places.'>test</a>-&gt;<a href='../S/154.html#L5' title='Defined at 5 in src/threads/kernel.lds.S.'>start</a>;
+<a name='L92'>  92       <a href='../S/163.html#L310' title='Defined at 310 in src/threads/thread.c.'>thread_yield</a> ();
+<a name='L93'>  93     <font color='red'>}</font>
+<a name='L94'>  94 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L79'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

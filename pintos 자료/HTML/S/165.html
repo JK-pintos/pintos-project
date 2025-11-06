@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>src/threads/palloc.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/palloc.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/303.html' title='Multiple included from 10 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/165.html#L2' title='Defined at 2 in src/threads/palloc.h.'>THREADS_PALLOC_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/165.html#L1' title='Refered from 1 in src/threads/palloc.h.'>THREADS_PALLOC_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L5'>   5 
+<a name='L6'>   6 <i><font color='green'>/* How to allocate pages. */</font></i>
+<a name='L7'>   7 <b>enum</b> palloc_flags
+<a name='L8'>   8   <font color='red'>{</font>
+<a name='L9'>   9     PAL_ASSERT = 001,           <i><font color='green'>/* Panic on failure. */</font></i>
+<a name='L10'>  10     PAL_ZERO = 002,             <i><font color='green'>/* Zero page contents. */</font></i>
+<a name='L11'>  11     PAL_USER = 004              <i><font color='green'>/* User page. */</font></i>
+<a name='L12'>  12   <font color='red'>}</font>;
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b> <a href='../S/160.html#L46' title='Defined at 46 in src/threads/palloc.c.'>palloc_init</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> user_page_limit);
+<a name='L15'>  15 <b>void</b> *<a href='../S/160.html#L111' title='Defined at 111 in src/threads/palloc.c.'>palloc_get_page</a> (<b>enum</b> palloc_flags);
+<a name='L16'>  16 <b>void</b> *<a href='../S/160.html#L71' title='Defined at 71 in src/threads/palloc.c.'>palloc_get_multiple</a> (<b>enum</b> palloc_flags, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt);
+<a name='L17'>  17 <b>void</b> <a href='../S/160.html#L146' title='Defined at 146 in src/threads/palloc.c.'>palloc_free_page</a> (<b>void</b> *);
+<a name='L18'>  18 <b>void</b> <a href='../S/160.html#L118' title='Defined at 118 in src/threads/palloc.c.'>palloc_free_multiple</a> (<b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> page_cnt);
+<a name='L19'>  19 
+<a name='L20'>  20 <font color='darkred'>#endif</font> <i><font color='green'>/* threads/palloc.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

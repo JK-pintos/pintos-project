@@ -1,0 +1,368 @@
+<html>
+<head>
+<title>size_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/123.html#L104'>size_t</a>            104 src/devices/ide.c   size_t chan_no;
+<a href='../S/134.html#L76'>size_t</a>             76 src/devices/partition.c   size_t i;
+<a href='../S/131.html#L19'>size_t</a>             19 src/devices/vga.c static size_t cx, cy;
+<a href='../S/131.html#L29'>size_t</a>             29 src/devices/vga.c static void clear_row (size_t y);
+<a href='../S/131.html#L33'>size_t</a>             33 src/devices/vga.c static void find_cursor (size_t *x, size_t *y);
+<a href='../S/131.html#L109'>size_t</a>            109 src/devices/vga.c   size_t y;
+<a href='../S/131.html#L120'>size_t</a>            120 src/devices/vga.c clear_row (size_t y) 
+<a href='../S/131.html#L122'>size_t</a>            122 src/devices/vga.c   size_t x;
+<a href='../S/131.html#L159'>size_t</a>            159 src/devices/vga.c find_cursor (size_t *x, size_t *y) 
+<a href='../S/59.html#L10'>size_t</a>             10 src/examples/pwd.c static bool getcwd (char *cwd, size_t cwd_size);
+<a href='../S/59.html#L53'>size_t</a>             53 src/examples/pwd.c          char *dst, size_t *dst_len, size_t dst_size) 
+<a href='../S/59.html#L55'>size_t</a>             55 src/examples/pwd.c   size_t prefix_len = strlen (prefix);
+<a href='../S/59.html#L72'>size_t</a>             72 src/examples/pwd.c getcwd (char *cwd, size_t cwd_size) 
+<a href='../S/59.html#L74'>size_t</a>             74 src/examples/pwd.c   size_t cwd_len = 0;   
+<a href='../S/56.html#L6'>size_t</a>              6 src/examples/shell.c static void read_line (char line[], size_t);
+<a href='../S/56.html#L52'>size_t</a>             52 src/examples/shell.c read_line (char line[], size_t size) 
+<a href='../S/32.html#L27'>size_t</a>             27 src/filesys/directory.c dir_create (block_sector_t sector, size_t entry_cnt)
+<a href='../S/32.html#L96'>size_t</a>             96 src/filesys/directory.c   size_t ofs;
+<a href='../S/28.html#L17'>size_t</a>             17 src/filesys/directory.h bool dir_create (block_sector_t sector, size_t entry_cnt);
+<a href='../S/25.html#L28'>size_t</a>             28 src/filesys/free-map.c free_map_allocate (size_t cnt, block_sector_t *sectorp)
+<a href='../S/25.html#L45'>size_t</a>             45 src/filesys/free-map.c free_map_release (block_sector_t sector, size_t cnt)
+<a href='../S/27.html#L14'>size_t</a>             14 src/filesys/free-map.h bool free_map_allocate (size_t, block_sector_t *);
+<a href='../S/27.html#L15'>size_t</a>             15 src/filesys/free-map.h void free_map_release (block_sector_t, size_t);
+<a href='../S/35.html#L25'>size_t</a>             25 src/filesys/inode.c static inline size_t
+<a href='../S/35.html#L87'>size_t</a>             87 src/filesys/inode.c       size_t sectors = bytes_to_sectors (length);
+<a href='../S/35.html#L96'>size_t</a>             96 src/filesys/inode.c               size_t i;
+<a href='../S/114.html#L29'>size_t</a>             29 src/lib/kernel/bitmap.c     size_t bit_cnt;     /* Number of bits. */
+<a href='../S/114.html#L35'>size_t</a>             35 src/lib/kernel/bitmap.c static inline size_t
+<a href='../S/114.html#L36'>size_t</a>             36 src/lib/kernel/bitmap.c elem_idx (size_t bit_idx) 
+<a href='../S/114.html#L44'>size_t</a>             44 src/lib/kernel/bitmap.c bit_mask (size_t bit_idx) 
+<a href='../S/114.html#L50'>size_t</a>             50 src/lib/kernel/bitmap.c static inline size_t
+<a href='../S/114.html#L51'>size_t</a>             51 src/lib/kernel/bitmap.c elem_cnt (size_t bit_cnt)
+<a href='../S/114.html#L57'>size_t</a>             57 src/lib/kernel/bitmap.c static inline size_t
+<a href='../S/114.html#L58'>size_t</a>             58 src/lib/kernel/bitmap.c byte_cnt (size_t bit_cnt)
+<a href='../S/114.html#L79'>size_t</a>             79 src/lib/kernel/bitmap.c bitmap_create (size_t bit_cnt) 
+<a href='../S/114.html#L100'>size_t</a>            100 src/lib/kernel/bitmap.c bitmap_create_in_buf (size_t bit_cnt, void *block, size_t block_size UNUSED)
+<a href='../S/114.html#L114'>size_t</a>            114 src/lib/kernel/bitmap.c size_t
+<a href='../S/114.html#L115'>size_t</a>            115 src/lib/kernel/bitmap.c bitmap_buf_size (size_t bit_cnt) 
+<a href='../S/114.html#L136'>size_t</a>            136 src/lib/kernel/bitmap.c size_t
+<a href='../S/114.html#L146'>size_t</a>            146 src/lib/kernel/bitmap.c bitmap_set (struct bitmap *b, size_t idx, bool value) 
+<a href='../S/114.html#L158'>size_t</a>            158 src/lib/kernel/bitmap.c bitmap_mark (struct bitmap *b, size_t bit_idx) 
+<a href='../S/114.html#L160'>size_t</a>            160 src/lib/kernel/bitmap.c   size_t idx = elem_idx (bit_idx);
+<a href='../S/114.html#L171'>size_t</a>            171 src/lib/kernel/bitmap.c bitmap_reset (struct bitmap *b, size_t bit_idx) 
+<a href='../S/114.html#L173'>size_t</a>            173 src/lib/kernel/bitmap.c   size_t idx = elem_idx (bit_idx);
+<a href='../S/114.html#L186'>size_t</a>            186 src/lib/kernel/bitmap.c bitmap_flip (struct bitmap *b, size_t bit_idx) 
+<a href='../S/114.html#L188'>size_t</a>            188 src/lib/kernel/bitmap.c   size_t idx = elem_idx (bit_idx);
+<a href='../S/114.html#L199'>size_t</a>            199 src/lib/kernel/bitmap.c bitmap_test (const struct bitmap *b, size_t idx) 
+<a href='../S/114.html#L219'>size_t</a>            219 src/lib/kernel/bitmap.c bitmap_set_multiple (struct bitmap *b, size_t start, size_t cnt, bool value) 
+<a href='../S/114.html#L221'>size_t</a>            221 src/lib/kernel/bitmap.c   size_t i;
+<a href='../S/114.html#L233'>size_t</a>            233 src/lib/kernel/bitmap.c size_t
+<a href='../S/114.html#L234'>size_t</a>            234 src/lib/kernel/bitmap.c bitmap_count (const struct bitmap *b, size_t start, size_t cnt, bool value) 
+<a href='../S/114.html#L236'>size_t</a>            236 src/lib/kernel/bitmap.c   size_t i, value_cnt;
+<a href='../S/114.html#L252'>size_t</a>            252 src/lib/kernel/bitmap.c bitmap_contains (const struct bitmap *b, size_t start, size_t cnt, bool value) 
+<a href='../S/114.html#L254'>size_t</a>            254 src/lib/kernel/bitmap.c   size_t i;
+<a href='../S/114.html#L269'>size_t</a>            269 src/lib/kernel/bitmap.c bitmap_any (const struct bitmap *b, size_t start, size_t cnt) 
+<a href='../S/114.html#L277'>size_t</a>            277 src/lib/kernel/bitmap.c bitmap_none (const struct bitmap *b, size_t start, size_t cnt) 
+<a href='../S/114.html#L285'>size_t</a>            285 src/lib/kernel/bitmap.c bitmap_all (const struct bitmap *b, size_t start, size_t cnt) 
+<a href='../S/114.html#L296'>size_t</a>            296 src/lib/kernel/bitmap.c size_t
+<a href='../S/114.html#L297'>size_t</a>            297 src/lib/kernel/bitmap.c bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value) 
+<a href='../S/114.html#L304'>size_t</a>            304 src/lib/kernel/bitmap.c       size_t last = b-&gt;bit_cnt - cnt;
+<a href='../S/114.html#L305'>size_t</a>            305 src/lib/kernel/bitmap.c       size_t i;
+<a href='../S/114.html#L320'>size_t</a>            320 src/lib/kernel/bitmap.c size_t
+<a href='../S/114.html#L321'>size_t</a>            321 src/lib/kernel/bitmap.c bitmap_scan_and_flip (struct bitmap *b, size_t start, size_t cnt, bool value)
+<a href='../S/114.html#L323'>size_t</a>            323 src/lib/kernel/bitmap.c   size_t idx = bitmap_scan (b, start, cnt, value);
+<a href='../S/114.html#L333'>size_t</a>            333 src/lib/kernel/bitmap.c size_t
+<a href='../S/111.html#L11'>size_t</a>             11 src/lib/kernel/bitmap.h struct bitmap *bitmap_create (size_t bit_cnt);
+<a href='../S/111.html#L12'>size_t</a>             12 src/lib/kernel/bitmap.h struct bitmap *bitmap_create_in_buf (size_t bit_cnt, void *, size_t byte_cnt);
+<a href='../S/111.html#L13'>size_t</a>             13 src/lib/kernel/bitmap.h size_t bitmap_buf_size (size_t bit_cnt);
+<a href='../S/111.html#L17'>size_t</a>             17 src/lib/kernel/bitmap.h size_t bitmap_size (const struct bitmap *);
+<a href='../S/111.html#L20'>size_t</a>             20 src/lib/kernel/bitmap.h void bitmap_set (struct bitmap *, size_t idx, bool);
+<a href='../S/111.html#L21'>size_t</a>             21 src/lib/kernel/bitmap.h void bitmap_mark (struct bitmap *, size_t idx);
+<a href='../S/111.html#L22'>size_t</a>             22 src/lib/kernel/bitmap.h void bitmap_reset (struct bitmap *, size_t idx);
+<a href='../S/111.html#L23'>size_t</a>             23 src/lib/kernel/bitmap.h void bitmap_flip (struct bitmap *, size_t idx);
+<a href='../S/111.html#L24'>size_t</a>             24 src/lib/kernel/bitmap.h bool bitmap_test (const struct bitmap *, size_t idx);
+<a href='../S/111.html#L28'>size_t</a>             28 src/lib/kernel/bitmap.h void bitmap_set_multiple (struct bitmap *, size_t start, size_t cnt, bool);
+<a href='../S/111.html#L29'>size_t</a>             29 src/lib/kernel/bitmap.h size_t bitmap_count (const struct bitmap *, size_t start, size_t cnt, bool);
+<a href='../S/111.html#L30'>size_t</a>             30 src/lib/kernel/bitmap.h bool bitmap_contains (const struct bitmap *, size_t start, size_t cnt, bool);
+<a href='../S/111.html#L31'>size_t</a>             31 src/lib/kernel/bitmap.h bool bitmap_any (const struct bitmap *, size_t start, size_t cnt);
+<a href='../S/111.html#L32'>size_t</a>             32 src/lib/kernel/bitmap.h bool bitmap_none (const struct bitmap *, size_t start, size_t cnt);
+<a href='../S/111.html#L33'>size_t</a>             33 src/lib/kernel/bitmap.h bool bitmap_all (const struct bitmap *, size_t start, size_t cnt);
+<a href='../S/111.html#L37'>size_t</a>             37 src/lib/kernel/bitmap.h size_t bitmap_scan (const struct bitmap *, size_t start, size_t cnt, bool);
+<a href='../S/111.html#L38'>size_t</a>             38 src/lib/kernel/bitmap.h size_t bitmap_scan_and_flip (struct bitmap *, size_t start, size_t cnt, bool);
+<a href='../S/111.html#L43'>size_t</a>             43 src/lib/kernel/bitmap.h size_t bitmap_file_size (const struct bitmap *);
+<a href='../S/105.html#L153'>size_t</a>            153 src/lib/kernel/console.c putbuf (const char *buffer, size_t n) 
+<a href='../S/113.html#L56'>size_t</a>             56 src/lib/kernel/hash.c   size_t i;
+<a href='../S/113.html#L165'>size_t</a>            165 src/lib/kernel/hash.c   size_t i;
+<a href='../S/113.html#L247'>size_t</a>            247 src/lib/kernel/hash.c size_t
+<a href='../S/113.html#L266'>size_t</a>            266 src/lib/kernel/hash.c hash_bytes (const void *buf_, size_t size)
+<a href='../S/113.html#L308'>size_t</a>            308 src/lib/kernel/hash.c   size_t bucket_idx = h-&gt;hash (e, h-&gt;aux) &amp; (h-&gt;bucket_cnt - 1);
+<a href='../S/113.html#L329'>size_t</a>            329 src/lib/kernel/hash.c static inline size_t
+<a href='../S/113.html#L330'>size_t</a>            330 src/lib/kernel/hash.c turn_off_least_1bit (size_t x) 
+<a href='../S/113.html#L336'>size_t</a>            336 src/lib/kernel/hash.c static inline size_t
+<a href='../S/113.html#L337'>size_t</a>            337 src/lib/kernel/hash.c is_power_of_2 (size_t x) 
+<a href='../S/113.html#L354'>size_t</a>            354 src/lib/kernel/hash.c   size_t old_bucket_cnt, new_bucket_cnt;
+<a href='../S/113.html#L356'>size_t</a>            356 src/lib/kernel/hash.c   size_t i;
+<a href='../S/108.html#L61'>size_t</a>             61 src/lib/kernel/hash.h     size_t elem_cnt;            /* Number of elements in table. */
+<a href='../S/108.html#L62'>size_t</a>             62 src/lib/kernel/hash.h     size_t bucket_cnt;          /* Number of buckets, a power of 2. */
+<a href='../S/108.html#L95'>size_t</a>             95 src/lib/kernel/hash.h size_t hash_size (struct hash *);
+<a href='../S/108.html#L99'>size_t</a>             99 src/lib/kernel/hash.h unsigned hash_bytes (const void *, size_t);
+<a href='../S/112.html#L297'>size_t</a>            297 src/lib/kernel/list.c size_t
+<a href='../S/112.html#L301'>size_t</a>            301 src/lib/kernel/list.c   size_t cnt = 0;
+<a href='../S/112.html#L407'>size_t</a>            407 src/lib/kernel/list.c   size_t output_run_cnt;        /* Number of runs output in current pass. */
+<a href='../S/107.html#L156'>size_t</a>            156 src/lib/kernel/list.h size_t list_size (struct list *);
+<a href='../S/106.html#L4'>size_t</a>              4 src/lib/kernel/stdio.h void putbuf (const char *, size_t);
+<a href='../S/85.html#L54'>size_t</a>             54 src/lib/random.c random_bytes (void *buf_, size_t size) 
+<a href='../S/102.html#L7'>size_t</a>              7 src/lib/random.h void random_bytes (void *, size_t);
+<a href='../S/92.html#L5'>size_t</a>              5 src/lib/stddef.h #define offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *) 0)-&gt;MEMBER)
+<a href='../S/115.html#L26'>size_t</a>             26 src/lib/stdio.c vsnprintf (char *buffer, size_t buf_size, const char *format, va_list args) 
+<a href='../S/115.html#L62'>size_t</a>             62 src/lib/stdio.c snprintf (char *buffer, size_t buf_size, const char *format, ...) 
+<a href='../S/115.html#L150'>size_t</a>            150 src/lib/stdio.c static void output_dup (char ch, size_t cnt,
+<a href='../S/115.html#L215'>size_t</a>            215 src/lib/stdio.c                 value = va_arg (args, size_t);
+<a href='../S/115.html#L264'>size_t</a>            264 src/lib/stdio.c                 value = va_arg (args, size_t);
+<a href='../S/115.html#L551'>size_t</a>            551 src/lib/stdio.c output_dup (char ch, size_t cnt, void (*output) (char, void *), void *aux) 
+<a href='../S/115.html#L593'>size_t</a>            593 src/lib/stdio.c hex_dump (uintptr_t ofs, const void *buf_, size_t size, bool ascii)
+<a href='../S/115.html#L596'>size_t</a>            596 src/lib/stdio.c   const size_t per_line = 16; /* Maximum bytes per line. */
+<a href='../S/115.html#L600'>size_t</a>            600 src/lib/stdio.c       size_t start, end, n;
+<a href='../S/115.html#L601'>size_t</a>            601 src/lib/stdio.c       size_t i;
+<a href='../S/84.html#L20'>size_t</a>             20 src/lib/stdio.h int snprintf (char *, size_t, const char *, ...) PRINTF_FORMAT (3, 4);
+<a href='../S/84.html#L22'>size_t</a>             22 src/lib/stdio.h int vsnprintf (char *, size_t, const char *, va_list) PRINTF_FORMAT (3, 0);
+<a href='../S/84.html#L27'>size_t</a>             27 src/lib/stdio.h void hex_dump (uintptr_t ofs, const void *, size_t size, bool ascii);
+<a href='../S/103.html#L58'>size_t</a>             58 src/lib/stdlib.c qsort (void *array, size_t cnt, size_t size,
+<a href='../S/103.html#L67'>size_t</a>             67 src/lib/stdlib.c do_swap (unsigned char *array, size_t a_idx, size_t b_idx, size_t size)
+<a href='../S/103.html#L71'>size_t</a>             71 src/lib/stdlib.c   size_t i;
+<a href='../S/103.html#L86'>size_t</a>             86 src/lib/stdlib.c do_compare (unsigned char *array, size_t a_idx, size_t b_idx, size_t size,
+<a href='../S/103.html#L97'>size_t</a>             97 src/lib/stdlib.c heapify (unsigned char *array, size_t i, size_t cnt, size_t size,
+<a href='../S/103.html#L105'>size_t</a>            105 src/lib/stdlib.c       size_t left = 2 * i;
+<a href='../S/103.html#L106'>size_t</a>            106 src/lib/stdlib.c       size_t right = 2 * i + 1;
+<a href='../S/103.html#L107'>size_t</a>            107 src/lib/stdlib.c       size_t max = i;
+<a href='../S/103.html#L132'>size_t</a>            132 src/lib/stdlib.c sort (void *array, size_t cnt, size_t size,
+<a href='../S/103.html#L136'>size_t</a>            136 src/lib/stdlib.c   size_t i;
+<a href='../S/103.html#L166'>size_t</a>            166 src/lib/stdlib.c bsearch (const void *key, const void *array, size_t cnt,
+<a href='../S/103.html#L167'>size_t</a>            167 src/lib/stdlib.c          size_t size, int (*compare) (const void *, const void *)) 
+<a href='../S/103.html#L185'>size_t</a>            185 src/lib/stdlib.c binary_search (const void *key, const void *array, size_t cnt, size_t size,
+<a href='../S/103.html#L194'>size_t</a>            194 src/lib/stdlib.c       size_t range = (last - first) / size;
+<a href='../S/101.html#L8'>size_t</a>              8 src/lib/stdlib.h void qsort (void *array, size_t cnt, size_t size,
+<a href='../S/101.html#L10'>size_t</a>             10 src/lib/stdlib.h void *bsearch (const void *key, const void *array, size_t cnt,
+<a href='../S/101.html#L11'>size_t</a>             11 src/lib/stdlib.h                size_t size, int (*compare) (const void *, const void *));
+<a href='../S/101.html#L14'>size_t</a>             14 src/lib/stdlib.h void sort (void *array, size_t cnt, size_t size,
+<a href='../S/101.html#L17'>size_t</a>             17 src/lib/stdlib.h void *binary_search (const void *key, const void *array, size_t cnt,
+<a href='../S/101.html#L18'>size_t</a>             18 src/lib/stdlib.h                      size_t size,
+<a href='../S/83.html#L7'>size_t</a>              7 src/lib/string.c memcpy (void *dst_, const void *src_, size_t size) 
+<a href='../S/83.html#L24'>size_t</a>             24 src/lib/string.c memmove (void *dst_, const void *src_, size_t size) 
+<a href='../S/83.html#L53'>size_t</a>             53 src/lib/string.c memcmp (const void *a_, const void *b_, size_t size) 
+<a href='../S/83.html#L94'>size_t</a>             94 src/lib/string.c memchr (const void *block_, int ch_, size_t size) 
+<a href='../S/83.html#L130'>size_t</a>            130 src/lib/string.c size_t
+<a href='../S/83.html#L133'>size_t</a>            133 src/lib/string.c   size_t length;
+<a href='../S/83.html#L169'>size_t</a>            169 src/lib/string.c size_t
+<a href='../S/83.html#L172'>size_t</a>            172 src/lib/string.c   size_t length;
+<a href='../S/83.html#L186'>size_t</a>            186 src/lib/string.c   size_t haystack_len = strlen (haystack);
+<a href='../S/83.html#L187'>size_t</a>            187 src/lib/string.c   size_t needle_len = strlen (needle);
+<a href='../S/83.html#L191'>size_t</a>            191 src/lib/string.c       size_t i;
+<a href='../S/83.html#L279'>size_t</a>            279 src/lib/string.c memset (void *dst_, int value, size_t size) 
+<a href='../S/83.html#L292'>size_t</a>            292 src/lib/string.c size_t
+<a href='../S/83.html#L306'>size_t</a>            306 src/lib/string.c size_t
+<a href='../S/83.html#L307'>size_t</a>            307 src/lib/string.c strnlen (const char *string, size_t maxlen) 
+<a href='../S/83.html#L309'>size_t</a>            309 src/lib/string.c   size_t length;
+<a href='../S/83.html#L325'>size_t</a>            325 src/lib/string.c size_t
+<a href='../S/83.html#L326'>size_t</a>            326 src/lib/string.c strlcpy (char *dst, const char *src, size_t size) 
+<a href='../S/83.html#L328'>size_t</a>            328 src/lib/string.c   size_t src_len;
+<a href='../S/83.html#L336'>size_t</a>            336 src/lib/string.c       size_t dst_len = size - 1;
+<a href='../S/83.html#L355'>size_t</a>            355 src/lib/string.c size_t
+<a href='../S/83.html#L356'>size_t</a>            356 src/lib/string.c strlcat (char *dst, const char *src, size_t size) 
+<a href='../S/83.html#L358'>size_t</a>            358 src/lib/string.c   size_t src_len, dst_len;
+<a href='../S/83.html#L367'>size_t</a>            367 src/lib/string.c       size_t copy_cnt = size - dst_len - 1;
+<a href='../S/82.html#L7'>size_t</a>              7 src/lib/string.h void *memcpy (void *, const void *, size_t);
+<a href='../S/82.html#L8'>size_t</a>              8 src/lib/string.h void *memmove (void *, const void *, size_t);
+<a href='../S/82.html#L9'>size_t</a>              9 src/lib/string.h char *strncat (char *, const char *, size_t);
+<a href='../S/82.html#L10'>size_t</a>             10 src/lib/string.h int memcmp (const void *, const void *, size_t);
+<a href='../S/82.html#L12'>size_t</a>             12 src/lib/string.h void *memchr (const void *, int, size_t);
+<a href='../S/82.html#L14'>size_t</a>             14 src/lib/string.h size_t strcspn (const char *, const char *);
+<a href='../S/82.html#L17'>size_t</a>             17 src/lib/string.h size_t strspn (const char *, const char *);
+<a href='../S/82.html#L19'>size_t</a>             19 src/lib/string.h void *memset (void *, int, size_t);
+<a href='../S/82.html#L20'>size_t</a>             20 src/lib/string.h size_t strlen (const char *);
+<a href='../S/82.html#L23'>size_t</a>             23 src/lib/string.h size_t strlcpy (char *, const char *, size_t);
+<a href='../S/82.html#L24'>size_t</a>             24 src/lib/string.h size_t strlcat (char *, const char *, size_t);
+<a href='../S/82.html#L26'>size_t</a>             26 src/lib/string.h size_t strnlen (const char *, size_t);
+<a href='../S/116.html#L41'>size_t</a>             41 src/lib/ustar.c   size_t i;
+<a href='../S/116.html#L48'>size_t</a>             48 src/lib/ustar.c       const size_t chksum_start = offsetof (struct ustar_header, chksum);
+<a href='../S/116.html#L49'>size_t</a>             49 src/lib/ustar.c       const size_t chksum_end = chksum_start + sizeof h-&gt;chksum;
+<a href='../S/116.html#L130'>size_t</a>            130 src/lib/ustar.c parse_octal_field (const char *s, size_t size, unsigned long int *value)
+<a href='../S/116.html#L132'>size_t</a>            132 src/lib/ustar.c   size_t ofs;
+<a href='../S/116.html#L167'>size_t</a>            167 src/lib/ustar.c is_all_zeros (const char *block, size_t cnt)
+<a href='../S/389.html#L14'>size_t</a>             14 src/tests/arc4.c arc4_init (struct arc4 *arc4, const void *key_, size_t size)
+<a href='../S/389.html#L17'>size_t</a>             17 src/tests/arc4.c   size_t key_idx;
+<a href='../S/389.html#L35'>size_t</a>             35 src/tests/arc4.c arc4_crypt (struct arc4 *arc4, void *buf_, size_t size)
+<a href='../S/301.html#L14'>size_t</a>             14 src/tests/arc4.h void arc4_init (struct arc4 *, const void *, size_t);
+<a href='../S/301.html#L15'>size_t</a>             15 src/tests/arc4.h void arc4_crypt (struct arc4 *, void *, size_t);
+<a href='../S/592.html#L63'>size_t</a>             63 src/tests/cksum.c cksum (const void *b_, size_t n)
+<a href='../S/592.html#L67'>size_t</a>             67 src/tests/cksum.c   size_t i;
+<a href='../S/300.html#L6'>size_t</a>              6 src/tests/cksum.h unsigned long cksum(const void *, size_t);
+<a href='../S/197.html#L23'>size_t</a>             23 src/tests/filesys/base/child-syn-read.c   size_t i;
+<a href='../S/236.html#L26'>size_t</a>             26 src/tests/filesys/extended/child-syn-rw.c   size_t ofs;
+<a href='../S/293.html#L12'>size_t</a>             12 src/tests/filesys/extended/grow-file-size.c static size_t
+<a href='../S/252.html#L11'>size_t</a>             11 src/tests/filesys/extended/grow-tell.c static size_t
+<a href='../S/294.html#L14'>size_t</a>             14 src/tests/filesys/extended/grow-two-files.c write_some_bytes (const char *file_name, int fd, const char *buf, size_t *ofs) 
+<a href='../S/294.html#L18'>size_t</a>             18 src/tests/filesys/extended/grow-two-files.c       size_t block_size = random_ulong () % (FILE_SIZE / 8) + 1;
+<a href='../S/294.html#L19'>size_t</a>             19 src/tests/filesys/extended/grow-two-files.c       size_t ret_val;
+<a href='../S/294.html#L35'>size_t</a>             35 src/tests/filesys/extended/grow-two-files.c   size_t ofs_a = 0, ofs_b = 0;
+<a href='../S/248.html#L18'>size_t</a>             18 src/tests/filesys/extended/syn-rw.c   size_t ofs;
+<a href='../S/233.html#L12'>size_t</a>             12 src/tests/filesys/extended/tar.c                               char *files[], size_t file_cnt);
+<a href='../S/233.html#L36'>size_t</a>             36 src/tests/filesys/extended/tar.c static bool archive_file (char file_name[], size_t file_name_size,
+<a href='../S/233.html#L41'>size_t</a>             41 src/tests/filesys/extended/tar.c static bool archive_directory (char file_name[], size_t file_name_size,
+<a href='../S/233.html#L49'>size_t</a>             49 src/tests/filesys/extended/tar.c make_tar_archive (const char *archive_name, char *files[], size_t file_cnt) 
+<a href='../S/233.html#L55'>size_t</a>             55 src/tests/filesys/extended/tar.c   size_t i;
+<a href='../S/233.html#L89'>size_t</a>             89 src/tests/filesys/extended/tar.c archive_file (char file_name[], size_t file_name_size,
+<a href='../S/233.html#L160'>size_t</a>            160 src/tests/filesys/extended/tar.c archive_directory (char file_name[], size_t file_name_size, int file_fd,
+<a href='../S/233.html#L163'>size_t</a>            163 src/tests/filesys/extended/tar.c   size_t dir_len;
+<a href='../S/296.html#L7'>size_t</a>              7 src/tests/filesys/seq-test.c seq_test (const char *file_name, void *buf, size_t size, size_t initial_size,
+<a href='../S/296.html#L8'>size_t</a>              8 src/tests/filesys/seq-test.c           size_t (*block_size_func) (void),
+<a href='../S/296.html#L11'>size_t</a>             11 src/tests/filesys/seq-test.c   size_t ofs;
+<a href='../S/296.html#L22'>size_t</a>             22 src/tests/filesys/seq-test.c       size_t block_size = block_size_func ();
+<a href='../S/295.html#L7'>size_t</a>              7 src/tests/filesys/seq-test.h                void *buf, size_t size, size_t initial_size,
+<a href='../S/295.html#L8'>size_t</a>              8 src/tests/filesys/seq-test.h                size_t (*block_size_func) (void),
+<a href='../S/172.html#L28'>size_t</a>             28 src/tests/internal/list.c static void shuffle (struct value[], size_t);
+<a href='../S/172.html#L101'>size_t</a>            101 src/tests/internal/list.c           ASSERT ((size_t) ofs &lt; sizeof values / sizeof *values);
+<a href='../S/172.html#L113'>size_t</a>            113 src/tests/internal/list.c shuffle (struct value *array, size_t cnt) 
+<a href='../S/172.html#L115'>size_t</a>            115 src/tests/internal/list.c   size_t i;
+<a href='../S/172.html#L119'>size_t</a>            119 src/tests/internal/list.c       size_t j = i + random_ulong () % (cnt - i);
+<a href='../S/174.html#L185'>size_t</a>            185 src/tests/internal/stdio.c   checkf ("-155209728", "%-zi", (size_t) -155209728);
+<a href='../S/174.html#L186'>size_t</a>            186 src/tests/internal/stdio.c   checkf ("-155209728", "%-zd", (size_t) -155209728);
+<a href='../S/174.html#L189'>size_t</a>            189 src/tests/internal/stdio.c   checkf ("-155209728", "% zi", (size_t) -155209728);
+<a href='../S/174.html#L190'>size_t</a>            190 src/tests/internal/stdio.c   checkf ("-155209728", "% zd", (size_t) -155209728);
+<a href='../S/174.html#L195'>size_t</a>            195 src/tests/internal/stdio.c   checkf ("-155209728", "%#zd", (size_t) -155209728);
+<a href='../S/174.html#L196'>size_t</a>            196 src/tests/internal/stdio.c   checkf ("-155209728", "%0zi", (size_t) -155209728);
+<a href='../S/174.html#L199'>size_t</a>            199 src/tests/internal/stdio.c   checkf ("-155209728", "%.zi", (size_t) -155209728);
+<a href='../S/174.html#L200'>size_t</a>            200 src/tests/internal/stdio.c   checkf ("-155209728", "%zi", (size_t) -155209728);
+<a href='../S/174.html#L201'>size_t</a>            201 src/tests/internal/stdio.c   checkf ("-155209728", "%zd", (size_t) -155209728);
+<a href='../S/174.html#L202'>size_t</a>            202 src/tests/internal/stdio.c   checkf ("-155209728", "%+zi", (size_t) -155209728);
+<a href='../S/173.html#L21'>size_t</a>             21 src/tests/internal/stdlib.c static void shuffle (int[], size_t);
+<a href='../S/173.html#L23'>size_t</a>             23 src/tests/internal/stdlib.c static void verify_order (const int[], size_t);
+<a href='../S/173.html#L24'>size_t</a>             24 src/tests/internal/stdlib.c static void verify_bsearch (const int[], size_t);
+<a href='../S/173.html#L61'>size_t</a>             61 src/tests/internal/stdlib.c shuffle (int *array, size_t cnt) 
+<a href='../S/173.html#L63'>size_t</a>             63 src/tests/internal/stdlib.c   size_t i;
+<a href='../S/173.html#L67'>size_t</a>             67 src/tests/internal/stdlib.c       size_t j = i + random_ulong () % (cnt - i);
+<a href='../S/173.html#L88'>size_t</a>             88 src/tests/internal/stdlib.c verify_order (const int *array, size_t cnt) 
+<a href='../S/173.html#L92'>size_t</a>             92 src/tests/internal/stdlib.c   for (i = 0; (size_t) i &lt; cnt; i++) 
+<a href='../S/173.html#L99'>size_t</a>             99 src/tests/internal/stdlib.c verify_bsearch (const int *array, size_t cnt) 
+<a href='../S/173.html#L105'>size_t</a>            105 src/tests/internal/stdlib.c   for (i = 0; (size_t) i &lt; cnt; i++) 
+<a href='../S/173.html#L111'>size_t</a>            111 src/tests/internal/stdlib.c   for (i = 0; (size_t) i &lt; sizeof not_in_array / sizeof *not_in_array; i++) 
+<a href='../S/591.html#L52'>size_t</a>             52 src/tests/lib.c swap (void *a_, void *b_, size_t size) 
+<a href='../S/591.html#L56'>size_t</a>             56 src/tests/lib.c   size_t i;
+<a href='../S/591.html#L67'>size_t</a>             67 src/tests/lib.c shuffle (void *buf_, size_t cnt, size_t size) 
+<a href='../S/591.html#L70'>size_t</a>             70 src/tests/lib.c   size_t i;
+<a href='../S/591.html#L74'>size_t</a>             74 src/tests/lib.c       size_t j = i + random_ulong () % (cnt - i);
+<a href='../S/591.html#L80'>size_t</a>             80 src/tests/lib.c exec_children (const char *child_name, pid_t pids[], size_t child_cnt) 
+<a href='../S/591.html#L82'>size_t</a>             82 src/tests/lib.c   size_t i;
+<a href='../S/591.html#L94'>size_t</a>             94 src/tests/lib.c wait_children (pid_t pids[], size_t child_cnt) 
+<a href='../S/591.html#L96'>size_t</a>             96 src/tests/lib.c   size_t i;
+<a href='../S/591.html#L109'>size_t</a>            109 src/tests/lib.c                    const char *file_name, const void *buf_, size_t size) 
+<a href='../S/591.html#L112'>size_t</a>            112 src/tests/lib.c   size_t ofs = 0;
+<a href='../S/591.html#L113'>size_t</a>            113 src/tests/lib.c   size_t file_size;
+<a href='../S/591.html#L127'>size_t</a>            127 src/tests/lib.c       size_t block_size, ret_val;
+<a href='../S/591.html#L151'>size_t</a>            151 src/tests/lib.c check_file (const char *file_name, const void *buf, size_t size) 
+<a href='../S/591.html#L163'>size_t</a>            163 src/tests/lib.c compare_bytes (const void *read_data_, const void *expected_data_, size_t size,
+<a href='../S/591.html#L164'>size_t</a>            164 src/tests/lib.c                size_t ofs, const char *file_name) 
+<a href='../S/591.html#L168'>size_t</a>            168 src/tests/lib.c   size_t i, j;
+<a href='../S/591.html#L169'>size_t</a>            169 src/tests/lib.c   size_t show_cnt;
+<a href='../S/529.html#L38'>size_t</a>             38 src/tests/lib.h void shuffle (void *, size_t cnt, size_t size);
+<a href='../S/529.html#L40'>size_t</a>             40 src/tests/lib.h void exec_children (const char *child_name, pid_t pids[], size_t child_cnt);
+<a href='../S/529.html#L41'>size_t</a>             41 src/tests/lib.h void wait_children (pid_t pids[], size_t child_cnt);
+<a href='../S/529.html#L44'>size_t</a>             44 src/tests/lib.h                         const void *buf_, size_t filesize);
+<a href='../S/529.html#L45'>size_t</a>             45 src/tests/lib.h void check_file (const char *file_name, const void *buf, size_t filesize);
+<a href='../S/529.html#L48'>size_t</a>             48 src/tests/lib.h                     size_t size, size_t ofs, const char *file_name);
+<a href='../S/316.html#L20'>size_t</a>             20 src/tests/vm/child-linear.c   size_t i;
+<a href='../S/341.html#L19'>size_t</a>             19 src/tests/vm/child-qsort.c   size_t size;
+<a href='../S/380.html#L13'>size_t</a>             13 src/tests/vm/child-sort.c size_t histogram[256];
+<a href='../S/380.html#L20'>size_t</a>             20 src/tests/vm/child-sort.c   size_t size;
+<a href='../S/380.html#L21'>size_t</a>             21 src/tests/vm/child-sort.c   size_t i;
+<a href='../S/380.html#L33'>size_t</a>             33 src/tests/vm/child-sort.c       size_t j = histogram[i];
+<a href='../S/313.html#L15'>size_t</a>             15 src/tests/vm/mmap-read.c   size_t i;
+<a href='../S/385.html#L16'>size_t</a>             16 src/tests/vm/mmap-remove.c   size_t i;
+<a href='../S/309.html#L19'>size_t</a>             19 src/tests/vm/mmap-shuffle.c   size_t i;
+<a href='../S/382.html#L14'>size_t</a>             14 src/tests/vm/mmap-twice.c   size_t i;
+<a href='../S/343.html#L17'>size_t</a>             17 src/tests/vm/page-linear.c   size_t i;
+<a href='../S/350.html#L19'>size_t</a>             19 src/tests/vm/page-merge-seq.c size_t histogram[256];
+<a href='../S/350.html#L27'>size_t</a>             27 src/tests/vm/page-merge-seq.c   size_t i;
+<a href='../S/350.html#L41'>size_t</a>             41 src/tests/vm/page-merge-seq.c   size_t i;
+<a href='../S/350.html#L76'>size_t</a>             76 src/tests/vm/page-merge-seq.c   size_t mp_left;
+<a href='../S/350.html#L78'>size_t</a>             78 src/tests/vm/page-merge-seq.c   size_t i;
+<a href='../S/350.html#L92'>size_t</a>             92 src/tests/vm/page-merge-seq.c       size_t min = 0;
+<a href='../S/350.html#L110'>size_t</a>            110 src/tests/vm/page-merge-seq.c   size_t buf_idx;
+<a href='../S/350.html#L111'>size_t</a>            111 src/tests/vm/page-merge-seq.c   size_t hist_idx;
+<a href='../S/346.html#L17'>size_t</a>             17 src/tests/vm/page-shuffle.c   size_t i;
+<a href='../S/339.html#L18'>size_t</a>             18 src/tests/vm/parallel-merge.c size_t histogram[256];
+<a href='../S/339.html#L26'>size_t</a>             26 src/tests/vm/parallel-merge.c   size_t i;
+<a href='../S/339.html#L42'>size_t</a>             42 src/tests/vm/parallel-merge.c   size_t i;
+<a href='../S/339.html#L88'>size_t</a>             88 src/tests/vm/parallel-merge.c   size_t mp_left;
+<a href='../S/339.html#L90'>size_t</a>             90 src/tests/vm/parallel-merge.c   size_t i;
+<a href='../S/339.html#L104'>size_t</a>            104 src/tests/vm/parallel-merge.c       size_t min = 0;
+<a href='../S/339.html#L122'>size_t</a>            122 src/tests/vm/parallel-merge.c   size_t buf_idx;
+<a href='../S/339.html#L123'>size_t</a>            123 src/tests/vm/parallel-merge.c   size_t hist_idx;
+<a href='../S/360.html#L8'>size_t</a>              8 src/tests/vm/qsort.c pick_pivot (unsigned char *buf, size_t size) 
+<a href='../S/360.html#L19'>size_t</a>             19 src/tests/vm/qsort.c is_partitioned (const unsigned char *array, size_t size,
+<a href='../S/360.html#L20'>size_t</a>             20 src/tests/vm/qsort.c                 unsigned char pivot, size_t left_size) 
+<a href='../S/360.html#L22'>size_t</a>             22 src/tests/vm/qsort.c   size_t i;
+<a href='../S/360.html#L47'>size_t</a>             47 src/tests/vm/qsort.c static size_t
+<a href='../S/360.html#L48'>size_t</a>             48 src/tests/vm/qsort.c partition (unsigned char *array, size_t size, int pivot) 
+<a href='../S/360.html#L50'>size_t</a>             50 src/tests/vm/qsort.c   size_t left_size = size;
+<a href='../S/360.html#L100'>size_t</a>            100 src/tests/vm/qsort.c is_sorted (const unsigned char *buf, size_t size) 
+<a href='../S/360.html#L102'>size_t</a>            102 src/tests/vm/qsort.c   size_t i;
+<a href='../S/360.html#L114'>size_t</a>            114 src/tests/vm/qsort.c qsort_bytes (unsigned char *buf, size_t size) 
+<a href='../S/360.html#L121'>size_t</a>            121 src/tests/vm/qsort.c       size_t left_size = partition (buf, size, pivot);
+<a href='../S/360.html#L123'>size_t</a>            123 src/tests/vm/qsort.c       size_t right_size = size - left_size;
+<a href='../S/374.html#L6'>size_t</a>              6 src/tests/vm/qsort.h void qsort_bytes (unsigned char *buf, size_t size);
+<a href='../S/156.html#L58'>size_t</a>             58 src/threads/init.c static size_t user_page_limit = SIZE_MAX;
+<a href='../S/156.html#L161'>size_t</a>            161 src/threads/init.c   size_t page;
+<a href='../S/156.html#L170'>size_t</a>            170 src/threads/init.c       size_t pde_idx = pd_no (vaddr);
+<a href='../S/156.html#L171'>size_t</a>            171 src/threads/init.c       size_t pte_idx = pt_no (vaddr);
+<a href='../S/157.html#L20'>size_t</a>             20 src/threads/io.h insb (uint16_t port, void *addr, size_t cnt)
+<a href='../S/157.html#L39'>size_t</a>             39 src/threads/io.h insw (uint16_t port, void *addr, size_t cnt)
+<a href='../S/157.html#L58'>size_t</a>             58 src/threads/io.h insl (uint16_t port, void *addr, size_t cnt)
+<a href='../S/157.html#L75'>size_t</a>             75 src/threads/io.h outsb (uint16_t port, const void *addr, size_t cnt)
+<a href='../S/157.html#L92'>size_t</a>             92 src/threads/io.h outsw (uint16_t port, const void *addr, size_t cnt)
+<a href='../S/157.html#L109'>size_t</a>            109 src/threads/io.h outsl (uint16_t port, const void *addr, size_t cnt)
+<a href='../S/161.html#L40'>size_t</a>             40 src/threads/malloc.c     size_t block_size;          /* Size of each element in bytes. */
+<a href='../S/161.html#L41'>size_t</a>             41 src/threads/malloc.c     size_t blocks_per_arena;    /* Number of blocks in an arena. */
+<a href='../S/161.html#L54'>size_t</a>             54 src/threads/malloc.c     size_t free_cnt;            /* Free blocks; pages in big block. */
+<a href='../S/161.html#L65'>size_t</a>             65 src/threads/malloc.c static size_t desc_cnt;         /* Number of descriptors. */
+<a href='../S/161.html#L68'>size_t</a>             68 src/threads/malloc.c static struct block *arena_to_block (struct arena *, size_t idx);
+<a href='../S/161.html#L74'>size_t</a>             74 src/threads/malloc.c   size_t block_size;
+<a href='../S/161.html#L90'>size_t</a>             90 src/threads/malloc.c malloc (size_t size) 
+<a href='../S/161.html#L109'>size_t</a>            109 src/threads/malloc.c       size_t page_cnt = DIV_ROUND_UP (size + sizeof *a, PGSIZE);
+<a href='../S/161.html#L127'>size_t</a>            127 src/threads/malloc.c       size_t i;
+<a href='../S/161.html#L159'>size_t</a>            159 src/threads/malloc.c calloc (size_t a, size_t b) 
+<a href='../S/161.html#L162'>size_t</a>            162 src/threads/malloc.c   size_t size;
+<a href='../S/161.html#L178'>size_t</a>            178 src/threads/malloc.c static size_t
+<a href='../S/161.html#L195'>size_t</a>            195 src/threads/malloc.c realloc (void *old_block, size_t new_size) 
+<a href='../S/161.html#L207'>size_t</a>            207 src/threads/malloc.c           size_t old_size = block_size (old_block);
+<a href='../S/161.html#L208'>size_t</a>            208 src/threads/malloc.c           size_t min_size = new_size &lt; old_size ? new_size : old_size;
+<a href='../S/161.html#L244'>size_t</a>            244 src/threads/malloc.c               size_t i;
+<a href='../S/161.html#L286'>size_t</a>            286 src/threads/malloc.c arena_to_block (struct arena *a, size_t idx) 
+<a href='../S/149.html#L8'>size_t</a>              8 src/threads/malloc.h void *malloc (size_t) __attribute__ ((malloc));
+<a href='../S/149.html#L9'>size_t</a>              9 src/threads/malloc.h void *calloc (size_t, size_t) __attribute__ ((malloc));
+<a href='../S/149.html#L10'>size_t</a>             10 src/threads/malloc.h void *realloc (void *, size_t);
+<a href='../S/160.html#L39'>size_t</a>             39 src/threads/palloc.c static void init_pool (struct pool *, void *base, size_t page_cnt,
+<a href='../S/160.html#L46'>size_t</a>             46 src/threads/palloc.c palloc_init (size_t user_page_limit)
+<a href='../S/160.html#L51'>size_t</a>             51 src/threads/palloc.c   size_t free_pages = (free_end - free_start) / PGSIZE;
+<a href='../S/160.html#L52'>size_t</a>             52 src/threads/palloc.c   size_t user_pages = free_pages / 2;
+<a href='../S/160.html#L53'>size_t</a>             53 src/threads/palloc.c   size_t kernel_pages;
+<a href='../S/160.html#L71'>size_t</a>             71 src/threads/palloc.c palloc_get_multiple (enum palloc_flags flags, size_t page_cnt)
+<a href='../S/160.html#L75'>size_t</a>             75 src/threads/palloc.c   size_t page_idx;
+<a href='../S/160.html#L118'>size_t</a>            118 src/threads/palloc.c palloc_free_multiple (void *pages, size_t page_cnt) 
+<a href='../S/160.html#L121'>size_t</a>            121 src/threads/palloc.c   size_t page_idx;
+<a href='../S/160.html#L154'>size_t</a>            154 src/threads/palloc.c init_pool (struct pool *p, void *base, size_t page_cnt, const char *name) 
+<a href='../S/160.html#L159'>size_t</a>            159 src/threads/palloc.c   size_t bm_pages = DIV_ROUND_UP (bitmap_buf_size (page_cnt), PGSIZE);
+<a href='../S/160.html#L177'>size_t</a>            177 src/threads/palloc.c   size_t page_no = pg_no (page);
+<a href='../S/160.html#L178'>size_t</a>            178 src/threads/palloc.c   size_t start_page = pg_no (pool-&gt;base);
+<a href='../S/160.html#L179'>size_t</a>            179 src/threads/palloc.c   size_t end_page = start_page + bitmap_size (pool-&gt;used_map);
+<a href='../S/165.html#L14'>size_t</a>             14 src/threads/palloc.h void palloc_init (size_t user_page_limit);
+<a href='../S/165.html#L16'>size_t</a>             16 src/threads/palloc.h void *palloc_get_multiple (enum palloc_flags, size_t page_cnt);
+<a href='../S/165.html#L18'>size_t</a>             18 src/threads/palloc.h void palloc_free_multiple (void *, size_t page_cnt);
+<a href='../S/163.html#L69'>size_t</a>             69 src/threads/thread.c static void *alloc_frame (struct thread *, size_t size);
+<a href='../S/163.html#L478'>size_t</a>            478 src/threads/thread.c alloc_frame (struct thread *t, size_t size) 
+<a href='../S/66.html#L396'>size_t</a>            396 src/userprog/process.c       size_t page_read_bytes = read_bytes &lt; PGSIZE ? read_bytes : PGSIZE;
+<a href='../S/66.html#L397'>size_t</a>            397 src/userprog/process.c       size_t page_zero_bytes = PGSIZE - page_read_bytes;
+<a href='../S/7.html#L118'>size_t</a>            118 src/utils/squish-pty.c       size_t size, ofs;
+<a href='../S/1.html#L111'>size_t</a>            111 src/utils/squish-unix.c       size_t size, ofs;
+</pre>
+</body>
+</html>

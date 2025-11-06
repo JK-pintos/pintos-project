@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>src/tests/userprog/write-bad-fd.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/write-bad-fd.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L10'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L10' title='Defined at 10.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tries to write to an invalid fd,</font></i>
+<a name='L2'>   2 <i><font color='green'>   which must either fail silently or terminate the process with</font></i>
+<a name='L3'>   3 <i><font color='green'>   exit code -1. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='90.html'>limits.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <b>void</b>
+<a name='L10'>  10 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L11'>  11 <font color='red'>{</font>
+<a name='L12'>  12   <b>char</b> buf = 123;
+<a name='L13'>  13   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (0x01012342, &amp;buf, 1);
+<a name='L14'>  14   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (7, &amp;buf, 1);
+<a name='L15'>  15   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (2546, &amp;buf, 1);
+<a name='L16'>  16   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (-5, &amp;buf, 1);
+<a name='L17'>  17   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (-8192, &amp;buf, 1);
+<a name='L18'>  18   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (<a href='../S/90.html#L23' title='Defined at 23 in src/lib/limits.h.'>INT_MIN</a> + 1, &amp;buf, 1);
+<a name='L19'>  19   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (<a href='../S/90.html#L22' title='Defined at 22 in src/lib/limits.h.'>INT_MAX</a> - 1, &amp;buf, 1);
+<a name='L20'>  20 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L10'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

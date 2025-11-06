@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>src/lib/syscall-nr.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/syscall-nr.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/88.html' title='Multiple included from 6 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/89.html#L2' title='Defined at 2 in src/lib/syscall-nr.h.'>__LIB_SYSCALL_NR_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/89.html#L1' title='Refered from 1 in src/lib/syscall-nr.h.'>__LIB_SYSCALL_NR_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* System call numbers. */</font></i>
+<a name='L5'>   5 <b>enum</b> 
+<a name='L6'>   6   <font color='red'>{</font>
+<a name='L7'>   7     <i><font color='green'>/* Projects 2 and later. */</font></i>
+<a name='L8'>   8     SYS_HALT,                   <i><font color='green'>/* Halt the operating system. */</font></i>
+<a name='L9'>   9     SYS_EXIT,                   <i><font color='green'>/* Terminate this process. */</font></i>
+<a name='L10'>  10     SYS_EXEC,                   <i><font color='green'>/* Start another process. */</font></i>
+<a name='L11'>  11     SYS_WAIT,                   <i><font color='green'>/* Wait for a child process to die. */</font></i>
+<a name='L12'>  12     SYS_CREATE,                 <i><font color='green'>/* Create a file. */</font></i>
+<a name='L13'>  13     SYS_REMOVE,                 <i><font color='green'>/* Delete a file. */</font></i>
+<a name='L14'>  14     SYS_OPEN,                   <i><font color='green'>/* Open a file. */</font></i>
+<a name='L15'>  15     SYS_FILESIZE,               <i><font color='green'>/* Obtain a file's size. */</font></i>
+<a name='L16'>  16     SYS_READ,                   <i><font color='green'>/* Read from a file. */</font></i>
+<a name='L17'>  17     SYS_WRITE,                  <i><font color='green'>/* Write to a file. */</font></i>
+<a name='L18'>  18     SYS_SEEK,                   <i><font color='green'>/* Change position in a file. */</font></i>
+<a name='L19'>  19     SYS_TELL,                   <i><font color='green'>/* Report current position in a file. */</font></i>
+<a name='L20'>  20     SYS_CLOSE,                  <i><font color='green'>/* Close a file. */</font></i>
+<a name='L21'>  21 
+<a name='L22'>  22     <i><font color='green'>/* Project 3 and optionally project 4. */</font></i>
+<a name='L23'>  23     SYS_MMAP,                   <i><font color='green'>/* Map a file into memory. */</font></i>
+<a name='L24'>  24     SYS_MUNMAP,                 <i><font color='green'>/* Remove a memory mapping. */</font></i>
+<a name='L25'>  25 
+<a name='L26'>  26     <i><font color='green'>/* Project 4 only. */</font></i>
+<a name='L27'>  27     SYS_CHDIR,                  <i><font color='green'>/* Change the current directory. */</font></i>
+<a name='L28'>  28     SYS_MKDIR,                  <i><font color='green'>/* Create a directory. */</font></i>
+<a name='L29'>  29     SYS_READDIR,                <i><font color='green'>/* Reads a directory entry. */</font></i>
+<a name='L30'>  30     SYS_ISDIR,                  <i><font color='green'>/* Tests if a fd represents a directory. */</font></i>
+<a name='L31'>  31     SYS_INUMBER                 <i><font color='green'>/* Returns the inode number for a fd. */</font></i>
+<a name='L32'>  32   <font color='red'>}</font>;
+<a name='L33'>  33 
+<a name='L34'>  34 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/syscall-nr.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

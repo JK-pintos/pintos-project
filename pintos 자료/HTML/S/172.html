@@ -1,0 +1,201 @@
+<html>
+<head>
+<title>src/tests/internal/list.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/606.html'>internal</a>/list.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L160'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L36' title='Defined at 36.'>test</a>
+<li><a href='#L113' title='Defined at 113.'>shuffle</a>
+<li><a href='#L129' title='Defined at 129.'>value_less</a>
+<li><a href='#L141' title='Defined at 141.'>verify_list_fwd</a>
+<li><a href='#L160' title='Defined at 160.'>verify_list_bkwd</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Test program for lib/kernel/list.c.</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Attempts to test the list functionality that is not</font></i>
+<a name='L4'>   4 <i><font color='green'>   sufficiently tested elsewhere in Pintos.</font></i>
+<a name='L5'>   5 <i><font color='green'></font></i>
+<a name='L6'>   6 <i><font color='green'>   This is not a test we will run on your submitted projects.</font></i>
+<a name='L7'>   7 <i><font color='green'>   It is here for completeness.</font></i>
+<a name='L8'>   8 <i><font color='green'>*/</font></i>
+<a name='L9'>   9 
+<a name='L10'>  10 <font color='darkred'>#undef</font> <a href='../R/112.html' title='Multiple refered from 3 places.'>NDEBUG</a>
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='107.html'>list.h</a>&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L14'>  14 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L15'>  15 <font color='darkred'>#include</font> "threads/test.h"
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Maximum number of elements in a linked list that we will</font></i>
+<a name='L18'>  18 <i><font color='green'>   test. */</font></i>
+<a name='L19'>  19 <font color='darkred'>#define</font> <a href='../R/106.html' title='Multiple refered from 2 places.'>MAX_SIZE</a> 64
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* A linked list element. */</font></i>
+<a name='L22'>  22 <b>struct</b> <a href='../R/953.html' title='Multiple refered from 73 places.'>value</a> 
+<a name='L23'>  23   <font color='red'>{</font>
+<a name='L24'>  24     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> elem;      <i><font color='green'>/* List element. */</font></i>
+<a name='L25'>  25     <b>int</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;                  <i><font color='green'>/* Item value. */</font></i>
+<a name='L26'>  26   <font color='red'>}</font>;
+<a name='L27'>  27 
+<a name='L28'>  28 <b>static</b> <b>void</b> <a href='../D/915.html' title='Multiple defined in 3 places.'>shuffle</a> (<b>struct</b> value[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L29'>  29 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/172.html#L129' title='Defined at 129 in src/tests/internal/list.c.'>value_less</a> (<b>const</b> <b>struct</b> list_elem *, <b>const</b> <b>struct</b> list_elem *,
+<a name='L30'>  30                         <b>void</b> *);
+<a name='L31'>  31 <b>static</b> <b>void</b> <a href='../S/172.html#L141' title='Defined at 141 in src/tests/internal/list.c.'>verify_list_fwd</a> (<b>struct</b> list *, <b>int</b> size);
+<a name='L32'>  32 <b>static</b> <b>void</b> <a href='../S/172.html#L160' title='Defined at 160 in src/tests/internal/list.c.'>verify_list_bkwd</a> (<b>struct</b> list *, <b>int</b> size);
+<a name='L33'>  33 
+<a name='L34'>  34 <i><font color='green'>/* Test the linked list implementation. */</font></i>
+<a name='L35'>  35 <b>void</b>
+<a name='L36'>  36 <a href='../R/855.html' title='Multiple refered from 28 places.'>test</a> (<b>void</b>) 
+<a name='L37'>  37 <font color='red'>{</font>
+<a name='L38'>  38   <b>int</b> size;
+<a name='L39'>  39 
+<a name='L40'>  40   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("testing various size lists:");
+<a name='L41'>  41   <b>for</b> (size = 0; size &lt; <a href='../S/172.html#L19' title='Defined at 19 in src/tests/internal/list.c.'>MAX_SIZE</a>; size++) 
+<a name='L42'>  42     <font color='red'>{</font>
+<a name='L43'>  43       <b>int</b> repeat;
+<a name='L44'>  44 
+<a name='L45'>  45       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" %d", size);
+<a name='L46'>  46       <b>for</b> (repeat = 0; repeat &lt; 10; repeat++) 
+<a name='L47'>  47         <font color='red'>{</font>
+<a name='L48'>  48           <b>static</b> <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> values[<a href='../S/172.html#L19' title='Defined at 19 in src/tests/internal/list.c.'>MAX_SIZE</a> * 4];
+<a name='L49'>  49           <b>struct</b> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a> <a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>;
+<a name='L50'>  50           <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L51'>  51           <b>int</b> i, ofs;
+<a name='L52'>  52 
+<a name='L53'>  53           <i><font color='green'>/* Put values 0...SIZE in random order in VALUES. */</font></i>
+<a name='L54'>  54           <b>for</b> (i = 0; i &lt; size; i++)
+<a name='L55'>  55             values[i].<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = i;
+<a name='L56'>  56           <a href='../D/915.html' title='Multiple defined in 3 places.'>shuffle</a> (values, size);
+<a name='L57'>  57   
+<a name='L58'>  58           <i><font color='green'>/* Assemble list. */</font></i>
+<a name='L59'>  59           <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L60'>  60           <b>for</b> (i = 0; i &lt; size; i++)
+<a name='L61'>  61             <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, &amp;values[i].elem);
+<a name='L62'>  62 
+<a name='L63'>  63           <i><font color='green'>/* Verify correct minimum and maximum elements. */</font></i>
+<a name='L64'>  64           e = <a href='../S/112.html#L512' title='Defined at 512 in src/lib/kernel/list.c.'>list_min</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, <a href='../S/172.html#L129' title='Defined at 129 in src/tests/internal/list.c.'>value_less</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L65'>  65           <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (size ? <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem)-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> == 0
+<a name='L66'>  66                   : e == <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>));
+<a name='L67'>  67           e = <a href='../S/112.html#L493' title='Defined at 493 in src/lib/kernel/list.c.'>list_max</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, <a href='../S/172.html#L129' title='Defined at 129 in src/tests/internal/list.c.'>value_less</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L68'>  68           <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (size ? <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem)-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> == size - 1
+<a name='L69'>  69                   : e == <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>));
+<a name='L70'>  70 
+<a name='L71'>  71           <i><font color='green'>/* Sort and verify list. */</font></i>
+<a name='L72'>  72           <a href='../S/112.html#L405' title='Defined at 405 in src/lib/kernel/list.c.'>list_sort</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, <a href='../S/172.html#L129' title='Defined at 129 in src/tests/internal/list.c.'>value_less</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L73'>  73           <a href='../S/172.html#L141' title='Defined at 141 in src/tests/internal/list.c.'>verify_list_fwd</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, size);
+<a name='L74'>  74 
+<a name='L75'>  75           <i><font color='green'>/* Reverse and verify list. */</font></i>
+<a name='L76'>  76           <a href='../S/112.html#L326' title='Defined at 326 in src/lib/kernel/list.c.'>list_reverse</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L77'>  77           <a href='../S/172.html#L160' title='Defined at 160 in src/tests/internal/list.c.'>verify_list_bkwd</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, size);
+<a name='L78'>  78 
+<a name='L79'>  79           <i><font color='green'>/* Shuffle, insert using list_insert_ordered(),</font></i>
+<a name='L80'>  80 <i><font color='green'>             and verify ordering. */</font></i>
+<a name='L81'>  81           <a href='../D/915.html' title='Multiple defined in 3 places.'>shuffle</a> (values, size);
+<a name='L82'>  82           <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L83'>  83           <b>for</b> (i = 0; i &lt; size; i++)
+<a name='L84'>  84             <a href='../S/112.html#L446' title='Defined at 446 in src/lib/kernel/list.c.'>list_insert_ordered</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, &amp;values[i].elem,
+<a name='L85'>  85                                  <a href='../S/172.html#L129' title='Defined at 129 in src/tests/internal/list.c.'>value_less</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L86'>  86           <a href='../S/172.html#L141' title='Defined at 141 in src/tests/internal/list.c.'>verify_list_fwd</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, size);
+<a name='L87'>  87 
+<a name='L88'>  88           <i><font color='green'>/* Duplicate some items, uniquify, and verify. */</font></i>
+<a name='L89'>  89           ofs = size;
+<a name='L90'>  90           <b>for</b> (e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>); e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L91'>  91                e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e))
+<a name='L92'>  92             <font color='red'>{</font>
+<a name='L93'>  93               <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> *v = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem);
+<a name='L94'>  94               <b>int</b> copies = <a href='../S/85.html#L78' title='Defined at 78 in src/lib/random.c.'>random_ulong</a> () % 4;
+<a name='L95'>  95               <b>while</b> (copies-- &gt; 0) 
+<a name='L96'>  96                 <font color='red'>{</font>
+<a name='L97'>  97                   values[ofs].<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> = v-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L98'>  98                   <a href='../S/112.html#L169' title='Defined at 169 in src/lib/kernel/list.c.'>list_insert</a> (e, &amp;values[ofs++].elem);
+<a name='L99'>  99                 <font color='red'>}</font>
+<a name='L100'> 100             <font color='red'>}</font>
+<a name='L101'> 101           <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> ((<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>) ofs &lt; <b>sizeof</b> values / <b>sizeof</b> *values);
+<a name='L102'> 102           <a href='../S/112.html#L466' title='Defined at 466 in src/lib/kernel/list.c.'>list_unique</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, <a href='../S/172.html#L129' title='Defined at 129 in src/tests/internal/list.c.'>value_less</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L103'> 103           <a href='../S/172.html#L141' title='Defined at 141 in src/tests/internal/list.c.'>verify_list_fwd</a> (&amp;<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>, size);
+<a name='L104'> 104         <font color='red'>}</font>
+<a name='L105'> 105     <font color='red'>}</font>
+<a name='L106'> 106   
+<a name='L107'> 107   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" done\n");
+<a name='L108'> 108   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("list: PASS\n");
+<a name='L109'> 109 <font color='red'>}</font>
+<a name='L110'> 110 
+<a name='L111'> 111 <i><font color='green'>/* Shuffles the CNT elements in ARRAY into random order. */</font></i>
+<a name='L112'> 112 <b>static</b> <b>void</b>
+<a name='L113'> 113 <a href='../R/805.html' title='Multiple refered from 8 places.'>shuffle</a> (<b>struct</b> value *array, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt) 
+<a name='L114'> 114 <font color='red'>{</font>
+<a name='L115'> 115   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L116'> 116 
+<a name='L117'> 117   <b>for</b> (i = 0; i &lt; cnt; i++)
+<a name='L118'> 118     <font color='red'>{</font>
+<a name='L119'> 119       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> j = i + <a href='../S/85.html#L78' title='Defined at 78 in src/lib/random.c.'>random_ulong</a> () % (cnt - i);
+<a name='L120'> 120       <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> t = array[j];
+<a name='L121'> 121       array[j] = array[i];
+<a name='L122'> 122       array[i] = t;
+<a name='L123'> 123     <font color='red'>}</font>
+<a name='L124'> 124 <font color='red'>}</font>
+<a name='L125'> 125 
+<a name='L126'> 126 <i><font color='green'>/* Returns true if value A is less than value B, false</font></i>
+<a name='L127'> 127 <i><font color='green'>   otherwise. */</font></i>
+<a name='L128'> 128 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L129'> 129 <a href='../R/954.html' title='Multiple refered from 6 places.'>value_less</a> (<b>const</b> <b>struct</b> list_elem *a_, <b>const</b> <b>struct</b> list_elem *b_,
+<a name='L130'> 130             <b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L131'> 131 <font color='red'>{</font>
+<a name='L132'> 132   <b>const</b> <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> *a = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (a_, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem);
+<a name='L133'> 133   <b>const</b> <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> *b = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (b_, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem);
+<a name='L134'> 134   
+<a name='L135'> 135   <b>return</b> a-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> &lt; b-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>;
+<a name='L136'> 136 <font color='red'>}</font>
+<a name='L137'> 137 
+<a name='L138'> 138 <i><font color='green'>/* Verifies that LIST contains the values 0...SIZE when traversed</font></i>
+<a name='L139'> 139 <i><font color='green'>   in forward order. */</font></i>
+<a name='L140'> 140 <b>static</b> <b>void</b>
+<a name='L141'> 141 <a href='../R/958.html' title='Multiple refered from 4 places.'>verify_list_fwd</a> (<b>struct</b> list *list, <b>int</b> size) 
+<a name='L142'> 142 <font color='red'>{</font>
+<a name='L143'> 143   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L144'> 144   <b>int</b> i;
+<a name='L145'> 145   
+<a name='L146'> 146   <b>for</b> (i = 0, e = <a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L147'> 147        i &lt; size &amp;&amp; e != <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L148'> 148        i++, e = <a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (e)) 
+<a name='L149'> 149     <font color='red'>{</font>
+<a name='L150'> 150       <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> *v = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem);
+<a name='L151'> 151       <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (i == v-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L152'> 152     <font color='red'>}</font>
+<a name='L153'> 153   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (i == size);
+<a name='L154'> 154   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (e == <a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>));
+<a name='L155'> 155 <font color='red'>}</font>
+<a name='L156'> 156 
+<a name='L157'> 157 <i><font color='green'>/* Verifies that LIST contains the values 0...SIZE when traversed</font></i>
+<a name='L158'> 158 <i><font color='green'>   in reverse order. */</font></i>
+<a name='L159'> 159 <b>static</b> <b>void</b>
+<a name='L160'> 160 <a href='../R/957.html' title='Multiple refered from 2 places.'>verify_list_bkwd</a> (<b>struct</b> list *list, <b>int</b> size) 
+<a name='L161'> 161 <font color='red'>{</font>
+<a name='L162'> 162   <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *e;
+<a name='L163'> 163   <b>int</b> i;
+<a name='L164'> 164 
+<a name='L165'> 165   <b>for</b> (i = 0, e = <a href='../S/112.html#L103' title='Defined at 103 in src/lib/kernel/list.c.'>list_rbegin</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L166'> 166        i &lt; size &amp;&amp; e != <a href='../S/112.html#L133' title='Defined at 133 in src/lib/kernel/list.c.'>list_rend</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>);
+<a name='L167'> 167        i++, e = <a href='../S/112.html#L113' title='Defined at 113 in src/lib/kernel/list.c.'>list_prev</a> (e)) 
+<a name='L168'> 168     <font color='red'>{</font>
+<a name='L169'> 169       <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a> *v = <a href='../S/107.html#L108' title='Defined at 108 in src/lib/kernel/list.h.'>list_entry</a> (e, <b>struct</b> <a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>, elem);
+<a name='L170'> 170       <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (i == v-&gt;<a href='../S/172.html#L22' title='Defined at 22 in src/tests/internal/list.c.'>value</a>);
+<a name='L171'> 171     <font color='red'>}</font>
+<a name='L172'> 172   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (i == size);
+<a name='L173'> 173   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (e == <a href='../S/112.html#L133' title='Defined at 133 in src/lib/kernel/list.c.'>list_rend</a> (<a href='../S/107.html#L97' title='Defined at 97 in src/lib/kernel/list.h.'>list</a>));
+<a name='L174'> 174 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L36'>[^]</a><a href='#L160'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

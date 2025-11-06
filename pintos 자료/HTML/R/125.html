@@ -1,0 +1,16 @@
+<html>
+<head>
+<title>PGBITS</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/162.html#L21'>PGBITS</a>             21 src/threads/pte.h #define	PTSHIFT PGBITS		           /* First page table bit. */
+<a href='../S/162.html#L23'>PGBITS</a>             23 src/threads/pte.h #define PTSPAN  (1 &lt;&lt; PTBITS &lt;&lt; PGBITS)    /* Bytes covered by a page table. */
+<a href='../S/153.html#L20'>PGBITS</a>             20 src/threads/vaddr.h #define PGSIZE  (1 &lt;&lt; PGBITS)              /* Bytes in a page. */
+<a href='../S/153.html#L21'>PGBITS</a>             21 src/threads/vaddr.h #define PGMASK  BITMASK(PGSHIFT, PGBITS)   /* Page offset bits (0:12). */
+<a href='../S/153.html#L30'>PGBITS</a>             30 src/threads/vaddr.h   return (uintptr_t) va &gt;&gt; PGBITS;
+</pre>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<html>
+<head>
+<title>src/filesys/directory.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/directory.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L27'>[^]</a><a href='#L222'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L27' title='Defined at 27.'>dir_create</a>
+<li><a href='#L35' title='Defined at 35.'>dir_open</a>
+<li><a href='#L55' title='Defined at 55.'>dir_open_root</a>
+<li><a href='#L63' title='Defined at 63.'>dir_reopen</a>
+<li><a href='#L70' title='Defined at 70.'>dir_close</a>
+<li><a href='#L81' title='Defined at 81.'>dir_get_inode</a>
+<li><a href='#L92' title='Defined at 92.'>lookup</a>
+<li><a href='#L119' title='Defined at 119.'>dir_lookup</a>
+<li><a href='#L142' title='Defined at 142.'>dir_add</a>
+<li><a href='#L185' title='Defined at 185.'>dir_remove</a>
+<li><a href='#L222' title='Defined at 222.'>dir_readdir</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='28.html'>filesys/directory.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='107.html'>list.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='33.html'>filesys/filesys.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='34.html'>filesys/inode.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <i><font color='green'>/* A directory. */</font></i>
+<a name='L10'>  10 <b>struct</b> <a href='../R/394.html' title='Multiple refered from 56 places.'>dir</a> 
+<a name='L11'>  11   <font color='red'>{</font>
+<a name='L12'>  12     <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;                <i><font color='green'>/* Backing store. */</font></i>
+<a name='L13'>  13     <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> pos;                          <i><font color='green'>/* Current position. */</font></i>
+<a name='L14'>  14   <font color='red'>}</font>;
+<a name='L15'>  15 
+<a name='L16'>  16 <i><font color='green'>/* A single directory entry. */</font></i>
+<a name='L17'>  17 <b>struct</b> <a href='../R/398.html' title='Multiple refered from 6 places.'>dir_entry</a> 
+<a name='L18'>  18   <font color='red'>{</font>
+<a name='L19'>  19     <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> inode_sector;        <i><font color='green'>/* Sector number of header. */</font></i>
+<a name='L20'>  20     <b>char</b> name[<a href='../S/28.html#L12' title='Defined at 12 in src/filesys/directory.h.'>NAME_MAX</a> + 1];            <i><font color='green'>/* Null terminated file name. */</font></i>
+<a name='L21'>  21     <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> in_use;                        <i><font color='green'>/* In use or free? */</font></i>
+<a name='L22'>  22   <font color='red'>}</font>;
+<a name='L23'>  23 
+<a name='L24'>  24 <i><font color='green'>/* Creates a directory with space for ENTRY_CNT entries in the</font></i>
+<a name='L25'>  25 <i><font color='green'>   given SECTOR.  Returns true if successful, false on failure. */</font></i>
+<a name='L26'>  26 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L27'>  27 <a href='../R/397.html' title='Multiple refered from 2 places.'>dir_create</a> (<a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> sector, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> entry_cnt)
+<a name='L28'>  28 <font color='red'>{</font>
+<a name='L29'>  29   <b>return</b> <a href='../S/35.html#L73' title='Defined at 73 in src/filesys/inode.c.'>inode_create</a> (sector, entry_cnt * <b>sizeof</b> (<b>struct</b> <a href='../S/32.html#L17' title='Defined at 17 in src/filesys/directory.c.'>dir_entry</a>));
+<a name='L30'>  30 <font color='red'>}</font>
+<a name='L31'>  31 
+<a name='L32'>  32 <i><font color='green'>/* Opens and returns the directory for the given INODE, of which</font></i>
+<a name='L33'>  33 <i><font color='green'>   it takes ownership.  Returns a null pointer on failure. */</font></i>
+<a name='L34'>  34 <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *
+<a name='L35'>  35 <a href='../R/401.html' title='Multiple refered from 3 places.'>dir_open</a> (<b>struct</b> inode *inode) 
+<a name='L36'>  36 <font color='red'>{</font>
+<a name='L37'>  37   <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> = <a href='../S/161.html#L159' title='Defined at 159 in src/threads/malloc.c.'>calloc</a> (1, <b>sizeof</b> *<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L38'>  38   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> &amp;&amp; <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L39'>  39     <font color='red'>{</font>
+<a name='L40'>  40       <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L41'>  41       <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;pos = 0;
+<a name='L42'>  42       <b>return</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>;
+<a name='L43'>  43     <font color='red'>}</font>
+<a name='L44'>  44   <b>else</b>
+<a name='L45'>  45     <font color='red'>{</font>
+<a name='L46'>  46       <a href='../S/35.html#L164' title='Defined at 164 in src/filesys/inode.c.'>inode_close</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L47'>  47       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L48'>  48       <b>return</b> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>; 
+<a name='L49'>  49     <font color='red'>}</font>
+<a name='L50'>  50 <font color='red'>}</font>
+<a name='L51'>  51 
+<a name='L52'>  52 <i><font color='green'>/* Opens the root directory and returns a directory for it.</font></i>
+<a name='L53'>  53 <i><font color='green'>   Return true if successful, false on failure. */</font></i>
+<a name='L54'>  54 <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *
+<a name='L55'>  55 <a href='../R/402.html' title='Multiple refered from 5 places.'>dir_open_root</a> (<b>void</b>)
+<a name='L56'>  56 <font color='red'>{</font>
+<a name='L57'>  57   <b>return</b> <a href='../S/32.html#L35' title='Defined at 35 in src/filesys/directory.c.'>dir_open</a> (<a href='../S/35.html#L112' title='Defined at 112 in src/filesys/inode.c.'>inode_open</a> (<a href='../S/33.html#L9' title='Defined at 9 in src/filesys/filesys.h.'>ROOT_DIR_SECTOR</a>));
+<a name='L58'>  58 <font color='red'>}</font>
+<a name='L59'>  59 
+<a name='L60'>  60 <i><font color='green'>/* Opens and returns a new directory for the same inode as DIR.</font></i>
+<a name='L61'>  61 <i><font color='green'>   Returns a null pointer on failure. */</font></i>
+<a name='L62'>  62 <b>struct</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> *
+<a name='L63'>  63 <a href='../S/28.html#L20' title='Refered from 20 in src/filesys/directory.h.'>dir_reopen</a> (<b>struct</b> dir *dir) 
+<a name='L64'>  64 <font color='red'>{</font>
+<a name='L65'>  65   <b>return</b> <a href='../S/32.html#L35' title='Defined at 35 in src/filesys/directory.c.'>dir_open</a> (<a href='../S/35.html#L146' title='Defined at 146 in src/filesys/inode.c.'>inode_reopen</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>));
+<a name='L66'>  66 <font color='red'>}</font>
+<a name='L67'>  67 
+<a name='L68'>  68 <i><font color='green'>/* Destroys DIR and frees associated resources. */</font></i>
+<a name='L69'>  69 <b>void</b>
+<a name='L70'>  70 <a href='../R/396.html' title='Multiple refered from 5 places.'>dir_close</a> (<b>struct</b> dir *dir) 
+<a name='L71'>  71 <font color='red'>{</font>
+<a name='L72'>  72   <b>if</b> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L73'>  73     <font color='red'>{</font>
+<a name='L74'>  74       <a href='../S/35.html#L164' title='Defined at 164 in src/filesys/inode.c.'>inode_close</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L75'>  75       <a href='../S/161.html#L219' title='Defined at 219 in src/threads/malloc.c.'>free</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L76'>  76     <font color='red'>}</font>
+<a name='L77'>  77 <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79 <i><font color='green'>/* Returns the inode encapsulated by DIR. */</font></i>
+<a name='L80'>  80 <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *
+<a name='L81'>  81 <a href='../S/28.html#L22' title='Refered from 22 in src/filesys/directory.h.'>dir_get_inode</a> (<b>struct</b> dir *dir) 
+<a name='L82'>  82 <font color='red'>{</font>
+<a name='L83'>  83   <b>return</b> <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>;
+<a name='L84'>  84 <font color='red'>}</font>
+<a name='L85'>  85 
+<a name='L86'>  86 <i><font color='green'>/* Searches DIR for a file with the given NAME.</font></i>
+<a name='L87'>  87 <i><font color='green'>   If successful, returns true, sets *EP to the directory entry</font></i>
+<a name='L88'>  88 <i><font color='green'>   if EP is non-null, and sets *OFSP to the byte offset of the</font></i>
+<a name='L89'>  89 <i><font color='green'>   directory entry if OFSP is non-null.</font></i>
+<a name='L90'>  90 <i><font color='green'>   otherwise, returns false and ignores EP and OFSP. */</font></i>
+<a name='L91'>  91 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L92'>  92 <a href='../R/636.html' title='Multiple refered from 3 places.'>lookup</a> (<b>const</b> <b>struct</b> dir *dir, <b>const</b> <b>char</b> *name,
+<a name='L93'>  93         <b>struct</b> dir_entry *ep, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> *ofsp) 
+<a name='L94'>  94 <font color='red'>{</font>
+<a name='L95'>  95   <b>struct</b> <a href='../S/32.html#L17' title='Defined at 17 in src/filesys/directory.c.'>dir_entry</a> e;
+<a name='L96'>  96   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs;
+<a name='L97'>  97   
+<a name='L98'>  98   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L99'>  99   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (name != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L100'> 100 
+<a name='L101'> 101   <b>for</b> (ofs = 0; <a href='../S/35.html#L201' title='Defined at 201 in src/filesys/inode.c.'>inode_read_at</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, &amp;e, <b>sizeof</b> e, ofs) == <b>sizeof</b> e;
+<a name='L102'> 102        ofs += <b>sizeof</b> e) 
+<a name='L103'> 103     <b>if</b> (e.in_use &amp;&amp; !<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (name, e.name)) 
+<a name='L104'> 104       <font color='red'>{</font>
+<a name='L105'> 105         <b>if</b> (ep != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L106'> 106           *ep = e;
+<a name='L107'> 107         <b>if</b> (ofsp != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L108'> 108           *ofsp = ofs;
+<a name='L109'> 109         <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L110'> 110       <font color='red'>}</font>
+<a name='L111'> 111   <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L112'> 112 <font color='red'>}</font>
+<a name='L113'> 113 
+<a name='L114'> 114 <i><font color='green'>/* Searches DIR for a file with the given NAME</font></i>
+<a name='L115'> 115 <i><font color='green'>   and returns true if one exists, false otherwise.</font></i>
+<a name='L116'> 116 <i><font color='green'>   On success, sets *INODE to an inode for the file, otherwise to</font></i>
+<a name='L117'> 117 <i><font color='green'>   a null pointer.  The caller must close *INODE. */</font></i>
+<a name='L118'> 118 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L119'> 119 <a href='../R/400.html' title='Multiple refered from 2 places.'>dir_lookup</a> (<b>const</b> <b>struct</b> dir *dir, <b>const</b> <b>char</b> *name,
+<a name='L120'> 120             <b>struct</b> inode **inode) 
+<a name='L121'> 121 <font color='red'>{</font>
+<a name='L122'> 122   <b>struct</b> <a href='../S/32.html#L17' title='Defined at 17 in src/filesys/directory.c.'>dir_entry</a> e;
+<a name='L123'> 123 
+<a name='L124'> 124   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L125'> 125   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (name != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L126'> 126 
+<a name='L127'> 127   <b>if</b> (<a href='../S/32.html#L92' title='Defined at 92 in src/filesys/directory.c.'>lookup</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name, &amp;e, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>))
+<a name='L128'> 128     *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/35.html#L112' title='Defined at 112 in src/filesys/inode.c.'>inode_open</a> (e.inode_sector);
+<a name='L129'> 129   <b>else</b>
+<a name='L130'> 130     *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L131'> 131 
+<a name='L132'> 132   <b>return</b> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L133'> 133 <font color='red'>}</font>
+<a name='L134'> 134 
+<a name='L135'> 135 <i><font color='green'>/* Adds a file named NAME to DIR, which must not already contain a</font></i>
+<a name='L136'> 136 <i><font color='green'>   file by that name.  The file's inode is in sector</font></i>
+<a name='L137'> 137 <i><font color='green'>   INODE_SECTOR.</font></i>
+<a name='L138'> 138 <i><font color='green'>   Returns true if successful, false on failure.</font></i>
+<a name='L139'> 139 <i><font color='green'>   Fails if NAME is invalid (i.e. too long) or a disk or memory</font></i>
+<a name='L140'> 140 <i><font color='green'>   error occurs. */</font></i>
+<a name='L141'> 141 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L142'> 142 <a href='../R/395.html' title='Multiple refered from 2 places.'>dir_add</a> (<b>struct</b> dir *dir, <b>const</b> <b>char</b> *name, <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> inode_sector)
+<a name='L143'> 143 <font color='red'>{</font>
+<a name='L144'> 144   <b>struct</b> <a href='../S/32.html#L17' title='Defined at 17 in src/filesys/directory.c.'>dir_entry</a> e;
+<a name='L145'> 145   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> ofs;
+<a name='L146'> 146   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L147'> 147 
+<a name='L148'> 148   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L149'> 149   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (name != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L150'> 150 
+<a name='L151'> 151   <i><font color='green'>/* Check NAME for validity. */</font></i>
+<a name='L152'> 152   <b>if</b> (*name == '\0' || <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (name) &gt; <a href='../S/28.html#L12' title='Defined at 12 in src/filesys/directory.h.'>NAME_MAX</a>)
+<a name='L153'> 153     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L154'> 154 
+<a name='L155'> 155   <i><font color='green'>/* Check that NAME is not in use. */</font></i>
+<a name='L156'> 156   <b>if</b> (<a href='../S/32.html#L92' title='Defined at 92 in src/filesys/directory.c.'>lookup</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>))
+<a name='L157'> 157     <b>goto</b> done;
+<a name='L158'> 158 
+<a name='L159'> 159   <i><font color='green'>/* Set OFS to offset of free slot.</font></i>
+<a name='L160'> 160 <i><font color='green'>     If there are no free slots, then it will be set to the</font></i>
+<a name='L161'> 161 <i><font color='green'>     current end-of-file.</font></i>
+<a name='L162'> 162 <i><font color='green'>     </font></i>
+<a name='L163'> 163 <i><font color='green'>     inode_read_at() will only return a short read at end of file.</font></i>
+<a name='L164'> 164 <i><font color='green'>     Otherwise, we'd need to verify that we didn't get a short</font></i>
+<a name='L165'> 165 <i><font color='green'>     read due to something intermittent such as low memory. */</font></i>
+<a name='L166'> 166   <b>for</b> (ofs = 0; <a href='../S/35.html#L201' title='Defined at 201 in src/filesys/inode.c.'>inode_read_at</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, &amp;e, <b>sizeof</b> e, ofs) == <b>sizeof</b> e;
+<a name='L167'> 167        ofs += <b>sizeof</b> e) 
+<a name='L168'> 168     <b>if</b> (!e.in_use)
+<a name='L169'> 169       <b>break</b>;
+<a name='L170'> 170 
+<a name='L171'> 171   <i><font color='green'>/* Write slot. */</font></i>
+<a name='L172'> 172   e.in_use = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L173'> 173   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (e.name, name, <b>sizeof</b> e.name);
+<a name='L174'> 174   e.inode_sector = inode_sector;
+<a name='L175'> 175   success = <a href='../S/35.html#L258' title='Defined at 258 in src/filesys/inode.c.'>inode_write_at</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, &amp;e, <b>sizeof</b> e, ofs) == <b>sizeof</b> e;
+<a name='L176'> 176 
+<a name='L177'> 177  done:
+<a name='L178'> 178   <b>return</b> success;
+<a name='L179'> 179 <font color='red'>}</font>
+<a name='L180'> 180 
+<a name='L181'> 181 <i><font color='green'>/* Removes any entry for NAME in DIR.</font></i>
+<a name='L182'> 182 <i><font color='green'>   Returns true if successful, false on failure,</font></i>
+<a name='L183'> 183 <i><font color='green'>   which occurs only if there is no file with the given NAME. */</font></i>
+<a name='L184'> 184 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L185'> 185 <a href='../R/404.html' title='Multiple refered from 2 places.'>dir_remove</a> (<b>struct</b> dir *dir, <b>const</b> <b>char</b> *name) 
+<a name='L186'> 186 <font color='red'>{</font>
+<a name='L187'> 187   <b>struct</b> <a href='../S/32.html#L17' title='Defined at 17 in src/filesys/directory.c.'>dir_entry</a> e;
+<a name='L188'> 188   <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>;
+<a name='L189'> 189   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L190'> 190   <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> ofs;
+<a name='L191'> 191 
+<a name='L192'> 192   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a> != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L193'> 193   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (name != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L194'> 194 
+<a name='L195'> 195   <i><font color='green'>/* Find directory entry. */</font></i>
+<a name='L196'> 196   <b>if</b> (!<a href='../S/32.html#L92' title='Defined at 92 in src/filesys/directory.c.'>lookup</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name, &amp;e, &amp;ofs))
+<a name='L197'> 197     <b>goto</b> done;
+<a name='L198'> 198 
+<a name='L199'> 199   <i><font color='green'>/* Open inode. */</font></i>
+<a name='L200'> 200   <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> = <a href='../S/35.html#L112' title='Defined at 112 in src/filesys/inode.c.'>inode_open</a> (e.inode_sector);
+<a name='L201'> 201   <b>if</b> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> == <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L202'> 202     <b>goto</b> done;
+<a name='L203'> 203 
+<a name='L204'> 204   <i><font color='green'>/* Erase directory entry. */</font></i>
+<a name='L205'> 205   e.in_use = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L206'> 206   <b>if</b> (<a href='../S/35.html#L258' title='Defined at 258 in src/filesys/inode.c.'>inode_write_at</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, &amp;e, <b>sizeof</b> e, ofs) != <b>sizeof</b> e) 
+<a name='L207'> 207     <b>goto</b> done;
+<a name='L208'> 208 
+<a name='L209'> 209   <i><font color='green'>/* Remove inode. */</font></i>
+<a name='L210'> 210   <a href='../S/35.html#L191' title='Defined at 191 in src/filesys/inode.c.'>inode_remove</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L211'> 211   success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L212'> 212 
+<a name='L213'> 213  done:
+<a name='L214'> 214   <a href='../S/35.html#L164' title='Defined at 164 in src/filesys/inode.c.'>inode_close</a> (<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>);
+<a name='L215'> 215   <b>return</b> success;
+<a name='L216'> 216 <font color='red'>}</font>
+<a name='L217'> 217 
+<a name='L218'> 218 <i><font color='green'>/* Reads the next directory entry in DIR and stores the name in</font></i>
+<a name='L219'> 219 <i><font color='green'>   NAME.  Returns true if successful, false if the directory</font></i>
+<a name='L220'> 220 <i><font color='green'>   contains no more entries. */</font></i>
+<a name='L221'> 221 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L222'> 222 <a href='../R/403.html' title='Multiple refered from 2 places.'>dir_readdir</a> (<b>struct</b> dir *dir, <b>char</b> name[<a href='../S/28.html#L12' title='Defined at 12 in src/filesys/directory.h.'>NAME_MAX</a> + 1])
+<a name='L223'> 223 <font color='red'>{</font>
+<a name='L224'> 224   <b>struct</b> <a href='../S/32.html#L17' title='Defined at 17 in src/filesys/directory.c.'>dir_entry</a> e;
+<a name='L225'> 225 
+<a name='L226'> 226   <b>while</b> (<a href='../S/35.html#L201' title='Defined at 201 in src/filesys/inode.c.'>inode_read_at</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;<a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a>, &amp;e, <b>sizeof</b> e, <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;pos) == <b>sizeof</b> e) 
+<a name='L227'> 227     <font color='red'>{</font>
+<a name='L228'> 228       <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>-&gt;pos += <b>sizeof</b> e;
+<a name='L229'> 229       <b>if</b> (e.in_use)
+<a name='L230'> 230         <font color='red'>{</font>
+<a name='L231'> 231           <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (name, e.name, <a href='../S/28.html#L12' title='Defined at 12 in src/filesys/directory.h.'>NAME_MAX</a> + 1);
+<a name='L232'> 232           <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L233'> 233         <font color='red'>}</font> 
+<a name='L234'> 234     <font color='red'>}</font>
+<a name='L235'> 235   <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L236'> 236 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L27'>[^]</a><a href='#L222'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

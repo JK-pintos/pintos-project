@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>src/lib/ustar.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/ustar.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/96.html' title='Multiple included from 3 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/88.html#L2' title='Defined at 2 in src/lib/ustar.h.'>__LIB_USTAR_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/88.html#L1' title='Refered from 1 in src/lib/ustar.h.'>__LIB_USTAR_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Support for the standard Posix "ustar" format.  See the</font></i>
+<a name='L5'>   5 <i><font color='green'>   documentation of the "pax" utility in [SUSv3] for the the</font></i>
+<a name='L6'>   6 <i><font color='green'>   "ustar" format specification. */</font></i>
+<a name='L7'>   7 
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* Type of a file entry in an archive.</font></i>
+<a name='L11'>  11 <i><font color='green'>   The values here are the bytes that appear in the file format.</font></i>
+<a name='L12'>  12 <i><font color='green'>   Only types of interest to Pintos are listed here. */</font></i>
+<a name='L13'>  13 <b>enum</b> <a href='../S/26.html#L98' title='Refered from 98 in src/filesys/fsutil.c.'>ustar_type</a>
+<a name='L14'>  14   <font color='red'>{</font>
+<a name='L15'>  15     USTAR_REGULAR = '0',        <i><font color='green'>/* Ordinary file. */</font></i>
+<a name='L16'>  16     USTAR_DIRECTORY = '5',      <i><font color='green'>/* Directory. */</font></i>
+<a name='L17'>  17     USTAR_EOF = -1              <i><font color='green'>/* End of archive (not an official value). */</font></i>
+<a name='L18'>  18   <font color='red'>}</font>;
+<a name='L19'>  19 
+<a name='L20'>  20 <i><font color='green'>/* Size of a ustar archive header, in bytes. */</font></i>
+<a name='L21'>  21 <font color='darkred'>#define</font> <a href='../R/249.html' title='Multiple refered from 8 places.'>USTAR_HEADER_SIZE</a> 512
+<a name='L22'>  22 
+<a name='L23'>  23 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/116.html#L83' title='Defined at 83 in src/lib/ustar.c.'>ustar_make_header</a> (<b>const</b> <b>char</b> *file_name, <b>enum</b> ustar_type,
+<a name='L24'>  24                         <b>int</b> size, <b>char</b> header[<a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>]);
+<a name='L25'>  25 <b>const</b> <b>char</b> *<a href='../S/116.html#L182' title='Defined at 182 in src/lib/ustar.c.'>ustar_parse_header</a> (<b>const</b> <b>char</b> header[<a href='../S/88.html#L21' title='Defined at 21 in src/lib/ustar.h.'>USTAR_HEADER_SIZE</a>],
+<a name='L26'>  26                                 <b>const</b> <b>char</b> **file_name,
+<a name='L27'>  27                                 <b>enum</b> ustar_type *, <b>int</b> *size);
+<a name='L28'>  28 
+<a name='L29'>  29 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/ustar.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/grow-sparse.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/grow-sparse.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L11'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L11' title='Defined at 11.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tests that seeking past the end of a file and writing will</font></i>
+<a name='L2'>   2 <i><font color='green'>   properly zero out the region in between. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>static</b> <b>char</b> buf[76543];
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b>
+<a name='L11'>  11 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L12'>  12 <font color='red'>{</font>
+<a name='L13'>  13   <b>const</b> <b>char</b> *file_name = "testfile";
+<a name='L14'>  14   <b>char</b> <a href='../S/148.html#L99' title='Defined at 99 in src/threads/intr-stubs.S.'>zero</a> = 0;
+<a name='L15'>  15   <b>int</b> fd;
+<a name='L16'>  16   
+<a name='L17'>  17   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (file_name, 0), "create \"%s\"", file_name);
+<a name='L18'>  18   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\"", file_name);
+<a name='L19'>  19   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("seek \"%s\"", file_name);
+<a name='L20'>  20   <a href='../S/97.html#L127' title='Defined at 127 in src/lib/user/syscall.c.'>seek</a> (fd, <b>sizeof</b> buf - 1);
+<a name='L21'>  21   CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, &amp;<a href='../S/148.html#L99' title='Defined at 99 in src/threads/intr-stubs.S.'>zero</a>, 1) &gt; 0, "write \"%s\"", file_name);
+<a name='L22'>  22   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"%s\"", file_name);
+<a name='L23'>  23   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L24'>  24   <a href='../S/591.html#L151' title='Defined at 151 in src/tests/lib.c.'>check_file</a> (file_name, buf, <b>sizeof</b> buf);
+<a name='L25'>  25 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L11'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

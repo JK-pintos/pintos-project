@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>bcd_to_bin</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/126.html#L37'>bcd_to_bin</a>         37 src/devices/rtc.c static int bcd_to_bin (uint8_t);
+<a href='../S/126.html#L67'>bcd_to_bin</a>         67 src/devices/rtc.c       sec = bcd_to_bin (cmos_read (RTC_REG_SEC));
+<a href='../S/126.html#L68'>bcd_to_bin</a>         68 src/devices/rtc.c       min = bcd_to_bin (cmos_read (RTC_REG_MIN));
+<a href='../S/126.html#L69'>bcd_to_bin</a>         69 src/devices/rtc.c       hour = bcd_to_bin (cmos_read (RTC_REG_HOUR));
+<a href='../S/126.html#L70'>bcd_to_bin</a>         70 src/devices/rtc.c       mday = bcd_to_bin (cmos_read (RTC_REG_MDAY));
+<a href='../S/126.html#L71'>bcd_to_bin</a>         71 src/devices/rtc.c       mon = bcd_to_bin (cmos_read (RTC_REG_MON));
+<a href='../S/126.html#L72'>bcd_to_bin</a>         72 src/devices/rtc.c       year = bcd_to_bin (cmos_read (RTC_REG_YEAR));
+<a href='../S/126.html#L74'>bcd_to_bin</a>         74 src/devices/rtc.c   while (sec != bcd_to_bin (cmos_read (RTC_REG_SEC)));
+</pre>
+</body>
+</html>

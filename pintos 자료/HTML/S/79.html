@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>src/lib/round.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/round.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/77.html' title='Multiple included from 13 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/79.html#L2' title='Defined at 2 in src/lib/round.h.'>__LIB_ROUND_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/79.html#L1' title='Refered from 1 in src/lib/round.h.'>__LIB_ROUND_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Yields X rounded up to the nearest multiple of STEP.</font></i>
+<a name='L5'>   5 <i><font color='green'>   For X &gt;= 0, STEP &gt;= 1 only. */</font></i>
+<a name='L6'>   6 <font color='darkred'>#define</font> <a href='../R/175.html' title='Multiple refered from 4 places.'>ROUND_UP</a>(X, STEP) (((X) + (STEP) - 1) / (STEP) * (STEP))
+<a name='L7'>   7 
+<a name='L8'>   8 <i><font color='green'>/* Yields X divided by STEP, rounded up.</font></i>
+<a name='L9'>   9 <i><font color='green'>   For X &gt;= 0, STEP &gt;= 1 only. */</font></i>
+<a name='L10'>  10 <font color='darkred'>#define</font> <a href='../R/41.html' title='Multiple refered from 5 places.'>DIV_ROUND_UP</a>(X, STEP) (((X) + (STEP) - 1) / (STEP))
+<a name='L11'>  11 
+<a name='L12'>  12 <i><font color='green'>/* Yields X rounded down to the nearest multiple of STEP.</font></i>
+<a name='L13'>  13 <i><font color='green'>   For X &gt;= 0, STEP &gt;= 1 only. */</font></i>
+<a name='L14'>  14 <font color='darkred'>#define</font> <a href='../R/174.html' title='Multiple refered from 4 places.'>ROUND_DOWN</a>(X, STEP) ((X) / (STEP) * (STEP))
+<a name='L15'>  15 
+<a name='L16'>  16 <i><font color='green'>/* There is no DIV_ROUND_DOWN.   It would be simply X / STEP. */</font></i>
+<a name='L17'>  17 
+<a name='L18'>  18 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/round.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/grow-two-files.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/grow-two-files.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a><a href='#L32'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L14' title='Defined at 14.'>write_some_bytes</a>
+<li><a href='#L32' title='Defined at 32.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Grows two files in parallel and checks that their contents are</font></i>
+<a name='L2'>   2 <i><font color='green'>   correct. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L8'>   8 
+<a name='L9'>   9 <font color='darkred'>#define</font> <a href='../R/59.html' title='Multiple refered from 9 places.'>FILE_SIZE</a> 8143
+<a name='L10'>  10 <b>static</b> <b>char</b> buf_a[<a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a>];
+<a name='L11'>  11 <b>static</b> <b>char</b> buf_b[<a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a>];
+<a name='L12'>  12 
+<a name='L13'>  13 <b>static</b> <b>void</b>
+<a name='L14'>  14 <a href='../R/978.html' title='Multiple refered from 2 places.'>write_some_bytes</a> (<b>const</b> <b>char</b> *file_name, <b>int</b> fd, <b>const</b> <b>char</b> *buf, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> *ofs) 
+<a name='L15'>  15 <font color='red'>{</font>
+<a name='L16'>  16   <b>if</b> (*ofs &lt; <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a>) 
+<a name='L17'>  17     <font color='red'>{</font>
+<a name='L18'>  18       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = <a href='../S/85.html#L78' title='Defined at 78 in src/lib/random.c.'>random_ulong</a> () % (<a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a> / 8) + 1;
+<a name='L19'>  19       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ret_val;
+<a name='L20'>  20       <b>if</b> (<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> &gt; <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a> - *ofs)
+<a name='L21'>  21         <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a> - *ofs;
+<a name='L22'>  22 
+<a name='L23'>  23       ret_val = <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, buf + *ofs, <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>);
+<a name='L24'>  24       <b>if</b> (ret_val != <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>)
+<a name='L25'>  25         <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("write %zu bytes at offset %zu in \"%s\" returned %zu",
+<a name='L26'>  26               <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>, *ofs, file_name, ret_val);
+<a name='L27'>  27       *ofs += <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;
+<a name='L28'>  28     <font color='red'>}</font>
+<a name='L29'>  29 <font color='red'>}</font>
+<a name='L30'>  30 
+<a name='L31'>  31 <b>void</b>
+<a name='L32'>  32 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>) 
+<a name='L33'>  33 <font color='red'>{</font>
+<a name='L34'>  34   <b>int</b> fd_a, fd_b;
+<a name='L35'>  35   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs_a = 0, ofs_b = 0;
+<a name='L36'>  36 
+<a name='L37'>  37   <a href='../S/85.html#L34' title='Defined at 34 in src/lib/random.c.'>random_init</a> (0);
+<a name='L38'>  38   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (buf_a, <b>sizeof</b> buf_a);
+<a name='L39'>  39   <a href='../S/85.html#L54' title='Defined at 54 in src/lib/random.c.'>random_bytes</a> (buf_b, <b>sizeof</b> buf_b);
+<a name='L40'>  40 
+<a name='L41'>  41   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("a", 0), "create \"a\"");
+<a name='L42'>  42   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("b", 0), "create \"b\"");
+<a name='L43'>  43 
+<a name='L44'>  44   CHECK ((fd_a = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("a")) &gt; 1, "open \"a\"");
+<a name='L45'>  45   CHECK ((fd_b = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("b")) &gt; 1, "open \"b\"");
+<a name='L46'>  46 
+<a name='L47'>  47   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("write \"a\" and \"b\" alternately");
+<a name='L48'>  48   <b>while</b> (ofs_a &lt; <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a> || ofs_b &lt; <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a>) 
+<a name='L49'>  49     <font color='red'>{</font>
+<a name='L50'>  50       <a href='../S/294.html#L14' title='Defined at 14 in src/tests/filesys/extended/grow-two-files.c.'>write_some_bytes</a> ("a", fd_a, buf_a, &amp;ofs_a);
+<a name='L51'>  51       <a href='../S/294.html#L14' title='Defined at 14 in src/tests/filesys/extended/grow-two-files.c.'>write_some_bytes</a> ("b", fd_b, buf_b, &amp;ofs_b);
+<a name='L52'>  52     <font color='red'>}</font>
+<a name='L53'>  53 
+<a name='L54'>  54   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"a\"");
+<a name='L55'>  55   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd_a);
+<a name='L56'>  56 
+<a name='L57'>  57   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"b\"");
+<a name='L58'>  58   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd_b);
+<a name='L59'>  59 
+<a name='L60'>  60   <a href='../S/591.html#L151' title='Defined at 151 in src/tests/lib.c.'>check_file</a> ("a", buf_a, <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a>);
+<a name='L61'>  61   <a href='../S/591.html#L151' title='Defined at 151 in src/tests/lib.c.'>check_file</a> ("b", buf_b, <a href='../S/294.html#L9' title='Defined at 9 in src/tests/filesys/extended/grow-two-files.c.'>FILE_SIZE</a>);
+<a name='L62'>  62 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L14'>[^]</a><a href='#L32'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

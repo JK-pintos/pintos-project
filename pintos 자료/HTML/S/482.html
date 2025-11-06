@@ -1,0 +1,79 @@
+<html>
+<head>
+<title>src/tests/userprog/child-rox.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/child-rox.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L32'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>try_write</a>
+<li><a href='#L32' title='Defined at 32.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Child process run by rox-child and rox-multichild tests.</font></i>
+<a name='L2'>   2 <i><font color='green'>   Opens and tries to write to its own executable, verifying that</font></i>
+<a name='L3'>   3 <i><font color='green'>   that is disallowed.</font></i>
+<a name='L4'>   4 <i><font color='green'>   Then recursively executes itself to the depth indicated by the</font></i>
+<a name='L5'>   5 <i><font color='green'>   first command-line argument. */</font></i>
+<a name='L6'>   6 
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='93.html'>ctype.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L9'>   9 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L10'>  10 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L11'>  11 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L12'>  12 
+<a name='L13'>  13 <b>const</b> <b>char</b> *test_name = "child-rox";
+<a name='L14'>  14 
+<a name='L15'>  15 <b>static</b> <b>void</b>
+<a name='L16'>  16 <a href='../R/928.html' title='Multiple refered from 2 places.'>try_write</a> (<b>void</b>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>int</b> handle;
+<a name='L19'>  19   <b>char</b> buffer[19];
+<a name='L20'>  20 
+<a name='L21'>  21   quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L22'>  22   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("child-rox")) &gt; 1, "open \"child-rox\"");
+<a name='L23'>  23   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L24'>  24 
+<a name='L25'>  25   CHECK (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (handle, buffer, <b>sizeof</b> buffer) == 0,
+<a name='L26'>  26          "try to write \"child-rox\"");
+<a name='L27'>  27   
+<a name='L28'>  28   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (handle);
+<a name='L29'>  29 <font color='red'>}</font>
+<a name='L30'>  30 
+<a name='L31'>  31 <b>int</b>
+<a name='L32'>  32 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>, <b>char</b> *argv[]) 
+<a name='L33'>  33 <font color='red'>{</font>
+<a name='L34'>  34   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("begin");
+<a name='L35'>  35   <a href='../S/482.html#L16' title='Defined at 16 in src/tests/userprog/child-rox.c.'>try_write</a> ();
+<a name='L36'>  36 
+<a name='L37'>  37   <b>if</b> (!<a href='../S/93.html#L7' title='Defined at 7 in src/lib/ctype.h.'>isdigit</a> (*argv[1]))
+<a name='L38'>  38     <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("bad command-line arguments");
+<a name='L39'>  39   <b>if</b> (<a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[1]) &gt; 1) 
+<a name='L40'>  40     <font color='red'>{</font>
+<a name='L41'>  41       <b>char</b> cmd[128];
+<a name='L42'>  42       <b>int</b> child;
+<a name='L43'>  43       
+<a name='L44'>  44       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (cmd, <b>sizeof</b> cmd, "child-rox %d", <a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[1]) - 1);
+<a name='L45'>  45       CHECK ((child = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> (cmd)) != -1, "exec \"%s\"", cmd);
+<a name='L46'>  46       quiet = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L47'>  47       CHECK (<a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (child) == 12, "wait for \"child-rox\"");
+<a name='L48'>  48       quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L49'>  49     <font color='red'>}</font>
+<a name='L50'>  50 
+<a name='L51'>  51   <a href='../S/482.html#L16' title='Defined at 16 in src/tests/userprog/child-rox.c.'>try_write</a> ();
+<a name='L52'>  52   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("end");
+<a name='L53'>  53 
+<a name='L54'>  54   <b>return</b> 12;
+<a name='L55'>  55 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L32'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

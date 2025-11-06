@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>src/tests/threads/priority-sema.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/priority-sema.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L41'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>test_priority_sema</a>
+<li><a href='#L41' title='Defined at 41.'>priority_sema_thread</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tests that the highest-priority thread waiting on a semaphore</font></i>
+<a name='L2'>   2 <i><font color='green'>   is the first to wake up. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../S/535.html#L41' title='Defined at 41 in src/tests/threads/priority-sema.c.'>priority_sema_thread</a>;
+<a name='L13'>  13 <b>static</b> <b>struct</b> <a href='../S/155.html#L8' title='Defined at 8 in src/threads/synch.h.'>semaphore</a> sema;
+<a name='L14'>  14 
+<a name='L15'>  15 <b>void</b>
+<a name='L16'>  16 <a href='../R/885.html' title='Multiple refered from 2 places.'>test_priority_sema</a> (<b>void</b>) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>int</b> i;
+<a name='L19'>  19   
+<a name='L20'>  20   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L21'>  21   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L22'>  22 
+<a name='L23'>  23   <a href='../S/167.html#L45' title='Defined at 45 in src/threads/synch.c.'>sema_init</a> (&amp;sema, 0);
+<a name='L24'>  24   <a href='../S/163.html#L344' title='Defined at 344 in src/threads/thread.c.'>thread_set_priority</a> (<a href='../S/164.html#L23' title='Defined at 23 in src/threads/thread.h.'>PRI_MIN</a>);
+<a name='L25'>  25   <b>for</b> (i = 0; i &lt; 10; i++) 
+<a name='L26'>  26     <font color='red'>{</font>
+<a name='L27'>  27       <b>int</b> priority = <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> - (i + 3) % 10 - 1;
+<a name='L28'>  28       <b>char</b> name[16];
+<a name='L29'>  29       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (name, <b>sizeof</b> name, "priority %d", priority);
+<a name='L30'>  30       <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> (name, priority, <a href='../S/535.html#L41' title='Defined at 41 in src/tests/threads/priority-sema.c.'>priority_sema_thread</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L31'>  31     <font color='red'>}</font>
+<a name='L32'>  32 
+<a name='L33'>  33   <b>for</b> (i = 0; i &lt; 10; i++) 
+<a name='L34'>  34     <font color='red'>{</font>
+<a name='L35'>  35       <a href='../S/167.html#L109' title='Defined at 109 in src/threads/synch.c.'>sema_up</a> (&amp;sema);
+<a name='L36'>  36       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Back in main thread."); 
+<a name='L37'>  37     <font color='red'>}</font>
+<a name='L38'>  38 <font color='red'>}</font>
+<a name='L39'>  39 
+<a name='L40'>  40 <b>static</b> <b>void</b>
+<a name='L41'>  41 <a href='../R/730.html' title='Multiple refered from 2 places.'>priority_sema_thread</a> (<b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L42'>  42 <font color='red'>{</font>
+<a name='L43'>  43   <a href='../S/167.html#L61' title='Defined at 61 in src/threads/synch.c.'>sema_down</a> (&amp;sema);
+<a name='L44'>  44   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread %s woke up.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L45'>  45 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L41'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

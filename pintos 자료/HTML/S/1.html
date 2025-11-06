@@ -1,0 +1,367 @@
+<html>
+<head>
+<title>src/utils/squish-unix.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/613.html'>utils</a>/squish-unix.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L31'>[^]</a><a href='#L241'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L31' title='Defined at 31.'>fail_io</a>
+<li><a href='#L49' title='Defined at 49.'>make_noncanon</a>
+<li><a href='#L67' title='Defined at 67.'>make_nonblocking</a>
+<li><a href='#L86' title='Defined at 86.'>handle_error</a>
+<li><a href='#L105' title='Defined at 105.'>relay</a>
+<li><a href='#L235' title='Defined at 235.'>sigchld_handler</a>
+<li><a href='#L241' title='Defined at 241.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#define</font> _GNU_SOURCE 1
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;errno.h&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;fcntl.h&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;signal.h&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L9'>   9 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L10'>  10 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;stropts.h&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;sys/ioctl.h&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> &lt;sys/stat.h&gt;
+<a name='L14'>  14 <font color='darkred'>#include</font> &lt;sys/time.h&gt;
+<a name='L15'>  15 <font color='darkred'>#include</font> &lt;sys/types.h&gt;
+<a name='L16'>  16 <font color='darkred'>#include</font> &lt;sys/wait.h&gt;
+<a name='L17'>  17 <font color='darkred'>#include</font> &lt;sys/socket.h&gt;
+<a name='L18'>  18 <font color='darkred'>#include</font> &lt;sys/un.h&gt;
+<a name='L19'>  19 <font color='darkred'>#include</font> &lt;termios.h&gt;
+<a name='L20'>  20 <font color='darkred'>#include</font> &lt;unistd.h&gt;
+<a name='L21'>  21 
+<a name='L22'>  22 <b>static</b> <b>void</b>
+<a name='L23'>  23 <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> (<b>const</b> <b>char</b> *msg, ...)
+<a name='L24'>  24      <b>__attribute__</b> ((noreturn))
+<a name='L25'>  25      <b>__attribute__</b> ((format (<a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a>, 1, 2)));
+<a name='L26'>  26 
+<a name='L27'>  27 <i><font color='green'>/* Prints MSG, formatting as with printf(),</font></i>
+<a name='L28'>  28 <i><font color='green'>   plus an error message based on errno,</font></i>
+<a name='L29'>  29 <i><font color='green'>   and exits. */</font></i>
+<a name='L30'>  30 <b>static</b> <b>void</b>
+<a name='L31'>  31 <a href='../R/425.html' title='Multiple refered from 45 places.'>fail_io</a> (<b>const</b> <b>char</b> *msg, ...)
+<a name='L32'>  32 <font color='red'>{</font>
+<a name='L33'>  33   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L34'>  34 
+<a name='L35'>  35   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a>);
+<a name='L36'>  36   vfprintf (stderr, <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a>, args);
+<a name='L37'>  37   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L38'>  38 
+<a name='L39'>  39   <b>if</b> (errno != 0)
+<a name='L40'>  40     fprintf (stderr, ": %s", strerror (errno));
+<a name='L41'>  41   putc ('\n', stderr);
+<a name='L42'>  42   <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (<a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>);
+<a name='L43'>  43 <font color='red'>}</font>
+<a name='L44'>  44 
+<a name='L45'>  45 <i><font color='green'>/* If FD is a terminal, configures it for noncanonical input mode</font></i>
+<a name='L46'>  46 <i><font color='green'>   with VMIN and VTIME set as indicated.</font></i>
+<a name='L47'>  47 <i><font color='green'>   If FD is not a terminal, has no effect. */</font></i>
+<a name='L48'>  48 <b>static</b> <b>void</b>
+<a name='L49'>  49 <a href='../R/647.html' title='Multiple refered from 3 places.'>make_noncanon</a> (<b>int</b> fd, <b>int</b> vmin, <b>int</b> vtime)
+<a name='L50'>  50 <font color='red'>{</font>
+<a name='L51'>  51   <b>if</b> (isatty (fd)) 
+<a name='L52'>  52     <font color='red'>{</font>
+<a name='L53'>  53       <b>struct</b> termios termios;
+<a name='L54'>  54       <b>if</b> (tcgetattr (fd, &amp;termios) &lt; 0)
+<a name='L55'>  55         <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("tcgetattr");
+<a name='L56'>  56       termios.c_lflag &amp;= ~(ICANON | ECHO);
+<a name='L57'>  57       termios.c_cc[VMIN] = vmin;
+<a name='L58'>  58       termios.c_cc[VTIME] = vtime;
+<a name='L59'>  59       <b>if</b> (tcsetattr (fd, TCSANOW, &amp;termios) &lt; 0)
+<a name='L60'>  60         <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("tcsetattr");
+<a name='L61'>  61     <font color='red'>}</font>
+<a name='L62'>  62 <font color='red'>}</font>
+<a name='L63'>  63 
+<a name='L64'>  64 <i><font color='green'>/* Make FD non-blocking if NONBLOCKING is true,</font></i>
+<a name='L65'>  65 <i><font color='green'>   or blocking if NONBLOCKING is false. */</font></i>
+<a name='L66'>  66 <b>static</b> <b>void</b>
+<a name='L67'>  67 <a href='../R/646.html' title='Multiple refered from 9 places.'>make_nonblocking</a> (<b>int</b> fd, bool nonblocking) 
+<a name='L68'>  68 <font color='red'>{</font>
+<a name='L69'>  69   <b>int</b> flags = fcntl (fd, F_GETFL);
+<a name='L70'>  70   <b>if</b> (flags &lt; 0)
+<a name='L71'>  71     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("fcntl");
+<a name='L72'>  72   <b>if</b> (nonblocking)
+<a name='L73'>  73     flags |= O_NONBLOCK;
+<a name='L74'>  74   <b>else</b>
+<a name='L75'>  75     flags &amp;= ~O_NONBLOCK;
+<a name='L76'>  76   <b>if</b> (fcntl (fd, F_SETFL, flags) &lt; 0)
+<a name='L77'>  77     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("fcntl");
+<a name='L78'>  78 <font color='red'>}</font>
+<a name='L79'>  79 
+<a name='L80'>  80 <i><font color='green'>/* Handle a read or write on *FD, which is the socket if</font></i>
+<a name='L81'>  81 <i><font color='green'>   FD_IS_SOCK is true, that returned end-of-file or error</font></i>
+<a name='L82'>  82 <i><font color='green'>   indication RETVAL.  The system call is named CALL, for use in</font></i>
+<a name='L83'>  83 <i><font color='green'>   error messages.  Returns true if processing may continue,</font></i>
+<a name='L84'>  84 <i><font color='green'>   false if we're all done. */</font></i>
+<a name='L85'>  85 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L86'>  86 <a href='../R/473.html' title='Multiple refered from 4 places.'>handle_error</a> (ssize_t retval, <b>int</b> *fd, bool fd_is_sock, <b>const</b> <b>char</b> *call)
+<a name='L87'>  87 <font color='red'>{</font>
+<a name='L88'>  88   <b>if</b> (retval == 0)
+<a name='L89'>  89     <font color='red'>{</font>
+<a name='L90'>  90       <b>if</b> (fd_is_sock)
+<a name='L91'>  91         <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L92'>  92       <b>else</b>
+<a name='L93'>  93         <font color='red'>{</font>
+<a name='L94'>  94           *fd = -1;
+<a name='L95'>  95           <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L96'>  96         <font color='red'>}</font>
+<a name='L97'>  97     <font color='red'>}</font>
+<a name='L98'>  98   <b>else</b>
+<a name='L99'>  99     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> (call); 
+<a name='L100'> 100 <font color='red'>}</font>
+<a name='L101'> 101 
+<a name='L102'> 102 <i><font color='green'>/* Copies data from stdin to SOCK and from SOCK to stdout until no</font></i>
+<a name='L103'> 103 <i><font color='green'>   more data can be read or written. */</font></i>
+<a name='L104'> 104 <b>static</b> <b>void</b>
+<a name='L105'> 105 <a href='../R/771.html' title='Multiple refered from 2 places.'>relay</a> (<b>int</b> sock) 
+<a name='L106'> 106 <font color='red'>{</font>
+<a name='L107'> 107   <b>struct</b> <a href='../R/720.html' title='Multiple refered from 9 places.'>pipe</a> 
+<a name='L108'> 108     <font color='red'>{</font>
+<a name='L109'> 109       <b>int</b> in, out;
+<a name='L110'> 110       <b>char</b> buf[BUFSIZ];
+<a name='L111'> 111       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size, ofs;
+<a name='L112'> 112       <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> active;
+<a name='L113'> 113     <font color='red'>}</font>;
+<a name='L114'> 114   <b>struct</b> <a href='../D/827.html' title='Multiple defined in 2 places.'>pipe</a> pipes[2];
+<a name='L115'> 115 
+<a name='L116'> 116   <i><font color='green'>/* In case stdin is a file, go back to the beginning.</font></i>
+<a name='L117'> 117 <i><font color='green'>     This allows replaying the input on reset. */</font></i>
+<a name='L118'> 118   lseek (<a href='../S/84.html#L15' title='Defined at 15 in src/lib/stdio.h.'>STDIN_FILENO</a>, 0, SEEK_SET);
+<a name='L119'> 119 
+<a name='L120'> 120   <i><font color='green'>/* Make SOCK, stdin, and stdout non-blocking. */</font></i>
+<a name='L121'> 121   <a href='../D/748.html' title='Multiple defined in 2 places.'>make_nonblocking</a> (sock, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L122'> 122   <a href='../D/748.html' title='Multiple defined in 2 places.'>make_nonblocking</a> (<a href='../S/84.html#L15' title='Defined at 15 in src/lib/stdio.h.'>STDIN_FILENO</a>, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L123'> 123   <a href='../D/748.html' title='Multiple defined in 2 places.'>make_nonblocking</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L124'> 124 
+<a name='L125'> 125   <i><font color='green'>/* Configure noncanonical mode on stdin to avoid waiting for</font></i>
+<a name='L126'> 126 <i><font color='green'>     end-of-line. */</font></i>
+<a name='L127'> 127   <a href='../D/749.html' title='Multiple defined in 2 places.'>make_noncanon</a> (<a href='../S/84.html#L15' title='Defined at 15 in src/lib/stdio.h.'>STDIN_FILENO</a>, 1, 0);
+<a name='L128'> 128 
+<a name='L129'> 129   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (pipes, 0, <b>sizeof</b> pipes);
+<a name='L130'> 130   pipes[0].in = <a href='../S/84.html#L15' title='Defined at 15 in src/lib/stdio.h.'>STDIN_FILENO</a>;
+<a name='L131'> 131   pipes[0].out = sock;
+<a name='L132'> 132   pipes[1].in = sock;
+<a name='L133'> 133   pipes[1].out = <a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>;
+<a name='L134'> 134   
+<a name='L135'> 135   <b>while</b> (pipes[0].in != -1 || pipes[1].in != -1
+<a name='L136'> 136          || (pipes[1].size &amp;&amp; pipes[1].out != -1))
+<a name='L137'> 137     <font color='red'>{</font>
+<a name='L138'> 138       fd_set read_fds, write_fds;
+<a name='L139'> 139       sigset_t empty_set;
+<a name='L140'> 140       <b>int</b> retval;
+<a name='L141'> 141       <b>int</b> i;
+<a name='L142'> 142 
+<a name='L143'> 143       FD_ZERO (&amp;read_fds);
+<a name='L144'> 144       FD_ZERO (&amp;write_fds);
+<a name='L145'> 145       <b>for</b> (i = 0; i &lt; 2; i++)
+<a name='L146'> 146         <font color='red'>{</font>
+<a name='L147'> 147           <b>struct</b> <a href='../D/827.html' title='Multiple defined in 2 places.'>pipe</a> *p = &amp;pipes[i];
+<a name='L148'> 148 
+<a name='L149'> 149           <i><font color='green'>/* Don't do anything with the stdin-&gt;sock pipe until we</font></i>
+<a name='L150'> 150 <i><font color='green'>             have some data for the sock-&gt;stdout pipe.  If we get</font></i>
+<a name='L151'> 151 <i><font color='green'>             too eager, vmplayer will throw away our input. */</font></i>
+<a name='L152'> 152           <b>if</b> (i == 0 &amp;&amp; !pipes[1].active)
+<a name='L153'> 153             <b>continue</b>;
+<a name='L154'> 154           
+<a name='L155'> 155           <b>if</b> (p-&gt;in != -1 &amp;&amp; p-&gt;size + p-&gt;ofs &lt; <b>sizeof</b> p-&gt;buf)
+<a name='L156'> 156             FD_SET (p-&gt;in, &amp;read_fds);
+<a name='L157'> 157           <b>if</b> (p-&gt;out != -1 &amp;&amp; p-&gt;size &gt; 0)
+<a name='L158'> 158             FD_SET (p-&gt;out, &amp;write_fds); 
+<a name='L159'> 159         <font color='red'>}</font>
+<a name='L160'> 160       sigemptyset (&amp;empty_set);
+<a name='L161'> 161       retval = pselect (FD_SETSIZE, &amp;read_fds, &amp;write_fds, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>,
+<a name='L162'> 162                         &amp;empty_set);
+<a name='L163'> 163       <b>if</b> (retval &lt; 0) 
+<a name='L164'> 164         <font color='red'>{</font>
+<a name='L165'> 165           <b>if</b> (errno == EINTR)
+<a name='L166'> 166             <font color='red'>{</font>
+<a name='L167'> 167               <i><font color='green'>/* Child died.  Do final relaying. */</font></i>
+<a name='L168'> 168               <b>struct</b> <a href='../D/827.html' title='Multiple defined in 2 places.'>pipe</a> *p = &amp;pipes[1];
+<a name='L169'> 169               <b>if</b> (p-&gt;out == -1)
+<a name='L170'> 170                 <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (0);
+<a name='L171'> 171               <a href='../D/748.html' title='Multiple defined in 2 places.'>make_nonblocking</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>);
+<a name='L172'> 172               <b>for</b> (;;) 
+<a name='L173'> 173                 <font color='red'>{</font>
+<a name='L174'> 174                   ssize_t n;
+<a name='L175'> 175                   
+<a name='L176'> 176                   <i><font color='green'>/* Write buffer. */</font></i>
+<a name='L177'> 177                   <b>while</b> (p-&gt;size &gt; 0) 
+<a name='L178'> 178                     <font color='red'>{</font>
+<a name='L179'> 179                       n = <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (p-&gt;out, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+<a name='L180'> 180                       <b>if</b> (n &lt; 0)
+<a name='L181'> 181                         <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("write");
+<a name='L182'> 182                       <b>else</b> <b>if</b> (n == 0)
+<a name='L183'> 183                         <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("zero-length write");
+<a name='L184'> 184                       p-&gt;ofs += n;
+<a name='L185'> 185                       p-&gt;size -= n;
+<a name='L186'> 186                     <font color='red'>}</font>
+<a name='L187'> 187                   p-&gt;ofs = 0;
+<a name='L188'> 188 
+<a name='L189'> 189                   p-&gt;size = n = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (p-&gt;in, p-&gt;buf, <b>sizeof</b> p-&gt;buf);
+<a name='L190'> 190                   <b>if</b> (n &lt;= 0)
+<a name='L191'> 191                     <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (0);
+<a name='L192'> 192                 <font color='red'>}</font>
+<a name='L193'> 193             <font color='red'>}</font>
+<a name='L194'> 194           <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("select"); 
+<a name='L195'> 195         <font color='red'>}</font>
+<a name='L196'> 196 
+<a name='L197'> 197       <b>for</b> (i = 0; i &lt; 2; i++) 
+<a name='L198'> 198         <font color='red'>{</font>
+<a name='L199'> 199           <b>struct</b> <a href='../D/827.html' title='Multiple defined in 2 places.'>pipe</a> *p = &amp;pipes[i];
+<a name='L200'> 200           <b>if</b> (p-&gt;in != -1 &amp;&amp; FD_ISSET (p-&gt;in, &amp;read_fds))
+<a name='L201'> 201             <font color='red'>{</font>
+<a name='L202'> 202               ssize_t n = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (p-&gt;in, p-&gt;buf + p-&gt;ofs + p-&gt;size,
+<a name='L203'> 203                                 <b>sizeof</b> p-&gt;buf - p-&gt;ofs - p-&gt;size);
+<a name='L204'> 204               <b>if</b> (n &gt; 0) 
+<a name='L205'> 205                 <font color='red'>{</font>
+<a name='L206'> 206                   p-&gt;active = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L207'> 207                   p-&gt;size += n;
+<a name='L208'> 208                   <b>if</b> (p-&gt;size == BUFSIZ &amp;&amp; p-&gt;ofs != 0)
+<a name='L209'> 209                     <font color='red'>{</font>
+<a name='L210'> 210                       <a href='../S/83.html#L24' title='Defined at 24 in src/lib/string.c.'>memmove</a> (p-&gt;buf, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+<a name='L211'> 211                       p-&gt;ofs = 0;
+<a name='L212'> 212                     <font color='red'>}</font>
+<a name='L213'> 213                 <font color='red'>}</font>
+<a name='L214'> 214               <b>else</b> <b>if</b> (!<a href='../D/559.html' title='Multiple defined in 2 places.'>handle_error</a> (n, &amp;p-&gt;in, p-&gt;in == sock, "read"))
+<a name='L215'> 215                 <b>return</b>;
+<a name='L216'> 216             <font color='red'>}</font>
+<a name='L217'> 217           <b>if</b> (p-&gt;out != -1 &amp;&amp; FD_ISSET (p-&gt;out, &amp;write_fds)) 
+<a name='L218'> 218             <font color='red'>{</font>
+<a name='L219'> 219               ssize_t n = <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (p-&gt;out, p-&gt;buf + p-&gt;ofs, p-&gt;size);
+<a name='L220'> 220               <b>if</b> (n &gt; 0) 
+<a name='L221'> 221                 <font color='red'>{</font>
+<a name='L222'> 222                   p-&gt;ofs += n;
+<a name='L223'> 223                   p-&gt;size -= n;
+<a name='L224'> 224                   <b>if</b> (p-&gt;size == 0)
+<a name='L225'> 225                     p-&gt;ofs = 0;
+<a name='L226'> 226                 <font color='red'>}</font>
+<a name='L227'> 227               <b>else</b> <b>if</b> (!<a href='../D/559.html' title='Multiple defined in 2 places.'>handle_error</a> (n, &amp;p-&gt;out, p-&gt;out == sock, "write"))
+<a name='L228'> 228                 <b>return</b>;
+<a name='L229'> 229             <font color='red'>}</font>
+<a name='L230'> 230         <font color='red'>}</font>
+<a name='L231'> 231     <font color='red'>}</font>
+<a name='L232'> 232 <font color='red'>}</font>
+<a name='L233'> 233 
+<a name='L234'> 234 <b>static</b> <b>void</b>
+<a name='L235'> 235 <a href='../R/811.html' title='Multiple refered from 2 places.'>sigchld_handler</a> (<b>int</b> signo <b>__attribute__</b> ((unused))) 
+<a name='L236'> 236 <font color='red'>{</font>
+<a name='L237'> 237   <i><font color='green'>/* Nothing to do. */</font></i>
+<a name='L238'> 238 <font color='red'>}</font>
+<a name='L239'> 239 
+<a name='L240'> 240 <b>int</b>
+<a name='L241'> 241 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc <b>__attribute__</b> ((unused)), <b>char</b> *argv[])
+<a name='L242'> 242 <font color='red'>{</font>
+<a name='L243'> 243   <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> pid;
+<a name='L244'> 244   <b>struct</b> itimerval zero_itimerval;
+<a name='L245'> 245   <b>struct</b> sockaddr_un sun;
+<a name='L246'> 246   sigset_t sigchld_set;
+<a name='L247'> 247   <b>int</b> sock;
+<a name='L248'> 248   
+<a name='L249'> 249   <b>if</b> (argc &lt; 3) 
+<a name='L250'> 250     <font color='red'>{</font>
+<a name='L251'> 251       fprintf (stderr,
+<a name='L252'> 252                "usage: squish-unix SOCKET COMMAND [ARG]...\n"
+<a name='L253'> 253                "Squishes both stdin and stdout into a single Unix domain\n"
+<a name='L254'> 254                "socket named SOCKET, and runs COMMAND as a subprocess.\n");
+<a name='L255'> 255       <b>return</b> <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L256'> 256     <font color='red'>}</font>
+<a name='L257'> 257 
+<a name='L258'> 258   <i><font color='green'>/* Create socket. */</font></i>
+<a name='L259'> 259   sock = socket (PF_LOCAL, SOCK_STREAM, 0);
+<a name='L260'> 260   <b>if</b> (sock &lt; 0)
+<a name='L261'> 261     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("socket");
+<a name='L262'> 262 
+<a name='L263'> 263   <i><font color='green'>/* Configure socket. */</font></i>
+<a name='L264'> 264   sun.sun_family = AF_LOCAL;
+<a name='L265'> 265   <a href='../S/82.html#L30' title='Defined at 30 in src/lib/string.h.'>strncpy</a> (sun.sun_path, argv[1], <b>sizeof</b> sun.sun_path);
+<a name='L266'> 266   sun.sun_path[<b>sizeof</b> sun.sun_path - 1] = '\0';
+<a name='L267'> 267   <b>if</b> (unlink (sun.sun_path) &lt; 0 &amp;&amp; errno != ENOENT)
+<a name='L268'> 268     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("unlink");
+<a name='L269'> 269   <b>if</b> (bind (sock, (<b>struct</b> sockaddr *) &amp;sun,
+<a name='L270'> 270             (<a href='../S/92.html#L5' title='Defined at 5 in src/lib/stddef.h.'>offsetof</a> (<b>struct</b> sockaddr_un, sun_path)
+<a name='L271'> 271              + <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (sun.sun_path) + 1)) &lt; 0)
+<a name='L272'> 272     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("bind");
+<a name='L273'> 273 
+<a name='L274'> 274   <i><font color='green'>/* Listen on socket. */</font></i>
+<a name='L275'> 275   <b>if</b> (listen (sock, 1) &lt; 0)
+<a name='L276'> 276     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("listen");
+<a name='L277'> 277 
+<a name='L278'> 278   <i><font color='green'>/* Block SIGCHLD and set up a handler for it. */</font></i>
+<a name='L279'> 279   sigemptyset (&amp;sigchld_set);
+<a name='L280'> 280   sigaddset (&amp;sigchld_set, SIGCHLD);
+<a name='L281'> 281   <b>if</b> (sigprocmask (SIG_BLOCK, &amp;sigchld_set, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) &lt; 0)
+<a name='L282'> 282     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("sigprocmask");
+<a name='L283'> 283   <b>if</b> (<a href='../S/135.html#L103' title='Defined at 103 in src/devices/intq.c.'>signal</a> (SIGCHLD, <a href='../D/921.html' title='Multiple defined in 2 places.'>sigchld_handler</a>) == SIG_ERR)
+<a name='L284'> 284     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("signal");
+<a name='L285'> 285 
+<a name='L286'> 286   <i><font color='green'>/* Save the virtual interval timer, which might have been set</font></i>
+<a name='L287'> 287 <i><font color='green'>     by the process that ran us.  It really should be applied to</font></i>
+<a name='L288'> 288 <i><font color='green'>     our child process. */</font></i>
+<a name='L289'> 289   <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (&amp;zero_itimerval, 0, <b>sizeof</b> zero_itimerval);
+<a name='L290'> 290   <b>if</b> (setitimer (ITIMER_VIRTUAL, &amp;zero_itimerval, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>) &lt; 0)
+<a name='L291'> 291     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("setitimer");
+<a name='L292'> 292   
+<a name='L293'> 293   pid = fork ();
+<a name='L294'> 294   <b>if</b> (pid &lt; 0)
+<a name='L295'> 295     <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("fork");
+<a name='L296'> 296   <b>else</b> <b>if</b> (pid != 0) 
+<a name='L297'> 297     <font color='red'>{</font>
+<a name='L298'> 298       <i><font color='green'>/* Running in parent process. */</font></i>
+<a name='L299'> 299       <a href='../D/748.html' title='Multiple defined in 2 places.'>make_nonblocking</a> (sock, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L300'> 300       <b>for</b> (;;) 
+<a name='L301'> 301         <font color='red'>{</font>
+<a name='L302'> 302           fd_set read_fds;
+<a name='L303'> 303           sigset_t empty_set;
+<a name='L304'> 304           <b>int</b> retval;
+<a name='L305'> 305           <b>int</b> conn;
+<a name='L306'> 306 
+<a name='L307'> 307           <i><font color='green'>/* Wait for connection. */</font></i>
+<a name='L308'> 308           FD_ZERO (&amp;read_fds);
+<a name='L309'> 309           FD_SET (sock, &amp;read_fds);
+<a name='L310'> 310           sigemptyset (&amp;empty_set);
+<a name='L311'> 311           retval = pselect (sock + 1, &amp;read_fds, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, &amp;empty_set);
+<a name='L312'> 312           <b>if</b> (retval &lt; 0) 
+<a name='L313'> 313             <font color='red'>{</font>
+<a name='L314'> 314               <b>if</b> (errno == EINTR)
+<a name='L315'> 315                 <b>break</b>;
+<a name='L316'> 316               <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("select"); 
+<a name='L317'> 317             <font color='red'>}</font>
+<a name='L318'> 318 
+<a name='L319'> 319           <i><font color='green'>/* Accept connection. */</font></i>
+<a name='L320'> 320           conn = accept (sock, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L321'> 321           <b>if</b> (conn &lt; 0)
+<a name='L322'> 322             <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("accept");
+<a name='L323'> 323 
+<a name='L324'> 324           <i><font color='green'>/* Relay connection. */</font></i>
+<a name='L325'> 325           <a href='../D/879.html' title='Multiple defined in 2 places.'>relay</a> (conn);
+<a name='L326'> 326           <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (conn);
+<a name='L327'> 327         <font color='red'>}</font>
+<a name='L328'> 328       <b>return</b> 0; 
+<a name='L329'> 329     <font color='red'>}</font>
+<a name='L330'> 330   <b>else</b> 
+<a name='L331'> 331     <font color='red'>{</font>
+<a name='L332'> 332       <i><font color='green'>/* Running in child process. */</font></i>
+<a name='L333'> 333       <b>if</b> (<a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (sock) &lt; 0)
+<a name='L334'> 334         <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("close");
+<a name='L335'> 335       execvp (argv[2], argv + 2);
+<a name='L336'> 336       <a href='../D/511.html' title='Multiple defined in 2 places.'>fail_io</a> ("exec");
+<a name='L337'> 337     <font color='red'>}</font>
+<a name='L338'> 338 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L31'>[^]</a><a href='#L241'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

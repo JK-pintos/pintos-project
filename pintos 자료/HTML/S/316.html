@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>src/tests/vm/child-linear.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/child-linear.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Child process of page-parallel.</font></i>
+<a name='L2'>   2 <i><font color='green'>   Encrypts 1 MB of zeros, then decrypts it, and ensures that</font></i>
+<a name='L3'>   3 <i><font color='green'>   the zeros are back. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>const</b> <b>char</b> *test_name = "child-linear";
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/194.html' title='Multiple refered from 15 places.'>SIZE</a> (1024 * 1024)
+<a name='L13'>  13 <b>static</b> <b>char</b> buf[<a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>];
+<a name='L14'>  14 
+<a name='L15'>  15 <b>int</b>
+<a name='L16'>  16 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[])
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>const</b> <b>char</b> *key = argv[argc - 1];
+<a name='L19'>  19   <b>struct</b> <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a> <a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>;
+<a name='L20'>  20   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L21'>  21 
+<a name='L22'>  22   <i><font color='green'>/* Encrypt zeros. */</font></i>
+<a name='L23'>  23   <a href='../S/389.html#L14' title='Defined at 14 in src/tests/arc4.c.'>arc4_init</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, key, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (key));
+<a name='L24'>  24   <a href='../S/389.html#L35' title='Defined at 35 in src/tests/arc4.c.'>arc4_crypt</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>);
+<a name='L25'>  25 
+<a name='L26'>  26   <i><font color='green'>/* Decrypt back to zeros. */</font></i>
+<a name='L27'>  27   <a href='../S/389.html#L14' title='Defined at 14 in src/tests/arc4.c.'>arc4_init</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, key, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (key));
+<a name='L28'>  28   <a href='../S/389.html#L35' title='Defined at 35 in src/tests/arc4.c.'>arc4_crypt</a> (&amp;<a href='../S/301.html#L8' title='Defined at 8 in src/tests/arc4.h.'>arc4</a>, buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>);
+<a name='L29'>  29 
+<a name='L30'>  30   <i><font color='green'>/* Check that it's all zeros. */</font></i>
+<a name='L31'>  31   <b>for</b> (i = 0; i &lt; <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>; i++)
+<a name='L32'>  32     <b>if</b> (buf[i] != '\0')
+<a name='L33'>  33       <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("byte %zu != 0", i);
+<a name='L34'>  34 
+<a name='L35'>  35   <b>return</b> 0x42;
+<a name='L36'>  36 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L16'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>src/tests/userprog/args.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/args.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L9'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L9' title='Defined at 9.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Prints the command-line arguments.</font></i>
+<a name='L2'>   2 <i><font color='green'>   This program is used for all of the args-* tests.  Grading is</font></i>
+<a name='L3'>   3 <i><font color='green'>   done differently for each of the args-* tests based on the</font></i>
+<a name='L4'>   4 <i><font color='green'>   output. */</font></i>
+<a name='L5'>   5 
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>int</b>
+<a name='L9'>   9 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L10'>  10 <font color='red'>{</font>
+<a name='L11'>  11   <b>int</b> i;
+<a name='L12'>  12 
+<a name='L13'>  13   test_name = "args";
+<a name='L14'>  14 
+<a name='L15'>  15   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("begin");
+<a name='L16'>  16   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("argc = %d", argc);
+<a name='L17'>  17   <b>for</b> (i = 0; i &lt;= argc; i++)
+<a name='L18'>  18     <b>if</b> (argv[i] != <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>)
+<a name='L19'>  19       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("argv[%d] = '%s'", i, argv[i]);
+<a name='L20'>  20     <b>else</b>
+<a name='L21'>  21       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("argv[%d] = null", i);
+<a name='L22'>  22   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("end");
+<a name='L23'>  23 
+<a name='L24'>  24   <b>return</b> 0;
+<a name='L25'>  25 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L9'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

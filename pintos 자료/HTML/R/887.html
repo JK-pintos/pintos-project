@@ -1,0 +1,40 @@
+<html>
+<head>
+<title>thread</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/130.html#L28'>thread</a>             28 src/devices/intq.h     struct thread *not_full;    /* Thread waiting for not-full condition. */
+<a href='../S/130.html#L29'>thread</a>             29 src/devices/intq.h     struct thread *not_empty;   /* Thread waiting for not-empty condition. */
+<a href='../S/146.html#L13'>thread</a>             13 src/threads/switch.h     struct thread *cur;         /* 20: switch_threads()'s CUR argument. */
+<a href='../S/146.html#L14'>thread</a>             14 src/threads/switch.h     struct thread *next;        /* 24: switch_threads()'s NEXT argument. */
+<a href='../S/146.html#L20'>thread</a>             20 src/threads/switch.h struct thread *switch_threads (struct thread *cur, struct thread *next);
+<a href='../S/167.html#L118'>thread</a>            118 src/threads/synch.c                                 struct thread, elem));
+<a href='../S/155.html#L23'>thread</a>             23 src/threads/synch.h     struct thread *holder;      /* Thread holding lock (for debugging). */
+<a href='../S/163.html#L32'>thread</a>             32 src/threads/thread.c static struct thread *idle_thread;
+<a href='../S/163.html#L35'>thread</a>             35 src/threads/thread.c static struct thread *initial_thread;
+<a href='../S/163.html#L65'>thread</a>             65 src/threads/thread.c static struct thread *running_thread (void);
+<a href='../S/163.html#L66'>thread</a>             66 src/threads/thread.c static struct thread *next_thread_to_run (void);
+<a href='../S/163.html#L125'>thread</a>            125 src/threads/thread.c   struct thread *t = thread_current ();
+<a href='../S/163.html#L169'>thread</a>            169 src/threads/thread.c   struct thread *t;
+<a href='../S/163.html#L263'>thread</a>            263 src/threads/thread.c struct thread *
+<a href='../S/163.html#L266'>thread</a>            266 src/threads/thread.c   struct thread *t = running_thread ();
+<a href='../S/163.html#L312'>thread</a>            312 src/threads/thread.c   struct thread *cur = thread_current ();
+<a href='../S/163.html#L337'>thread</a>            337 src/threads/thread.c       struct thread *t = list_entry (e, struct thread, allelem);
+<a href='../S/163.html#L437'>thread</a>            437 src/threads/thread.c struct thread *
+<a href='../S/163.html#L493'>thread</a>            493 src/threads/thread.c static struct thread *
+<a href='../S/163.html#L499'>thread</a>            499 src/threads/thread.c     return list_entry (list_pop_front (&amp;ready_list), struct thread, elem);
+<a href='../S/163.html#L521'>thread</a>            521 src/threads/thread.c   struct thread *cur = running_thread ();
+<a href='../S/163.html#L558'>thread</a>            558 src/threads/thread.c   struct thread *cur = running_thread ();
+<a href='../S/163.html#L559'>thread</a>            559 src/threads/thread.c   struct thread *next = next_thread_to_run ();
+<a href='../S/163.html#L560'>thread</a>            560 src/threads/thread.c   struct thread *prev = NULL;
+<a href='../S/164.html#L122'>thread</a>            122 src/threads/thread.h struct thread *thread_current (void);
+<a href='../S/66.html#L98'>thread</a>             98 src/userprog/process.c   struct thread *cur = thread_current ();
+<a href='../S/66.html#L125'>thread</a>            125 src/userprog/process.c   struct thread *t = thread_current ();
+<a href='../S/66.html#L211'>thread</a>            211 src/userprog/process.c   struct thread *t = thread_current ();
+<a href='../S/66.html#L459'>thread</a>            459 src/userprog/process.c   struct thread *t = thread_current ();
+</pre>
+</body>
+</html>

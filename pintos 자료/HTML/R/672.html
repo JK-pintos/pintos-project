@@ -1,0 +1,65 @@
+<html>
+<head>
+<title>off_t</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/32.html#L13'>off_t</a>              13 src/filesys/directory.c     off_t pos;                          /* Current position. */
+<a href='../S/32.html#L93'>off_t</a>              93 src/filesys/directory.c         struct dir_entry *ep, off_t *ofsp) 
+<a href='../S/32.html#L145'>off_t</a>             145 src/filesys/directory.c   off_t ofs;
+<a href='../S/32.html#L190'>off_t</a>             190 src/filesys/directory.c   off_t ofs;
+<a href='../S/29.html#L10'>off_t</a>              10 src/filesys/file.c     off_t pos;                  /* Current position. */
+<a href='../S/29.html#L68'>off_t</a>              68 src/filesys/file.c off_t
+<a href='../S/29.html#L69'>off_t</a>              69 src/filesys/file.c file_read (struct file *file, void *buffer, off_t size) 
+<a href='../S/29.html#L71'>off_t</a>              71 src/filesys/file.c   off_t bytes_read = inode_read_at (file-&gt;inode, buffer, size, file-&gt;pos);
+<a href='../S/29.html#L81'>off_t</a>              81 src/filesys/file.c off_t
+<a href='../S/29.html#L82'>off_t</a>              82 src/filesys/file.c file_read_at (struct file *file, void *buffer, off_t size, off_t file_ofs) 
+<a href='../S/29.html#L94'>off_t</a>              94 src/filesys/file.c off_t
+<a href='../S/29.html#L95'>off_t</a>              95 src/filesys/file.c file_write (struct file *file, const void *buffer, off_t size) 
+<a href='../S/29.html#L97'>off_t</a>              97 src/filesys/file.c   off_t bytes_written = inode_write_at (file-&gt;inode, buffer, size, file-&gt;pos);
+<a href='../S/29.html#L109'>off_t</a>             109 src/filesys/file.c off_t
+<a href='../S/29.html#L110'>off_t</a>             110 src/filesys/file.c file_write_at (struct file *file, const void *buffer, off_t size,
+<a href='../S/29.html#L111'>off_t</a>             111 src/filesys/file.c                off_t file_ofs) 
+<a href='../S/29.html#L144'>off_t</a>             144 src/filesys/file.c off_t
+<a href='../S/29.html#L154'>off_t</a>             154 src/filesys/file.c file_seek (struct file *file, off_t new_pos)
+<a href='../S/29.html#L163'>off_t</a>             163 src/filesys/file.c off_t
+<a href='../S/36.html#L15'>off_t</a>              15 src/filesys/file.h off_t file_read (struct file *, void *, off_t);
+<a href='../S/36.html#L16'>off_t</a>              16 src/filesys/file.h off_t file_read_at (struct file *, void *, off_t size, off_t start);
+<a href='../S/36.html#L17'>off_t</a>              17 src/filesys/file.h off_t file_write (struct file *, const void *, off_t);
+<a href='../S/36.html#L18'>off_t</a>              18 src/filesys/file.h off_t file_write_at (struct file *, const void *, off_t size, off_t start);
+<a href='../S/36.html#L25'>off_t</a>              25 src/filesys/file.h void file_seek (struct file *, off_t);
+<a href='../S/36.html#L26'>off_t</a>              26 src/filesys/file.h off_t file_tell (struct file *);
+<a href='../S/36.html#L27'>off_t</a>              27 src/filesys/file.h off_t file_length (struct file *);
+<a href='../S/38.html#L46'>off_t</a>              46 src/filesys/filesys.c filesys_create (const char *name, off_t initial_size) 
+<a href='../S/33.html#L16'>off_t</a>              16 src/filesys/filesys.h bool filesys_create (const char *name, off_t initial_size);
+<a href='../S/26.html#L48'>off_t</a>              48 src/filesys/fsutil.c       off_t pos = file_tell (file);
+<a href='../S/26.html#L49'>off_t</a>              49 src/filesys/fsutil.c       off_t n = file_read (file, buffer, PGSIZE);
+<a href='../S/26.html#L175'>off_t</a>             175 src/filesys/fsutil.c   off_t size;
+<a href='../S/35.html#L18'>off_t</a>              18 src/filesys/inode.c     off_t length;                       /* File size in bytes. */
+<a href='../S/35.html#L26'>off_t</a>              26 src/filesys/inode.c bytes_to_sectors (off_t size)
+<a href='../S/35.html#L47'>off_t</a>              47 src/filesys/inode.c byte_to_sector (const struct inode *inode, off_t pos) 
+<a href='../S/35.html#L73'>off_t</a>              73 src/filesys/inode.c inode_create (block_sector_t sector, off_t length)
+<a href='../S/35.html#L200'>off_t</a>             200 src/filesys/inode.c off_t
+<a href='../S/35.html#L201'>off_t</a>             201 src/filesys/inode.c inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset) 
+<a href='../S/35.html#L204'>off_t</a>             204 src/filesys/inode.c   off_t bytes_read = 0;
+<a href='../S/35.html#L214'>off_t</a>             214 src/filesys/inode.c       off_t inode_left = inode_length (inode) - offset;
+<a href='../S/35.html#L257'>off_t</a>             257 src/filesys/inode.c off_t
+<a href='../S/35.html#L258'>off_t</a>             258 src/filesys/inode.c inode_write_at (struct inode *inode, const void *buffer_, off_t size,
+<a href='../S/35.html#L259'>off_t</a>             259 src/filesys/inode.c                 off_t offset) 
+<a href='../S/35.html#L262'>off_t</a>             262 src/filesys/inode.c   off_t bytes_written = 0;
+<a href='../S/35.html#L275'>off_t</a>             275 src/filesys/inode.c       off_t inode_left = inode_length (inode) - offset;
+<a href='../S/35.html#L341'>off_t</a>             341 src/filesys/inode.c off_t
+<a href='../S/34.html#L11'>off_t</a>              11 src/filesys/inode.h bool inode_create (block_sector_t, off_t);
+<a href='../S/34.html#L17'>off_t</a>              17 src/filesys/inode.h off_t inode_read_at (struct inode *, void *, off_t size, off_t offset);
+<a href='../S/34.html#L18'>off_t</a>              18 src/filesys/inode.h off_t inode_write_at (struct inode *, const void *, off_t size, off_t offset);
+<a href='../S/34.html#L21'>off_t</a>              21 src/filesys/inode.h off_t inode_length (const struct inode *);
+<a href='../S/114.html#L347'>off_t</a>             347 src/lib/kernel/bitmap.c       off_t size = byte_cnt (b-&gt;bit_cnt);
+<a href='../S/114.html#L359'>off_t</a>             359 src/lib/kernel/bitmap.c   off_t size = byte_cnt (b-&gt;bit_cnt);
+<a href='../S/66.html#L200'>off_t</a>             200 src/userprog/process.c static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
+<a href='../S/66.html#L214'>off_t</a>             214 src/userprog/process.c   off_t file_ofs;
+<a href='../S/66.html#L383'>off_t</a>             383 src/userprog/process.c load_segment (struct file *file, off_t ofs, uint8_t *upage,
+</pre>
+</body>
+</html>

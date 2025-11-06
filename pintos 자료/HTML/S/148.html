@@ -1,0 +1,220 @@
+<html>
+<head>
+<title>src/threads/intr-stubs.S</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/intr-stubs.S</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='152.html'>threads/loader.h</a>"
+<a name='L2'>   2 
+<a name='L3'>   3         .text
+<a name='L4'>   4 
+<a name='L5'>   5 <i><font color='green'>/* Main interrupt entry point.</font></i>
+<a name='L6'>   6 <i><font color='green'></font></i>
+<a name='L7'>   7 <i><font color='green'>   An internal or external interrupt starts in one of the</font></i>
+<a name='L8'>   8 <i><font color='green'>   intrNN_stub routines, which push the `struct intr_frame'</font></i>
+<a name='L9'>   9 <i><font color='green'>   frame_pointer, error_code, and vec_no members on the stack,</font></i>
+<a name='L10'>  10 <i><font color='green'>   then jump here.</font></i>
+<a name='L11'>  11 <i><font color='green'></font></i>
+<a name='L12'>  12 <i><font color='green'>   We save the rest of the `struct intr_frame' members to the</font></i>
+<a name='L13'>  13 <i><font color='green'>   stack, set up some registers as needed by the kernel, and then</font></i>
+<a name='L14'>  14 <i><font color='green'>   call intr_handler(), which actually handles the interrupt.</font></i>
+<a name='L15'>  15 <i><font color='green'></font></i>
+<a name='L16'>  16 <i><font color='green'>   We "fall through" to intr_exit to return from the interrupt.</font></i>
+<a name='L17'>  17 <i><font color='green'>*/</font></i>
+<a name='L18'>  18 .func intr_entry
+<a name='L19'>  19 intr_entry:
+<a name='L20'>  20         <i><font color='green'>/* Save caller's registers. */</font></i>
+<a name='L21'>  21         pushl %ds
+<a name='L22'>  22         pushl %es
+<a name='L23'>  23         pushl %fs
+<a name='L24'>  24         pushl %gs
+<a name='L25'>  25         pushal
+<a name='L26'>  26         
+<a name='L27'>  27         <i><font color='green'>/* Set up kernel environment. */</font></i>
+<a name='L28'>  28         cld                     <i><font color='green'>/* String instructions go upward. */</font></i>
+<a name='L29'>  29         mov $SEL_KDSEG, %eax    <i><font color='green'>/* Initialize segment registers. */</font></i>
+<a name='L30'>  30         mov %eax, %ds
+<a name='L31'>  31         mov %eax, %es
+<a name='L32'>  32         leal 56(%esp), %ebp     <i><font color='green'>/* Set up frame pointer. */</font></i>
+<a name='L33'>  33 
+<a name='L34'>  34         <i><font color='green'>/* Call interrupt handler. */</font></i>
+<a name='L35'>  35         pushl %esp
+<a name='L36'>  36 .globl intr_handler
+<a name='L37'>  37         call intr_handler
+<a name='L38'>  38         addl $4, %esp
+<a name='L39'>  39 .endfunc
+<a name='L40'>  40 
+<a name='L41'>  41 <i><font color='green'>/* Interrupt exit.</font></i>
+<a name='L42'>  42 <i><font color='green'></font></i>
+<a name='L43'>  43 <i><font color='green'>   Restores the caller's registers, discards extra data on the</font></i>
+<a name='L44'>  44 <i><font color='green'>   stack, and returns to the caller.</font></i>
+<a name='L45'>  45 <i><font color='green'></font></i>
+<a name='L46'>  46 <i><font color='green'>   This is a separate function because it is called directly when</font></i>
+<a name='L47'>  47 <i><font color='green'>   we launch a new user process (see start_process() in</font></i>
+<a name='L48'>  48 <i><font color='green'>   userprog/process.c). */</font></i>
+<a name='L49'>  49 .globl intr_exit
+<a name='L50'>  50 .func intr_exit
+<a name='L51'>  51 intr_exit:
+<a name='L52'>  52         <i><font color='green'>/* Restore caller's registers. */</font></i>
+<a name='L53'>  53         popal
+<a name='L54'>  54         popl %gs
+<a name='L55'>  55         popl %fs
+<a name='L56'>  56         popl %es
+<a name='L57'>  57         popl %ds
+<a name='L58'>  58 
+<a name='L59'>  59         <i><font color='green'>/* Discard `struct intr_frame' vec_no, error_code,</font></i>
+<a name='L60'>  60 <i><font color='green'>           frame_pointer members. */</font></i>
+<a name='L61'>  61         addl $12, %esp
+<a name='L62'>  62 
+<a name='L63'>  63         <i><font color='green'>/* Return to caller. */</font></i>
+<a name='L64'>  64         iret
+<a name='L65'>  65 .endfunc
+<a name='L66'>  66 
+<a name='L67'>  67 <i><font color='green'>/* Interrupt stubs.</font></i>
+<a name='L68'>  68 <i><font color='green'></font></i>
+<a name='L69'>  69 <i><font color='green'>   This defines 256 fragments of code, named `intr00_stub'</font></i>
+<a name='L70'>  70 <i><font color='green'>   through `intrff_stub', each of which is used as the entry</font></i>
+<a name='L71'>  71 <i><font color='green'>   point for the corresponding interrupt vector.  It also puts</font></i>
+<a name='L72'>  72 <i><font color='green'>   the address of each of these functions in the correct spot in</font></i>
+<a name='L73'>  73 <i><font color='green'>   `intr_stubs', an array of function pointers.</font></i>
+<a name='L74'>  74 <i><font color='green'></font></i>
+<a name='L75'>  75 <i><font color='green'>   Most of the stubs do this:</font></i>
+<a name='L76'>  76 <i><font color='green'></font></i>
+<a name='L77'>  77 <i><font color='green'>        1. Push %ebp on the stack (frame_pointer in `struct intr_frame').</font></i>
+<a name='L78'>  78 <i><font color='green'></font></i>
+<a name='L79'>  79 <i><font color='green'>        2. Push 0 on the stack (error_code).</font></i>
+<a name='L80'>  80 <i><font color='green'></font></i>
+<a name='L81'>  81 <i><font color='green'>        3. Push the interrupt number on the stack (vec_no).</font></i>
+<a name='L82'>  82 <i><font color='green'></font></i>
+<a name='L83'>  83 <i><font color='green'>   The CPU pushes an extra "error code" on the stack for a few</font></i>
+<a name='L84'>  84 <i><font color='green'>   interrupts.  Because we want %ebp to be where the error code</font></i>
+<a name='L85'>  85 <i><font color='green'>   is, we follow a different path:</font></i>
+<a name='L86'>  86 <i><font color='green'></font></i>
+<a name='L87'>  87 <i><font color='green'>        1. Push a duplicate copy of the error code on the stack.</font></i>
+<a name='L88'>  88 <i><font color='green'></font></i>
+<a name='L89'>  89 <i><font color='green'>        2. Replace the original copy of the error code by %ebp.</font></i>
+<a name='L90'>  90 <i><font color='green'></font></i>
+<a name='L91'>  91 <i><font color='green'>        3. Push the interrupt number on the stack. */</font></i>
+<a name='L92'>  92 
+<a name='L93'>  93         .data
+<a name='L94'>  94 .globl intr_stubs
+<a name='L95'>  95 intr_stubs:
+<a name='L96'>  96 
+<a name='L97'>  97 <i><font color='green'>/* This implements steps 1 and 2, described above, in the common</font></i>
+<a name='L98'>  98 <i><font color='green'>   case where we just push a 0 error code. */</font></i>
+<a name='L99'>  99 <font color='darkred'>#define</font> <a href='../R/979.html' title='Multiple refered from 2 places.'>zero</a>                                    \
+<a name='L100'> 100         pushl %ebp;                             \
+<a name='L101'> 101         pushl $0
+<a name='L102'> 102 
+<a name='L103'> 103 <i><font color='green'>/* This implements steps 1 and 2, described above, in the case</font></i>
+<a name='L104'> 104 <i><font color='green'>   where the CPU already pushed an error code. */</font></i>
+<a name='L105'> 105 <font color='darkred'>#define</font> REAL                                    \
+<a name='L106'> 106         pushl (%esp);                           \
+<a name='L107'> 107         movl %ebp, 4(%esp)
+<a name='L108'> 108 
+<a name='L109'> 109 <i><font color='green'>/* Emits a stub for interrupt vector NUMBER.</font></i>
+<a name='L110'> 110 <i><font color='green'>   TYPE is `zero', for the case where we push a 0 error code,</font></i>
+<a name='L111'> 111 <i><font color='green'>   or `REAL', if the CPU pushes an error code for us. */</font></i>
+<a name='L112'> 112 <font color='darkred'>#define</font> STUB(NUMBER, TYPE)                      \
+<a name='L113'> 113         .text;                                  \
+<a name='L114'> 114 .func intr##NUMBER##_stub;                      \
+<a name='L115'> 115 intr##NUMBER##_stub:                            \
+<a name='L116'> 116         TYPE;                                   \
+<a name='L117'> 117         push $0x##NUMBER;                       \
+<a name='L118'> 118         jmp intr_entry;                         \
+<a name='L119'> 119 .endfunc;                                       \
+<a name='L120'> 120                                                 \
+<a name='L121'> 121         .data;                                  \
+<a name='L122'> 122         .long intr##NUMBER##_stub;
+<a name='L123'> 123 
+<a name='L124'> 124 <i><font color='green'>/* All the stubs. */</font></i>
+<a name='L125'> 125 STUB(00, zero) STUB(01, zero) STUB(02, zero) STUB(03, zero)
+<a name='L126'> 126 STUB(04, zero) STUB(05, zero) STUB(06, zero) STUB(07, zero)
+<a name='L127'> 127 STUB(08, REAL) STUB(09, zero) STUB(0a, REAL) STUB(0b, REAL)
+<a name='L128'> 128 STUB(0c, zero) STUB(0d, REAL) STUB(0e, REAL) STUB(0f, zero)
+<a name='L129'> 129 
+<a name='L130'> 130 STUB(10, zero) STUB(11, REAL) STUB(12, zero) STUB(13, zero)
+<a name='L131'> 131 STUB(14, zero) STUB(15, zero) STUB(16, zero) STUB(17, zero)
+<a name='L132'> 132 STUB(18, REAL) STUB(19, zero) STUB(1a, REAL) STUB(1b, REAL)
+<a name='L133'> 133 STUB(1c, zero) STUB(1d, REAL) STUB(1e, REAL) STUB(1f, zero)
+<a name='L134'> 134 
+<a name='L135'> 135 STUB(20, zero) STUB(21, zero) STUB(22, zero) STUB(23, zero)
+<a name='L136'> 136 STUB(24, zero) STUB(25, zero) STUB(26, zero) STUB(27, zero)
+<a name='L137'> 137 STUB(28, zero) STUB(29, zero) STUB(2a, zero) STUB(2b, zero)
+<a name='L138'> 138 STUB(2c, zero) STUB(2d, zero) STUB(2e, zero) STUB(2f, zero)
+<a name='L139'> 139 
+<a name='L140'> 140 STUB(30, zero) STUB(31, zero) STUB(32, zero) STUB(33, zero)
+<a name='L141'> 141 STUB(34, zero) STUB(35, zero) STUB(36, zero) STUB(37, zero)
+<a name='L142'> 142 STUB(38, zero) STUB(39, zero) STUB(3a, zero) STUB(3b, zero)
+<a name='L143'> 143 STUB(3c, zero) STUB(3d, zero) STUB(3e, zero) STUB(3f, zero)
+<a name='L144'> 144 
+<a name='L145'> 145 STUB(40, zero) STUB(41, zero) STUB(42, zero) STUB(43, zero)
+<a name='L146'> 146 STUB(44, zero) STUB(45, zero) STUB(46, zero) STUB(47, zero)
+<a name='L147'> 147 STUB(48, zero) STUB(49, zero) STUB(4a, zero) STUB(4b, zero)
+<a name='L148'> 148 STUB(4c, zero) STUB(4d, zero) STUB(4e, zero) STUB(4f, zero)
+<a name='L149'> 149 
+<a name='L150'> 150 STUB(50, zero) STUB(51, zero) STUB(52, zero) STUB(53, zero)
+<a name='L151'> 151 STUB(54, zero) STUB(55, zero) STUB(56, zero) STUB(57, zero)
+<a name='L152'> 152 STUB(58, zero) STUB(59, zero) STUB(5a, zero) STUB(5b, zero)
+<a name='L153'> 153 STUB(5c, zero) STUB(5d, zero) STUB(5e, zero) STUB(5f, zero)
+<a name='L154'> 154 
+<a name='L155'> 155 STUB(60, zero) STUB(61, zero) STUB(62, zero) STUB(63, zero)
+<a name='L156'> 156 STUB(64, zero) STUB(65, zero) STUB(66, zero) STUB(67, zero)
+<a name='L157'> 157 STUB(68, zero) STUB(69, zero) STUB(6a, zero) STUB(6b, zero)
+<a name='L158'> 158 STUB(6c, zero) STUB(6d, zero) STUB(6e, zero) STUB(6f, zero)
+<a name='L159'> 159 
+<a name='L160'> 160 STUB(70, zero) STUB(71, zero) STUB(72, zero) STUB(73, zero)
+<a name='L161'> 161 STUB(74, zero) STUB(75, zero) STUB(76, zero) STUB(77, zero)
+<a name='L162'> 162 STUB(78, zero) STUB(79, zero) STUB(7a, zero) STUB(7b, zero)
+<a name='L163'> 163 STUB(7c, zero) STUB(7d, zero) STUB(7e, zero) STUB(7f, zero)
+<a name='L164'> 164 
+<a name='L165'> 165 STUB(80, zero) STUB(81, zero) STUB(82, zero) STUB(83, zero)
+<a name='L166'> 166 STUB(84, zero) STUB(85, zero) STUB(86, zero) STUB(87, zero)
+<a name='L167'> 167 STUB(88, zero) STUB(89, zero) STUB(8a, zero) STUB(8b, zero)
+<a name='L168'> 168 STUB(8c, zero) STUB(8d, zero) STUB(8e, zero) STUB(8f, zero)
+<a name='L169'> 169 
+<a name='L170'> 170 STUB(90, zero) STUB(91, zero) STUB(92, zero) STUB(93, zero)
+<a name='L171'> 171 STUB(94, zero) STUB(95, zero) STUB(96, zero) STUB(97, zero)
+<a name='L172'> 172 STUB(98, zero) STUB(99, zero) STUB(9a, zero) STUB(9b, zero)
+<a name='L173'> 173 STUB(9c, zero) STUB(9d, zero) STUB(9e, zero) STUB(9f, zero)
+<a name='L174'> 174 
+<a name='L175'> 175 STUB(a0, zero) STUB(a1, zero) STUB(a2, zero) STUB(a3, zero)
+<a name='L176'> 176 STUB(a4, zero) STUB(a5, zero) STUB(a6, zero) STUB(a7, zero)
+<a name='L177'> 177 STUB(a8, zero) STUB(a9, zero) STUB(aa, zero) STUB(ab, zero)
+<a name='L178'> 178 STUB(ac, zero) STUB(ad, zero) STUB(ae, zero) STUB(af, zero)
+<a name='L179'> 179 
+<a name='L180'> 180 STUB(b0, zero) STUB(b1, zero) STUB(b2, zero) STUB(b3, zero)
+<a name='L181'> 181 STUB(b4, zero) STUB(b5, zero) STUB(b6, zero) STUB(b7, zero)
+<a name='L182'> 182 STUB(b8, zero) STUB(b9, zero) STUB(ba, zero) STUB(bb, zero)
+<a name='L183'> 183 STUB(bc, zero) STUB(bd, zero) STUB(be, zero) STUB(bf, zero)
+<a name='L184'> 184 
+<a name='L185'> 185 STUB(c0, zero) STUB(c1, zero) STUB(c2, zero) STUB(c3, zero)
+<a name='L186'> 186 STUB(c4, zero) STUB(c5, zero) STUB(c6, zero) STUB(c7, zero)
+<a name='L187'> 187 STUB(c8, zero) STUB(c9, zero) STUB(ca, zero) STUB(cb, zero)
+<a name='L188'> 188 STUB(cc, zero) STUB(cd, zero) STUB(ce, zero) STUB(cf, zero)
+<a name='L189'> 189 
+<a name='L190'> 190 STUB(d0, zero) STUB(d1, zero) STUB(d2, zero) STUB(d3, zero)
+<a name='L191'> 191 STUB(d4, zero) STUB(d5, zero) STUB(d6, zero) STUB(d7, zero)
+<a name='L192'> 192 STUB(d8, zero) STUB(d9, zero) STUB(da, zero) STUB(db, zero)
+<a name='L193'> 193 STUB(dc, zero) STUB(dd, zero) STUB(de, zero) STUB(df, zero)
+<a name='L194'> 194 
+<a name='L195'> 195 STUB(e0, zero) STUB(e1, zero) STUB(e2, zero) STUB(e3, zero)
+<a name='L196'> 196 STUB(e4, zero) STUB(e5, zero) STUB(e6, zero) STUB(e7, zero)
+<a name='L197'> 197 STUB(e8, zero) STUB(e9, zero) STUB(ea, zero) STUB(eb, zero)
+<a name='L198'> 198 STUB(ec, zero) STUB(ed, zero) STUB(ee, zero) STUB(ef, zero)
+<a name='L199'> 199 
+<a name='L200'> 200 STUB(f0, zero) STUB(f1, zero) STUB(f2, zero) STUB(f3, zero)
+<a name='L201'> 201 STUB(f4, zero) STUB(f5, zero) STUB(f6, zero) STUB(f7, zero)
+<a name='L202'> 202 STUB(f8, zero) STUB(f9, zero) STUB(fa, zero) STUB(fb, zero)
+<a name='L203'> 203 STUB(fc, zero) STUB(fd, zero) STUB(fe, zero) STUB(ff, zero)
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

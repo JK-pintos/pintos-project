@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>test</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/569.html#L35'>test</a>               35 src/tests/threads/alarm-simultaneous.c   struct sleep_test test;
+<a href='../S/569.html#L52'>test</a>               52 src/tests/threads/alarm-simultaneous.c   test.start = timer_ticks () + 100;
+<a href='../S/569.html#L53'>test</a>               53 src/tests/threads/alarm-simultaneous.c   test.iterations = iterations;
+<a href='../S/569.html#L54'>test</a>               54 src/tests/threads/alarm-simultaneous.c   test.output_pos = output;
+<a href='../S/569.html#L62'>test</a>               62 src/tests/threads/alarm-simultaneous.c       thread_create (name, PRI_DEFAULT, sleeper, &amp;test);
+<a href='../S/569.html#L70'>test</a>               70 src/tests/threads/alarm-simultaneous.c   for (i = 1; i &lt; test.output_pos - output; i++) 
+<a href='../S/569.html#L81'>test</a>               81 src/tests/threads/alarm-simultaneous.c   struct sleep_test *test = test_;
+<a href='../S/569.html#L87'>test</a>               87 src/tests/threads/alarm-simultaneous.c   for (i = 1; i &lt;= test-&gt;iterations; i++) 
+<a href='../S/569.html#L89'>test</a>               89 src/tests/threads/alarm-simultaneous.c       int64_t sleep_until = test-&gt;start + i * 10;
+<a href='../S/569.html#L91'>test</a>               91 src/tests/threads/alarm-simultaneous.c       *test-&gt;output_pos++ = timer_ticks () - test-&gt;start;
+<a href='../S/586.html#L41'>test</a>               41 src/tests/threads/alarm-wait.c     struct sleep_test *test;     /* Info shared between all threads. */
+<a href='../S/586.html#L53'>test</a>               53 src/tests/threads/alarm-wait.c   struct sleep_test test;
+<a href='../S/586.html#L75'>test</a>               75 src/tests/threads/alarm-wait.c   test.start = timer_ticks () + 100;
+<a href='../S/586.html#L76'>test</a>               76 src/tests/threads/alarm-wait.c   test.iterations = iterations;
+<a href='../S/586.html#L77'>test</a>               77 src/tests/threads/alarm-wait.c   lock_init (&amp;test.output_lock);
+<a href='../S/586.html#L78'>test</a>               78 src/tests/threads/alarm-wait.c   test.output_pos = output;
+<a href='../S/586.html#L87'>test</a>               87 src/tests/threads/alarm-wait.c       t-&gt;test = &amp;test;
+<a href='../S/586.html#L101'>test</a>              101 src/tests/threads/alarm-wait.c   lock_acquire (&amp;test.output_lock);
+<a href='../S/586.html#L105'>test</a>              105 src/tests/threads/alarm-wait.c   for (op = output; op &lt; test.output_pos; op++) 
+<a href='../S/586.html#L131'>test</a>              131 src/tests/threads/alarm-wait.c   lock_release (&amp;test.output_lock);
+<a href='../S/586.html#L141'>test</a>              141 src/tests/threads/alarm-wait.c   struct sleep_test *test = t-&gt;test;
+<a href='../S/586.html#L144'>test</a>              144 src/tests/threads/alarm-wait.c   for (i = 1; i &lt;= test-&gt;iterations; i++) 
+<a href='../S/586.html#L146'>test</a>              146 src/tests/threads/alarm-wait.c       int64_t sleep_until = test-&gt;start + i * t-&gt;duration;
+<a href='../S/586.html#L148'>test</a>              148 src/tests/threads/alarm-wait.c       lock_acquire (&amp;test-&gt;output_lock);
+<a href='../S/586.html#L149'>test</a>              149 src/tests/threads/alarm-wait.c       *test-&gt;output_pos++ = t-&gt;id;
+<a href='../S/586.html#L150'>test</a>              150 src/tests/threads/alarm-wait.c       lock_release (&amp;test-&gt;output_lock);
+<a href='../S/568.html#L12'>test</a>               12 src/tests/threads/tests.c static const struct test tests[] = 
+<a href='../S/568.html#L49'>test</a>               49 src/tests/threads/tests.c   const struct test *t;
+</pre>
+</body>
+</html>

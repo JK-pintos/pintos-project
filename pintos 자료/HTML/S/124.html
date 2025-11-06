@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>src/devices/timer.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/timer.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/24.html' title='Multiple included from 21 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/124.html#L2' title='Defined at 2 in src/devices/timer.h.'>DEVICES_TIMER_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/124.html#L1' title='Refered from 1 in src/devices/timer.h.'>DEVICES_TIMER_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Number of timer interrupts per second. */</font></i>
+<a name='L8'>   8 <font color='darkred'>#define</font> <a href='../R/234.html' title='Multiple refered from 29 places.'>TIMER_FREQ</a> 100
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b> <a href='../S/125.html#L36' title='Defined at 36 in src/devices/timer.c.'>timer_init</a> (<b>void</b>);
+<a name='L11'>  11 <b>void</b> <a href='../S/125.html#L44' title='Defined at 44 in src/devices/timer.c.'>timer_calibrate</a> (<b>void</b>);
+<a name='L12'>  12 
+<a name='L13'>  13 <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> <a href='../S/125.html#L71' title='Defined at 71 in src/devices/timer.c.'>timer_ticks</a> (<b>void</b>);
+<a name='L14'>  14 <a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> <a href='../S/125.html#L82' title='Defined at 82 in src/devices/timer.c.'>timer_elapsed</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a>);
+<a name='L15'>  15 
+<a name='L16'>  16 <i><font color='green'>/* Sleep and yield the CPU to other threads. */</font></i>
+<a name='L17'>  17 <b>void</b> <a href='../S/125.html#L90' title='Defined at 90 in src/devices/timer.c.'>timer_sleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> ticks);
+<a name='L18'>  18 <b>void</b> <a href='../S/125.html#L102' title='Defined at 102 in src/devices/timer.c.'>timer_msleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> milliseconds);
+<a name='L19'>  19 <b>void</b> <a href='../S/125.html#L110' title='Defined at 110 in src/devices/timer.c.'>timer_usleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> microseconds);
+<a name='L20'>  20 <b>void</b> <a href='../S/125.html#L118' title='Defined at 118 in src/devices/timer.c.'>timer_nsleep</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> nanoseconds);
+<a name='L21'>  21 
+<a name='L22'>  22 <i><font color='green'>/* Busy waits. */</font></i>
+<a name='L23'>  23 <b>void</b> <a href='../S/125.html#L131' title='Defined at 131 in src/devices/timer.c.'>timer_mdelay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> milliseconds);
+<a name='L24'>  24 <b>void</b> <a href='../S/125.html#L144' title='Defined at 144 in src/devices/timer.c.'>timer_udelay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> microseconds);
+<a name='L25'>  25 <b>void</b> <a href='../S/125.html#L157' title='Defined at 157 in src/devices/timer.c.'>timer_ndelay</a> (<a href='../S/87.html#L16' title='Defined at 16 in src/lib/stdint.h.'>int64_t</a> nanoseconds);
+<a name='L26'>  26 
+<a name='L27'>  27 <b>void</b> <a href='../S/125.html#L164' title='Defined at 164 in src/devices/timer.c.'>timer_print_stats</a> (<b>void</b>);
+<a name='L28'>  28 
+<a name='L29'>  29 <font color='darkred'>#endif</font> <i><font color='green'>/* devices/timer.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

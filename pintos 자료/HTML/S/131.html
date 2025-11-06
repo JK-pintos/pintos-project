@@ -1,0 +1,201 @@
+<html>
+<head>
+<title>src/devices/vga.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/vga.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L37'>[^]</a><a href='#L159'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L37' title='Defined at 37.'>init</a>
+<li><a href='#L52' title='Defined at 52.'>vga_putc</a>
+<li><a href='#L107' title='Defined at 107.'>cls</a>
+<li><a href='#L120' title='Defined at 120.'>clear_row</a>
+<li><a href='#L135' title='Defined at 135.'>newline</a>
+<li><a href='#L149' title='Defined at 149.'>move_cursor</a>
+<li><a href='#L159' title='Defined at 159.'>find_cursor</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='127.html'>devices/vga.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='79.html'>round.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='121.html'>devices/speaker.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='153.html'>threads/vaddr.h</a>"
+<a name='L10'>  10 
+<a name='L11'>  11 <i><font color='green'>/* VGA text screen support.  See [FREEVGA] for more information. */</font></i>
+<a name='L12'>  12 
+<a name='L13'>  13 <i><font color='green'>/* Number of columns and rows on the text display. */</font></i>
+<a name='L14'>  14 <font color='darkred'>#define</font> <a href='../R/19.html' title='Multiple refered from 7 places.'>COL_CNT</a> 80
+<a name='L15'>  15 <font color='darkred'>#define</font> <a href='../R/176.html' title='Multiple refered from 5 places.'>ROW_CNT</a> 25
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Current cursor position.  (0,0) is in the upper left corner of</font></i>
+<a name='L18'>  18 <i><font color='green'>   the display. */</font></i>
+<a name='L19'>  19 <b>static</b> <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cx, cy;
+<a name='L20'>  20 
+<a name='L21'>  21 <i><font color='green'>/* Attribute value for gray text on a black background. */</font></i>
+<a name='L22'>  22 <font color='darkred'>#define</font> <a href='../R/65.html' title='Multiple refered from 2 places.'>GRAY_ON_BLACK</a> 0x07
+<a name='L23'>  23 
+<a name='L24'>  24 <i><font color='green'>/* Framebuffer.  See [FREEVGA] under "VGA Text Mode Operation".</font></i>
+<a name='L25'>  25 <i><font color='green'>   The character at (x,y) is fb[y][x][0].</font></i>
+<a name='L26'>  26 <i><font color='green'>   The attribute at (x,y) is fb[y][x][1]. */</font></i>
+<a name='L27'>  27 <b>static</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> (*fb)[<a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a>][2];
+<a name='L28'>  28 
+<a name='L29'>  29 <b>static</b> <b>void</b> <a href='../S/131.html#L120' title='Defined at 120 in src/devices/vga.c.'>clear_row</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> y);
+<a name='L30'>  30 <b>static</b> <b>void</b> <a href='../S/131.html#L107' title='Defined at 107 in src/devices/vga.c.'>cls</a> (<b>void</b>);
+<a name='L31'>  31 <b>static</b> <b>void</b> <a href='../S/131.html#L135' title='Defined at 135 in src/devices/vga.c.'>newline</a> (<b>void</b>);
+<a name='L32'>  32 <b>static</b> <b>void</b> <a href='../S/131.html#L149' title='Defined at 149 in src/devices/vga.c.'>move_cursor</a> (<b>void</b>);
+<a name='L33'>  33 <b>static</b> <b>void</b> <a href='../S/131.html#L159' title='Defined at 159 in src/devices/vga.c.'>find_cursor</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> *x, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> *y);
+<a name='L34'>  34 
+<a name='L35'>  35 <i><font color='green'>/* Initializes the VGA text display. */</font></i>
+<a name='L36'>  36 <b>static</b> <b>void</b>
+<a name='L37'>  37 <a href='../R/504.html' title='Multiple refered from 3 places.'>init</a> (<b>void</b>)
+<a name='L38'>  38 <font color='red'>{</font>
+<a name='L39'>  39   <i><font color='green'>/* Already initialized? */</font></i>
+<a name='L40'>  40   <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> inited;
+<a name='L41'>  41   <b>if</b> (!inited)
+<a name='L42'>  42     <font color='red'>{</font>
+<a name='L43'>  43       fb = <a href='../S/153.html#L72' title='Defined at 72 in src/threads/vaddr.h.'>ptov</a> (0xb8000);
+<a name='L44'>  44       <a href='../S/131.html#L159' title='Defined at 159 in src/devices/vga.c.'>find_cursor</a> (&amp;cx, &amp;cy);
+<a name='L45'>  45       inited = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>; 
+<a name='L46'>  46     <font color='red'>}</font>
+<a name='L47'>  47 <font color='red'>}</font>
+<a name='L48'>  48 
+<a name='L49'>  49 <i><font color='green'>/* Writes C to the VGA text display, interpreting control</font></i>
+<a name='L50'>  50 <i><font color='green'>   characters in the conventional ways.  */</font></i>
+<a name='L51'>  51 <b>void</b>
+<a name='L52'>  52 <a href='../R/960.html' title='Multiple refered from 2 places.'>vga_putc</a> (<b>int</b> c)
+<a name='L53'>  53 <font color='red'>{</font>
+<a name='L54'>  54   <i><font color='green'>/* Disable interrupts to lock out interrupt handlers</font></i>
+<a name='L55'>  55 <i><font color='green'>     that might write to the console. */</font></i>
+<a name='L56'>  56   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L57'>  57 
+<a name='L58'>  58   <a href='../D/593.html' title='Multiple defined in 3 places.'>init</a> ();
+<a name='L59'>  59   
+<a name='L60'>  60   <b>switch</b> (c) 
+<a name='L61'>  61     <font color='red'>{</font>
+<a name='L62'>  62     <b>case</b> '\n':
+<a name='L63'>  63       <a href='../S/131.html#L135' title='Defined at 135 in src/devices/vga.c.'>newline</a> ();
+<a name='L64'>  64       <b>break</b>;
+<a name='L65'>  65 
+<a name='L66'>  66     <b>case</b> '\f':
+<a name='L67'>  67       <a href='../S/131.html#L107' title='Defined at 107 in src/devices/vga.c.'>cls</a> ();
+<a name='L68'>  68       <b>break</b>;
+<a name='L69'>  69 
+<a name='L70'>  70     <b>case</b> '\b':
+<a name='L71'>  71       <b>if</b> (cx &gt; 0)
+<a name='L72'>  72         cx--;
+<a name='L73'>  73       <b>break</b>;
+<a name='L74'>  74       
+<a name='L75'>  75     <b>case</b> '\r':
+<a name='L76'>  76       cx = 0;
+<a name='L77'>  77       <b>break</b>;
+<a name='L78'>  78 
+<a name='L79'>  79     <b>case</b> '\t':
+<a name='L80'>  80       cx = <a href='../S/79.html#L6' title='Defined at 6 in src/lib/round.h.'>ROUND_UP</a> (cx + 1, 8);
+<a name='L81'>  81       <b>if</b> (cx &gt;= <a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a>)
+<a name='L82'>  82         <a href='../S/131.html#L135' title='Defined at 135 in src/devices/vga.c.'>newline</a> ();
+<a name='L83'>  83       <b>break</b>;
+<a name='L84'>  84 
+<a name='L85'>  85     <b>case</b> '\a':
+<a name='L86'>  86       <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L87'>  87       <a href='../S/143.html#L48' title='Defined at 48 in src/devices/speaker.c.'>speaker_beep</a> ();
+<a name='L88'>  88       <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L89'>  89       <b>break</b>;
+<a name='L90'>  90       
+<a name='L91'>  91     <b>default</b>:
+<a name='L92'>  92       fb[cy][cx][0] = c;
+<a name='L93'>  93       fb[cy][cx][1] = <a href='../S/131.html#L22' title='Defined at 22 in src/devices/vga.c.'>GRAY_ON_BLACK</a>;
+<a name='L94'>  94       <b>if</b> (++cx &gt;= <a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a>)
+<a name='L95'>  95         <a href='../S/131.html#L135' title='Defined at 135 in src/devices/vga.c.'>newline</a> ();
+<a name='L96'>  96       <b>break</b>;
+<a name='L97'>  97     <font color='red'>}</font>
+<a name='L98'>  98 
+<a name='L99'>  99   <i><font color='green'>/* Update cursor position. */</font></i>
+<a name='L100'> 100   <a href='../S/131.html#L149' title='Defined at 149 in src/devices/vga.c.'>move_cursor</a> ();
+<a name='L101'> 101 
+<a name='L102'> 102   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L103'> 103 <font color='red'>}</font>
+<a name='L104'> 104 
+<a name='L105'> 105 <i><font color='green'>/* Clears the screen and moves the cursor to the upper left. */</font></i>
+<a name='L106'> 106 <b>static</b> <b>void</b>
+<a name='L107'> 107 <a href='../R/372.html' title='Multiple refered from 2 places.'>cls</a> (<b>void</b>)
+<a name='L108'> 108 <font color='red'>{</font>
+<a name='L109'> 109   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> y;
+<a name='L110'> 110 
+<a name='L111'> 111   <b>for</b> (y = 0; y &lt; <a href='../S/131.html#L15' title='Defined at 15 in src/devices/vga.c.'>ROW_CNT</a>; y++)
+<a name='L112'> 112     <a href='../S/131.html#L120' title='Defined at 120 in src/devices/vga.c.'>clear_row</a> (y);
+<a name='L113'> 113 
+<a name='L114'> 114   cx = cy = 0;
+<a name='L115'> 115   <a href='../S/131.html#L149' title='Defined at 149 in src/devices/vga.c.'>move_cursor</a> ();
+<a name='L116'> 116 <font color='red'>}</font>
+<a name='L117'> 117 
+<a name='L118'> 118 <i><font color='green'>/* Clears row Y to spaces. */</font></i>
+<a name='L119'> 119 <b>static</b> <b>void</b>
+<a name='L120'> 120 <a href='../R/370.html' title='Multiple refered from 3 places.'>clear_row</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> y) 
+<a name='L121'> 121 <font color='red'>{</font>
+<a name='L122'> 122   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> x;
+<a name='L123'> 123 
+<a name='L124'> 124   <b>for</b> (x = 0; x &lt; <a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a>; x++)
+<a name='L125'> 125     <font color='red'>{</font>
+<a name='L126'> 126       fb[y][x][0] = ' ';
+<a name='L127'> 127       fb[y][x][1] = <a href='../S/131.html#L22' title='Defined at 22 in src/devices/vga.c.'>GRAY_ON_BLACK</a>;
+<a name='L128'> 128     <font color='red'>}</font>
+<a name='L129'> 129 <font color='red'>}</font>
+<a name='L130'> 130 
+<a name='L131'> 131 <i><font color='green'>/* Advances the cursor to the first column in the next line on</font></i>
+<a name='L132'> 132 <i><font color='green'>   the screen.  If the cursor is already on the last line on the</font></i>
+<a name='L133'> 133 <i><font color='green'>   screen, scrolls the screen upward one line. */</font></i>
+<a name='L134'> 134 <b>static</b> <b>void</b>
+<a name='L135'> 135 <a href='../R/668.html' title='Multiple refered from 4 places.'>newline</a> (<b>void</b>)
+<a name='L136'> 136 <font color='red'>{</font>
+<a name='L137'> 137   cx = 0;
+<a name='L138'> 138   cy++;
+<a name='L139'> 139   <b>if</b> (cy &gt;= <a href='../S/131.html#L15' title='Defined at 15 in src/devices/vga.c.'>ROW_CNT</a>)
+<a name='L140'> 140     <font color='red'>{</font>
+<a name='L141'> 141       cy = <a href='../S/131.html#L15' title='Defined at 15 in src/devices/vga.c.'>ROW_CNT</a> - 1;
+<a name='L142'> 142       <a href='../S/83.html#L24' title='Defined at 24 in src/lib/string.c.'>memmove</a> (&amp;fb[0], &amp;fb[1], <b>sizeof</b> fb[0] * (<a href='../S/131.html#L15' title='Defined at 15 in src/devices/vga.c.'>ROW_CNT</a> - 1));
+<a name='L143'> 143       <a href='../S/131.html#L120' title='Defined at 120 in src/devices/vga.c.'>clear_row</a> (<a href='../S/131.html#L15' title='Defined at 15 in src/devices/vga.c.'>ROW_CNT</a> - 1);
+<a name='L144'> 144     <font color='red'>}</font>
+<a name='L145'> 145 <font color='red'>}</font>
+<a name='L146'> 146 
+<a name='L147'> 147 <i><font color='green'>/* Moves the hardware cursor to (cx,cy). */</font></i>
+<a name='L148'> 148 <b>static</b> <b>void</b>
+<a name='L149'> 149 <a href='../R/665.html' title='Multiple refered from 3 places.'>move_cursor</a> (<b>void</b>) 
+<a name='L150'> 150 <font color='red'>{</font>
+<a name='L151'> 151   <i><font color='green'>/* See [FREEVGA] under "Manipulating the Text-mode Cursor". */</font></i>
+<a name='L152'> 152   <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> cp = cx + <a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a> * cy;
+<a name='L153'> 153   <a href='../S/157.html#L83' title='Defined at 83 in src/threads/io.h.'>outw</a> (0x3d4, 0x0e | (cp &amp; 0xff00));
+<a name='L154'> 154   <a href='../S/157.html#L83' title='Defined at 83 in src/threads/io.h.'>outw</a> (0x3d4, 0x0f | (cp &lt;&lt; 8));
+<a name='L155'> 155 <font color='red'>}</font>
+<a name='L156'> 156 
+<a name='L157'> 157 <i><font color='green'>/* Reads the current hardware cursor position into (*X,*Y). */</font></i>
+<a name='L158'> 158 <b>static</b> <b>void</b>
+<a name='L159'> 159 <a href='../R/448.html' title='Multiple refered from 2 places.'>find_cursor</a> (<a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> *x, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> *y) 
+<a name='L160'> 160 <font color='red'>{</font>
+<a name='L161'> 161   <i><font color='green'>/* See [FREEVGA] under "Manipulating the Text-mode Cursor". */</font></i>
+<a name='L162'> 162   <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> cp;
+<a name='L163'> 163 
+<a name='L164'> 164   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (0x3d4, 0x0e);
+<a name='L165'> 165   cp = <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (0x3d5) &lt;&lt; 8;
+<a name='L166'> 166 
+<a name='L167'> 167   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (0x3d4, 0x0f);
+<a name='L168'> 168   cp |= <a href='../S/157.html#L9' title='Defined at 9 in src/threads/io.h.'>inb</a> (0x3d5);
+<a name='L169'> 169 
+<a name='L170'> 170   *x = cp % <a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a>;
+<a name='L171'> 171   *y = cp / <a href='../S/131.html#L14' title='Defined at 14 in src/devices/vga.c.'>COL_CNT</a>;
+<a name='L172'> 172 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L37'>[^]</a><a href='#L159'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

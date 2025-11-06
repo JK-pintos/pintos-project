@@ -1,0 +1,228 @@
+<html>
+<head>
+<title>src/tests/lib.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/lib.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L12'>[^]</a><a href='#L163'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L12' title='Defined at 12.'>vmsg</a>
+<li><a href='#L28' title='Defined at 28.'>msg</a>
+<li><a href='#L40' title='Defined at 40.'>fail</a>
+<li><a href='#L52' title='Defined at 52.'>swap</a>
+<li><a href='#L67' title='Defined at 67.'>shuffle</a>
+<li><a href='#L80' title='Defined at 80.'>exec_children</a>
+<li><a href='#L94' title='Defined at 94.'>wait_children</a>
+<li><a href='#L108' title='Defined at 108.'>check_file_handle</a>
+<li><a href='#L151' title='Defined at 151.'>check_file</a>
+<li><a href='#L163' title='Defined at 163.'>compare_bytes</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='102.html'>random.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='80.html'>stdarg.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 
+<a name='L8'>   8 <b>const</b> <b>char</b> *test_name;
+<a name='L9'>   9 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L10'>  10 
+<a name='L11'>  11 <b>static</b> <b>void</b>
+<a name='L12'>  12 <a href='../R/963.html' title='Multiple refered from 2 places.'>vmsg</a> (<b>const</b> <b>char</b> *format, va_list args, <b>const</b> <b>char</b> *suffix) 
+<a name='L13'>  13 <font color='red'>{</font>
+<a name='L14'>  14   <i><font color='green'>/* We go to some trouble to stuff the entire message into a</font></i>
+<a name='L15'>  15 <i><font color='green'>     single buffer and output it in a single system call, because</font></i>
+<a name='L16'>  16 <i><font color='green'>     that'll (typically) ensure that it gets sent to the console</font></i>
+<a name='L17'>  17 <i><font color='green'>     atomically.  Otherwise kernel messages like "foo: exit(0)"</font></i>
+<a name='L18'>  18 <i><font color='green'>     can end up being interleaved if we're unlucky. */</font></i>
+<a name='L19'>  19   <b>static</b> <b>char</b> buf[1024];
+<a name='L20'>  20 
+<a name='L21'>  21   <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (buf, <b>sizeof</b> buf, "(%s) ", test_name);
+<a name='L22'>  22   <a href='../S/115.html#L26' title='Defined at 26 in src/lib/stdio.c.'>vsnprintf</a> (buf + <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (buf), <b>sizeof</b> buf - <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (buf), format, args);
+<a name='L23'>  23   <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (buf + <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (buf), suffix, <b>sizeof</b> buf - <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (buf));
+<a name='L24'>  24   <a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (<a href='../S/84.html#L16' title='Defined at 16 in src/lib/stdio.h.'>STDOUT_FILENO</a>, buf, <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (buf));
+<a name='L25'>  25 <font color='red'>}</font>
+<a name='L26'>  26 
+<a name='L27'>  27 <b>void</b>
+<a name='L28'>  28 <a href='../R/666.html' title='Multiple refered from 208 places.'>msg</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L29'>  29 <font color='red'>{</font>
+<a name='L30'>  30   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L31'>  31 
+<a name='L32'>  32   <b>if</b> (quiet)
+<a name='L33'>  33     <b>return</b>;
+<a name='L34'>  34   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L35'>  35   <a href='../S/591.html#L12' title='Defined at 12 in src/tests/lib.c.'>vmsg</a> (format, args, "\n");
+<a name='L36'>  36   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L37'>  37 <font color='red'>}</font>
+<a name='L38'>  38 
+<a name='L39'>  39 <b>void</b>
+<a name='L40'>  40 <a href='../R/424.html' title='Multiple refered from 72 places.'>fail</a> (<b>const</b> <b>char</b> *format, ...) 
+<a name='L41'>  41 <font color='red'>{</font>
+<a name='L42'>  42   <a href='../S/80.html#L7' title='Defined at 7 in src/lib/stdarg.h.'>va_list</a> args;
+<a name='L43'>  43 
+<a name='L44'>  44   <a href='../S/80.html#L9' title='Defined at 9 in src/lib/stdarg.h.'>va_start</a> (args, format);
+<a name='L45'>  45   <a href='../S/591.html#L12' title='Defined at 12 in src/tests/lib.c.'>vmsg</a> (format, args, ": FAILED\n");
+<a name='L46'>  46   <a href='../S/80.html#L10' title='Defined at 10 in src/lib/stdarg.h.'>va_end</a> (args);
+<a name='L47'>  47 
+<a name='L48'>  48   <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (1);
+<a name='L49'>  49 <font color='red'>}</font>
+<a name='L50'>  50 
+<a name='L51'>  51 <b>static</b> <b>void</b>
+<a name='L52'>  52 <a href='../R/844.html' title='Multiple refered from 5 places.'>swap</a> (<b>void</b> *a_, <b>void</b> *b_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L53'>  53 <font color='red'>{</font>
+<a name='L54'>  54   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *a = a_;
+<a name='L55'>  55   <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *b = b_;
+<a name='L56'>  56   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L57'>  57 
+<a name='L58'>  58   <b>for</b> (i = 0; i &lt; size; i++) 
+<a name='L59'>  59     <font color='red'>{</font>
+<a name='L60'>  60       <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> t = a[i];
+<a name='L61'>  61       a[i] = b[i];
+<a name='L62'>  62       b[i] = t;
+<a name='L63'>  63     <font color='red'>}</font>
+<a name='L64'>  64 <font color='red'>}</font>
+<a name='L65'>  65 
+<a name='L66'>  66 <b>void</b>
+<a name='L67'>  67 <a href='../R/805.html' title='Multiple refered from 8 places.'>shuffle</a> (<b>void</b> *buf_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> cnt, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L68'>  68 <font color='red'>{</font>
+<a name='L69'>  69   <b>char</b> *buf = buf_;
+<a name='L70'>  70   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L71'>  71 
+<a name='L72'>  72   <b>for</b> (i = 0; i &lt; cnt; i++)
+<a name='L73'>  73     <font color='red'>{</font>
+<a name='L74'>  74       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> j = i + <a href='../S/85.html#L78' title='Defined at 78 in src/lib/random.c.'>random_ulong</a> () % (cnt - i);
+<a name='L75'>  75       <a href='../D/957.html' title='Multiple defined in 3 places.'>swap</a> (buf + i * size, buf + j * size, size);
+<a name='L76'>  76     <font color='red'>}</font>
+<a name='L77'>  77 <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79 <b>void</b>
+<a name='L80'>  80 <a href='../R/421.html' title='Multiple refered from 4 places.'>exec_children</a> (<b>const</b> <b>char</b> *child_name, <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> pids[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> child_cnt) 
+<a name='L81'>  81 <font color='red'>{</font>
+<a name='L82'>  82   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L83'>  83 
+<a name='L84'>  84   <b>for</b> (i = 0; i &lt; child_cnt; i++) 
+<a name='L85'>  85     <font color='red'>{</font>
+<a name='L86'>  86       <b>char</b> cmd_line[128];
+<a name='L87'>  87       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (cmd_line, <b>sizeof</b> cmd_line, "%s %zu", child_name, i);
+<a name='L88'>  88       CHECK ((pids[i] = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> (cmd_line)) != <a href='../S/100.html#L9' title='Defined at 9 in src/lib/user/syscall.h.'>PID_ERROR</a>,
+<a name='L89'>  89              "exec child %zu of %zu: \"%s\"", i + 1, child_cnt, cmd_line);
+<a name='L90'>  90     <font color='red'>}</font>
+<a name='L91'>  91 <font color='red'>}</font>
+<a name='L92'>  92 
+<a name='L93'>  93 <b>void</b>
+<a name='L94'>  94 <a href='../R/971.html' title='Multiple refered from 4 places.'>wait_children</a> (<a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> pids[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> child_cnt) 
+<a name='L95'>  95 <font color='red'>{</font>
+<a name='L96'>  96   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L97'>  97   
+<a name='L98'>  98   <b>for</b> (i = 0; i &lt; child_cnt; i++) 
+<a name='L99'>  99     <font color='red'>{</font>
+<a name='L100'> 100       <b>int</b> status = <a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (pids[i]);
+<a name='L101'> 101       CHECK (status == (<b>int</b>) i,
+<a name='L102'> 102              "wait for child %zu of %zu returned %d (expected %zu)",
+<a name='L103'> 103              i + 1, child_cnt, status, i);
+<a name='L104'> 104     <font color='red'>}</font>
+<a name='L105'> 105 <font color='red'>}</font>
+<a name='L106'> 106 
+<a name='L107'> 107 <b>void</b>
+<a name='L108'> 108 <a href='../R/364.html' title='Multiple refered from 3 places.'>check_file_handle</a> (<b>int</b> fd,
+<a name='L109'> 109                    <b>const</b> <b>char</b> *file_name, <b>const</b> <b>void</b> *buf_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L110'> 110 <font color='red'>{</font>
+<a name='L111'> 111   <b>const</b> <b>char</b> *buf = buf_;
+<a name='L112'> 112   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs = 0;
+<a name='L113'> 113   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_size;
+<a name='L114'> 114 
+<a name='L115'> 115   <i><font color='green'>/* Warn about file of wrong size.  Don't fail yet because we</font></i>
+<a name='L116'> 116 <i><font color='green'>     may still be able to get more information by reading the</font></i>
+<a name='L117'> 117 <i><font color='green'>     file. */</font></i>
+<a name='L118'> 118   file_size = <a href='../S/97.html#L109' title='Defined at 109 in src/lib/user/syscall.c.'>filesize</a> (fd);
+<a name='L119'> 119   <b>if</b> (file_size != size)
+<a name='L120'> 120     <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("size of %s (%zu) differs from expected (%zu)",
+<a name='L121'> 121           file_name, file_size, size);
+<a name='L122'> 122 
+<a name='L123'> 123   <i><font color='green'>/* Read the file block-by-block, comparing data as we go. */</font></i>
+<a name='L124'> 124   <b>while</b> (ofs &lt; size)
+<a name='L125'> 125     <font color='red'>{</font>
+<a name='L126'> 126       <b>char</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>[512];
+<a name='L127'> 127       <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>, ret_val;
+<a name='L128'> 128 
+<a name='L129'> 129       <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = size - ofs;
+<a name='L130'> 130       <b>if</b> (<a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> &gt; <b>sizeof</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>)
+<a name='L131'> 131         <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a> = <b>sizeof</b> <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>;
+<a name='L132'> 132 
+<a name='L133'> 133       ret_val = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (fd, <a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>);
+<a name='L134'> 134       <b>if</b> (ret_val != <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>)
+<a name='L135'> 135         <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("read of %zu bytes at offset %zu in \"%s\" returned %zu",
+<a name='L136'> 136               <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>, ofs, file_name, ret_val);
+<a name='L137'> 137 
+<a name='L138'> 138       <a href='../S/591.html#L163' title='Defined at 163 in src/tests/lib.c.'>compare_bytes</a> (<a href='../D/415.html' title='Multiple defined in 2 places.'>block</a>, buf + ofs, <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>, ofs, file_name);
+<a name='L139'> 139       ofs += <a href='../D/427.html' title='Multiple defined in 2 places.'>block_size</a>;
+<a name='L140'> 140     <font color='red'>}</font>
+<a name='L141'> 141 
+<a name='L142'> 142   <i><font color='green'>/* Now fail due to wrong file size. */</font></i>
+<a name='L143'> 143   <b>if</b> (file_size != size)
+<a name='L144'> 144     <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("size of %s (%zu) differs from expected (%zu)",
+<a name='L145'> 145           file_name, file_size, size);
+<a name='L146'> 146 
+<a name='L147'> 147   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("verified contents of \"%s\"", file_name);
+<a name='L148'> 148 <font color='red'>}</font>
+<a name='L149'> 149 
+<a name='L150'> 150 <b>void</b>
+<a name='L151'> 151 <a href='../R/363.html' title='Multiple refered from 7 places.'>check_file</a> (<b>const</b> <b>char</b> *file_name, <b>const</b> <b>void</b> *buf, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size) 
+<a name='L152'> 152 <font color='red'>{</font>
+<a name='L153'> 153   <b>int</b> fd;
+<a name='L154'> 154 
+<a name='L155'> 155   CHECK ((fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name)) &gt; 1, "open \"%s\" for verification",
+<a name='L156'> 156          file_name);
+<a name='L157'> 157   <a href='../S/591.html#L108' title='Defined at 108 in src/tests/lib.c.'>check_file_handle</a> (fd, file_name, buf, size);
+<a name='L158'> 158   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("close \"%s\"", file_name);
+<a name='L159'> 159   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (fd);
+<a name='L160'> 160 <font color='red'>}</font>
+<a name='L161'> 161 
+<a name='L162'> 162 <b>void</b>
+<a name='L163'> 163 <a href='../R/374.html' title='Multiple refered from 6 places.'>compare_bytes</a> (<b>const</b> <b>void</b> *read_data_, <b>const</b> <b>void</b> *expected_data_, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> size,
+<a name='L164'> 164                <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> ofs, <b>const</b> <b>char</b> *file_name) 
+<a name='L165'> 165 <font color='red'>{</font>
+<a name='L166'> 166   <b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *read_data = read_data_;
+<a name='L167'> 167   <b>const</b> <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *expected_data = expected_data_;
+<a name='L168'> 168   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i, j;
+<a name='L169'> 169   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> show_cnt;
+<a name='L170'> 170 
+<a name='L171'> 171   <b>if</b> (!<a href='../S/83.html#L53' title='Defined at 53 in src/lib/string.c.'>memcmp</a> (read_data, expected_data, size))
+<a name='L172'> 172     <b>return</b>;
+<a name='L173'> 173   
+<a name='L174'> 174   <b>for</b> (i = 0; i &lt; size; i++)
+<a name='L175'> 175     <b>if</b> (read_data[i] != expected_data[i])
+<a name='L176'> 176       <b>break</b>;
+<a name='L177'> 177   <b>for</b> (j = i + 1; j &lt; size; j++)
+<a name='L178'> 178     <b>if</b> (read_data[j] == expected_data[j])
+<a name='L179'> 179       <b>break</b>;
+<a name='L180'> 180 
+<a name='L181'> 181   quiet = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L182'> 182   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("%zu bytes read starting at offset %zu in \"%s\" differ "
+<a name='L183'> 183        "from expected.", j - i, ofs + i, file_name);
+<a name='L184'> 184   show_cnt = j - i;
+<a name='L185'> 185   <b>if</b> (j - i &gt; 64) 
+<a name='L186'> 186     <font color='red'>{</font>
+<a name='L187'> 187       show_cnt = 64;
+<a name='L188'> 188       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Showing first differing %zu bytes.", show_cnt);
+<a name='L189'> 189     <font color='red'>}</font>
+<a name='L190'> 190   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Data actually read:");
+<a name='L191'> 191   <a href='../S/115.html#L593' title='Defined at 593 in src/lib/stdio.c.'>hex_dump</a> (ofs + i, read_data + i, show_cnt, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L192'> 192   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Expected data:");
+<a name='L193'> 193   <a href='../S/115.html#L593' title='Defined at 593 in src/lib/stdio.c.'>hex_dump</a> (ofs + i, expected_data + i, show_cnt, <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>);
+<a name='L194'> 194   <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("%zu bytes read starting at offset %zu in \"%s\" differ "
+<a name='L195'> 195         "from expected", j - i, ofs + i, file_name);
+<a name='L196'> 196 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L12'>[^]</a><a href='#L163'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

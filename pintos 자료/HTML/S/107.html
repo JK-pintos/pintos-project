@@ -1,0 +1,200 @@
+<html>
+<head>
+<title>src/lib/kernel/list.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/599.html'>lib</a>/<a href='../files/600.html'>kernel</a>/list.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/71.html' title='Multiple included from 9 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/107.html#L2' title='Defined at 2 in src/lib/kernel/list.h.'>__LIB_KERNEL_LIST_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/107.html#L1' title='Refered from 1 in src/lib/kernel/list.h.'>__LIB_KERNEL_LIST_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <i><font color='green'>/* Doubly linked list.</font></i>
+<a name='L5'>   5 <i><font color='green'></font></i>
+<a name='L6'>   6 <i><font color='green'>   This implementation of a doubly linked list does not require</font></i>
+<a name='L7'>   7 <i><font color='green'>   use of dynamically allocated memory.  Instead, each structure</font></i>
+<a name='L8'>   8 <i><font color='green'>   that is a potential list element must embed a struct list_elem</font></i>
+<a name='L9'>   9 <i><font color='green'>   member.  All of the list functions operate on these `struct</font></i>
+<a name='L10'>  10 <i><font color='green'>   list_elem's.  The list_entry macro allows conversion from a</font></i>
+<a name='L11'>  11 <i><font color='green'>   struct list_elem back to a structure object that contains it.</font></i>
+<a name='L12'>  12 <i><font color='green'></font></i>
+<a name='L13'>  13 <i><font color='green'>   For example, suppose there is a needed for a list of `struct</font></i>
+<a name='L14'>  14 <i><font color='green'>   foo'.  `struct foo' should contain a `struct list_elem'</font></i>
+<a name='L15'>  15 <i><font color='green'>   member, like so:</font></i>
+<a name='L16'>  16 <i><font color='green'></font></i>
+<a name='L17'>  17 <i><font color='green'>      struct foo</font></i>
+<a name='L18'>  18 <i><font color='green'>        {</font></i>
+<a name='L19'>  19 <i><font color='green'>          struct list_elem elem;</font></i>
+<a name='L20'>  20 <i><font color='green'>          int bar;</font></i>
+<a name='L21'>  21 <i><font color='green'>          ...other members...</font></i>
+<a name='L22'>  22 <i><font color='green'>        };</font></i>
+<a name='L23'>  23 <i><font color='green'></font></i>
+<a name='L24'>  24 <i><font color='green'>   Then a list of `struct foo' can be be declared and initialized</font></i>
+<a name='L25'>  25 <i><font color='green'>   like so:</font></i>
+<a name='L26'>  26 <i><font color='green'></font></i>
+<a name='L27'>  27 <i><font color='green'>      struct list foo_list;</font></i>
+<a name='L28'>  28 <i><font color='green'></font></i>
+<a name='L29'>  29 <i><font color='green'>      list_init (&amp;foo_list);</font></i>
+<a name='L30'>  30 <i><font color='green'></font></i>
+<a name='L31'>  31 <i><font color='green'>   Iteration is a typical situation where it is necessary to</font></i>
+<a name='L32'>  32 <i><font color='green'>   convert from a struct list_elem back to its enclosing</font></i>
+<a name='L33'>  33 <i><font color='green'>   structure.  Here's an example using foo_list:</font></i>
+<a name='L34'>  34 <i><font color='green'></font></i>
+<a name='L35'>  35 <i><font color='green'>      struct list_elem *e;</font></i>
+<a name='L36'>  36 <i><font color='green'></font></i>
+<a name='L37'>  37 <i><font color='green'>      for (e = list_begin (&amp;foo_list); e != list_end (&amp;foo_list);</font></i>
+<a name='L38'>  38 <i><font color='green'>           e = list_next (e))</font></i>
+<a name='L39'>  39 <i><font color='green'>        {</font></i>
+<a name='L40'>  40 <i><font color='green'>          struct foo *f = list_entry (e, struct foo, elem);</font></i>
+<a name='L41'>  41 <i><font color='green'>          ...do something with f...</font></i>
+<a name='L42'>  42 <i><font color='green'>        }</font></i>
+<a name='L43'>  43 <i><font color='green'></font></i>
+<a name='L44'>  44 <i><font color='green'>   You can find real examples of list usage throughout the</font></i>
+<a name='L45'>  45 <i><font color='green'>   source; for example, malloc.c, palloc.c, and thread.c in the</font></i>
+<a name='L46'>  46 <i><font color='green'>   threads directory all use lists.</font></i>
+<a name='L47'>  47 <i><font color='green'></font></i>
+<a name='L48'>  48 <i><font color='green'>   The interface for this list is inspired by the list&lt;&gt; template</font></i>
+<a name='L49'>  49 <i><font color='green'>   in the C++ STL.  If you're familiar with list&lt;&gt;, you should</font></i>
+<a name='L50'>  50 <i><font color='green'>   find this easy to use.  However, it should be emphasized that</font></i>
+<a name='L51'>  51 <i><font color='green'>   these lists do *no* type checking and can't do much other</font></i>
+<a name='L52'>  52 <i><font color='green'>   correctness checking.  If you screw up, it will bite you.</font></i>
+<a name='L53'>  53 <i><font color='green'></font></i>
+<a name='L54'>  54 <i><font color='green'>   Glossary of list terms:</font></i>
+<a name='L55'>  55 <i><font color='green'></font></i>
+<a name='L56'>  56 <i><font color='green'>     - "front": The first element in a list.  Undefined in an</font></i>
+<a name='L57'>  57 <i><font color='green'>       empty list.  Returned by list_front().</font></i>
+<a name='L58'>  58 <i><font color='green'></font></i>
+<a name='L59'>  59 <i><font color='green'>     - "back": The last element in a list.  Undefined in an empty</font></i>
+<a name='L60'>  60 <i><font color='green'>       list.  Returned by list_back().</font></i>
+<a name='L61'>  61 <i><font color='green'></font></i>
+<a name='L62'>  62 <i><font color='green'>     - "tail": The element figuratively just after the last</font></i>
+<a name='L63'>  63 <i><font color='green'>       element of a list.  Well defined even in an empty list.</font></i>
+<a name='L64'>  64 <i><font color='green'>       Returned by list_end().  Used as the end sentinel for an</font></i>
+<a name='L65'>  65 <i><font color='green'>       iteration from front to back.</font></i>
+<a name='L66'>  66 <i><font color='green'></font></i>
+<a name='L67'>  67 <i><font color='green'>     - "beginning": In a non-empty list, the front.  In an empty</font></i>
+<a name='L68'>  68 <i><font color='green'>       list, the tail.  Returned by list_begin().  Used as the</font></i>
+<a name='L69'>  69 <i><font color='green'>       starting point for an iteration from front to back.</font></i>
+<a name='L70'>  70 <i><font color='green'></font></i>
+<a name='L71'>  71 <i><font color='green'>     - "head": The element figuratively just before the first</font></i>
+<a name='L72'>  72 <i><font color='green'>       element of a list.  Well defined even in an empty list.</font></i>
+<a name='L73'>  73 <i><font color='green'>       Returned by list_rend().  Used as the end sentinel for an</font></i>
+<a name='L74'>  74 <i><font color='green'>       iteration from back to front.</font></i>
+<a name='L75'>  75 <i><font color='green'></font></i>
+<a name='L76'>  76 <i><font color='green'>     - "reverse beginning": In a non-empty list, the back.  In an</font></i>
+<a name='L77'>  77 <i><font color='green'>       empty list, the head.  Returned by list_rbegin().  Used as</font></i>
+<a name='L78'>  78 <i><font color='green'>       the starting point for an iteration from back to front.</font></i>
+<a name='L79'>  79 <i><font color='green'></font></i>
+<a name='L80'>  80 <i><font color='green'>     - "interior element": An element that is not the head or</font></i>
+<a name='L81'>  81 <i><font color='green'>       tail, that is, a real list element.  An empty list does</font></i>
+<a name='L82'>  82 <i><font color='green'>       not have any interior elements.</font></i>
+<a name='L83'>  83 <i><font color='green'>*/</font></i>
+<a name='L84'>  84 
+<a name='L85'>  85 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L86'>  86 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L87'>  87 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L88'>  88 
+<a name='L89'>  89 <i><font color='green'>/* List element. */</font></i>
+<a name='L90'>  90 <b>struct</b> <a href='../R/594.html' title='Multiple refered from 79 places.'>list_elem</a> 
+<a name='L91'>  91   <font color='red'>{</font>
+<a name='L92'>  92     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *prev;     <i><font color='green'>/* Previous list element. */</font></i>
+<a name='L93'>  93     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>;     <i><font color='green'>/* Next list element. */</font></i>
+<a name='L94'>  94   <font color='red'>}</font>;
+<a name='L95'>  95 
+<a name='L96'>  96 <i><font color='green'>/* List. */</font></i>
+<a name='L97'>  97 <b>struct</b> <a href='../R/590.html' title='Multiple refered from 90 places.'>list</a> 
+<a name='L98'>  98   <font color='red'>{</font>
+<a name='L99'>  99     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> head;      <i><font color='green'>/* List head. */</font></i>
+<a name='L100'> 100     <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> tail;      <i><font color='green'>/* List tail. */</font></i>
+<a name='L101'> 101   <font color='red'>}</font>;
+<a name='L102'> 102 
+<a name='L103'> 103 <i><font color='green'>/* Converts pointer to list element LIST_ELEM into a pointer to</font></i>
+<a name='L104'> 104 <i><font color='green'>   the structure that LIST_ELEM is embedded inside.  Supply the</font></i>
+<a name='L105'> 105 <i><font color='green'>   name of the outer structure STRUCT and the member name MEMBER</font></i>
+<a name='L106'> 106 <i><font color='green'>   of the list element.  See the big comment at the top of the</font></i>
+<a name='L107'> 107 <i><font color='green'>   file for an example. */</font></i>
+<a name='L108'> 108 <font color='darkred'>#define</font> <a href='../R/599.html' title='Multiple refered from 16 places.'>list_entry</a>(LIST_ELEM, STRUCT, MEMBER)           \
+<a name='L109'> 109         ((STRUCT *) ((<a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> *) &amp;(LIST_ELEM)-&gt;<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>     \
+<a name='L110'> 110                      - <a href='../S/92.html#L5' title='Defined at 5 in src/lib/stddef.h.'>offsetof</a> (STRUCT, MEMBER.<a href='../S/135.html#L79' title='Defined at 79 in src/devices/intq.c.'>next</a>)))
+<a name='L111'> 111 
+<a name='L112'> 112 <i><font color='green'>/* List initialization.</font></i>
+<a name='L113'> 113 <i><font color='green'></font></i>
+<a name='L114'> 114 <i><font color='green'>   A list may be initialized by calling list_init():</font></i>
+<a name='L115'> 115 <i><font color='green'></font></i>
+<a name='L116'> 116 <i><font color='green'>       struct list my_list;</font></i>
+<a name='L117'> 117 <i><font color='green'>       list_init (&amp;my_list);</font></i>
+<a name='L118'> 118 <i><font color='green'></font></i>
+<a name='L119'> 119 <i><font color='green'>   or with an initializer using LIST_INITIALIZER:</font></i>
+<a name='L120'> 120 <i><font color='green'></font></i>
+<a name='L121'> 121 <i><font color='green'>       struct list my_list = LIST_INITIALIZER (my_list); */</font></i>
+<a name='L122'> 122 <font color='darkred'>#define</font> <a href='../S/132.html#L25' title='Refered from 25 in src/devices/block.c.'>LIST_INITIALIZER</a>(NAME) <font color='red'>{</font> <font color='red'>{</font> <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>, &amp;(NAME).tail <font color='red'>}</font>, \
+<a name='L123'> 123                                  <font color='red'>{</font> &amp;(NAME).head, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a> <font color='red'>}</font> <font color='red'>}</font>
+<a name='L124'> 124 
+<a name='L125'> 125 <b>void</b> <a href='../S/112.html#L61' title='Defined at 61 in src/lib/kernel/list.c.'>list_init</a> (<b>struct</b> list *);
+<a name='L126'> 126 
+<a name='L127'> 127 <i><font color='green'>/* List traversal. */</font></i>
+<a name='L128'> 128 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L72' title='Defined at 72 in src/lib/kernel/list.c.'>list_begin</a> (<b>struct</b> list *);
+<a name='L129'> 129 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L82' title='Defined at 82 in src/lib/kernel/list.c.'>list_next</a> (<b>struct</b> list_elem *);
+<a name='L130'> 130 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L94' title='Defined at 94 in src/lib/kernel/list.c.'>list_end</a> (<b>struct</b> list *);
+<a name='L131'> 131 
+<a name='L132'> 132 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L103' title='Defined at 103 in src/lib/kernel/list.c.'>list_rbegin</a> (<b>struct</b> list *);
+<a name='L133'> 133 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L113' title='Defined at 113 in src/lib/kernel/list.c.'>list_prev</a> (<b>struct</b> list_elem *);
+<a name='L134'> 134 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L133' title='Defined at 133 in src/lib/kernel/list.c.'>list_rend</a> (<b>struct</b> list *);
+<a name='L135'> 135 
+<a name='L136'> 136 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L151' title='Defined at 151 in src/lib/kernel/list.c.'>list_head</a> (<b>struct</b> list *);
+<a name='L137'> 137 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L159' title='Defined at 159 in src/lib/kernel/list.c.'>list_tail</a> (<b>struct</b> list *);
+<a name='L138'> 138 
+<a name='L139'> 139 <i><font color='green'>/* List insertion. */</font></i>
+<a name='L140'> 140 <b>void</b> <a href='../S/112.html#L169' title='Defined at 169 in src/lib/kernel/list.c.'>list_insert</a> (<b>struct</b> list_elem *, <b>struct</b> list_elem *);
+<a name='L141'> 141 <b>void</b> <a href='../S/112.html#L184' title='Defined at 184 in src/lib/kernel/list.c.'>list_splice</a> (<b>struct</b> list_elem *before,
+<a name='L142'> 142                   <b>struct</b> list_elem *first, <b>struct</b> list_elem *last);
+<a name='L143'> 143 <b>void</b> <a href='../S/112.html#L209' title='Defined at 209 in src/lib/kernel/list.c.'>list_push_front</a> (<b>struct</b> list *, <b>struct</b> list_elem *);
+<a name='L144'> 144 <b>void</b> <a href='../S/112.html#L217' title='Defined at 217 in src/lib/kernel/list.c.'>list_push_back</a> (<b>struct</b> list *, <b>struct</b> list_elem *);
+<a name='L145'> 145 
+<a name='L146'> 146 <i><font color='green'>/* List removal. */</font></i>
+<a name='L147'> 147 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L249' title='Defined at 249 in src/lib/kernel/list.c.'>list_remove</a> (<b>struct</b> list_elem *);
+<a name='L148'> 148 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L260' title='Defined at 260 in src/lib/kernel/list.c.'>list_pop_front</a> (<b>struct</b> list *);
+<a name='L149'> 149 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L270' title='Defined at 270 in src/lib/kernel/list.c.'>list_pop_back</a> (<b>struct</b> list *);
+<a name='L150'> 150 
+<a name='L151'> 151 <i><font color='green'>/* List elements. */</font></i>
+<a name='L152'> 152 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L280' title='Defined at 280 in src/lib/kernel/list.c.'>list_front</a> (<b>struct</b> list *);
+<a name='L153'> 153 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L289' title='Defined at 289 in src/lib/kernel/list.c.'>list_back</a> (<b>struct</b> list *);
+<a name='L154'> 154 
+<a name='L155'> 155 <i><font color='green'>/* List properties. */</font></i>
+<a name='L156'> 156 <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> <a href='../S/112.html#L298' title='Defined at 298 in src/lib/kernel/list.c.'>list_size</a> (<b>struct</b> list *);
+<a name='L157'> 157 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/112.html#L310' title='Defined at 310 in src/lib/kernel/list.c.'>list_empty</a> (<b>struct</b> list *);
+<a name='L158'> 158 
+<a name='L159'> 159 <i><font color='green'>/* Miscellaneous. */</font></i>
+<a name='L160'> 160 <b>void</b> <a href='../S/112.html#L326' title='Defined at 326 in src/lib/kernel/list.c.'>list_reverse</a> (<b>struct</b> list *);
+<a name='L161'> 161 
+<a name='L162'> 162 <i><font color='green'>/* Compares the value of two list elements A and B, given</font></i>
+<a name='L163'> 163 <i><font color='green'>   auxiliary data AUX.  Returns true if A is less than B, or</font></i>
+<a name='L164'> 164 <i><font color='green'>   false if A is greater than or equal to B. */</font></i>
+<a name='L165'> 165 <b>typedef</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> list_less_func (<b>const</b> <b>struct</b> list_elem *a,
+<a name='L166'> 166                              <b>const</b> <b>struct</b> list_elem *b,
+<a name='L167'> 167                              <b>void</b> *aux);
+<a name='L168'> 168 
+<a name='L169'> 169 <i><font color='green'>/* Operations on lists with ordered elements. */</font></i>
+<a name='L170'> 170 <b>void</b> <a href='../S/112.html#L405' title='Defined at 405 in src/lib/kernel/list.c.'>list_sort</a> (<b>struct</b> list *,
+<a name='L171'> 171                 list_less_func *, <b>void</b> *aux);
+<a name='L172'> 172 <b>void</b> <a href='../S/112.html#L446' title='Defined at 446 in src/lib/kernel/list.c.'>list_insert_ordered</a> (<b>struct</b> list *, <b>struct</b> list_elem *,
+<a name='L173'> 173                           list_less_func *, <b>void</b> *aux);
+<a name='L174'> 174 <b>void</b> <a href='../S/112.html#L466' title='Defined at 466 in src/lib/kernel/list.c.'>list_unique</a> (<b>struct</b> list *, <b>struct</b> list *duplicates,
+<a name='L175'> 175                   list_less_func *, <b>void</b> *aux);
+<a name='L176'> 176 
+<a name='L177'> 177 <i><font color='green'>/* Max and min. */</font></i>
+<a name='L178'> 178 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L493' title='Defined at 493 in src/lib/kernel/list.c.'>list_max</a> (<b>struct</b> list *, list_less_func *, <b>void</b> *aux);
+<a name='L179'> 179 <b>struct</b> <a href='../S/107.html#L90' title='Defined at 90 in src/lib/kernel/list.h.'>list_elem</a> *<a href='../S/112.html#L512' title='Defined at 512 in src/lib/kernel/list.c.'>list_min</a> (<b>struct</b> list *, list_less_func *, <b>void</b> *aux);
+<a name='L180'> 180 
+<a name='L181'> 181 <font color='darkred'>#endif</font> <i><font color='green'>/* lib/kernel/list.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

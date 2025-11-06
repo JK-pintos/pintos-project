@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>src/threads/switch.S</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/611.html'>threads</a>/switch.S</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='146.html'>threads/switch.h</a>"
+<a name='L2'>   2 
+<a name='L3'>   3 <font color='darkred'>#</font>### struct thread *switch_threads (struct thread *cur, struct thread *next);
+<a name='L4'>   4 <font color='darkred'>#</font>###
+<a name='L5'>   5 <font color='darkred'>#</font>### Switches from CUR, which must be the running thread, to NEXT,
+<a name='L6'>   6 <font color='darkred'>#</font>### which must also be running switch_threads(), returning CUR in
+<a name='L7'>   7 <font color='darkred'>#</font>### NEXT's context.
+<a name='L8'>   8 <font color='darkred'>#</font>###
+<a name='L9'>   9 <font color='darkred'>#</font>### This function works by assuming that the thread we're switching
+<a name='L10'>  10 <font color='darkred'>#</font>### into is also running switch_threads().  Thus, all it has to do is
+<a name='L11'>  11 <font color='darkred'>#</font>### preserve a few registers on the stack, then switch stacks and
+<a name='L12'>  12 <font color='darkred'>#</font>### restore the registers.  As part of switching stacks we record the
+<a name='L13'>  13 <font color='darkred'>#</font>### current stack pointer in CUR's thread structure.
+<a name='L14'>  14 
+<a name='L15'>  15 .globl switch_threads
+<a name='L16'>  16 .func switch_threads
+<a name='L17'>  17 switch_threads:
+<a name='L18'>  18 <i><font color='green'>        # Save caller's register state.</font></i>
+<a name='L19'>  19 <font color='darkred'>        #</font>
+<a name='L20'>  20 <i><font color='green'>        # Note that the SVR4 ABI allows us to destroy %eax, %ecx, %edx,</font></i>
+<a name='L21'>  21 <i><font color='green'>        # but requires us to preserve %ebx, %ebp, %esi, %edi.  See</font></i>
+<a name='L22'>  22 <font color='darkred'>        #</font> [SysV-ABI-386] pages 3-11 and 3-12 for details.
+<a name='L23'>  23 <font color='darkred'>        #</font>
+<a name='L24'>  24 <i><font color='green'>        # This stack frame must match the one set up by thread_create()</font></i>
+<a name='L25'>  25 <i><font color='green'>        # in size.</font></i>
+<a name='L26'>  26         pushl %ebx
+<a name='L27'>  27         pushl %ebp
+<a name='L28'>  28         pushl %esi
+<a name='L29'>  29         pushl %edi
+<a name='L30'>  30 
+<a name='L31'>  31 <i><font color='green'>        # Get offsetof (struct thread, stack).</font></i>
+<a name='L32'>  32 .globl thread_stack_ofs
+<a name='L33'>  33         mov thread_stack_ofs, %edx
+<a name='L34'>  34 
+<a name='L35'>  35 <i><font color='green'>        # Save current stack pointer to old thread's stack, if any.</font></i>
+<a name='L36'>  36         movl SWITCH_CUR(%esp), %eax
+<a name='L37'>  37         movl %esp, (%eax,%edx,1)
+<a name='L38'>  38 
+<a name='L39'>  39 <i><font color='green'>        # Restore stack pointer from new thread's stack.</font></i>
+<a name='L40'>  40         movl SWITCH_NEXT(%esp), %ecx
+<a name='L41'>  41         movl (%ecx,%edx,1), %esp
+<a name='L42'>  42 
+<a name='L43'>  43 <i><font color='green'>        # Restore caller's register state.</font></i>
+<a name='L44'>  44         popl %edi
+<a name='L45'>  45         popl %esi
+<a name='L46'>  46         popl %ebp
+<a name='L47'>  47         popl %ebx
+<a name='L48'>  48         ret
+<a name='L49'>  49 .endfunc
+<a name='L50'>  50 
+<a name='L51'>  51 .globl switch_entry
+<a name='L52'>  52 .func switch_entry
+<a name='L53'>  53 switch_entry:
+<a name='L54'>  54 <i><font color='green'>        # Discard switch_threads() arguments.</font></i>
+<a name='L55'>  55         addl $8, %esp
+<a name='L56'>  56 
+<a name='L57'>  57 <i><font color='green'>        # Call thread_schedule_tail(prev).</font></i>
+<a name='L58'>  58         pushl %eax
+<a name='L59'>  59 .globl thread_schedule_tail
+<a name='L60'>  60         call thread_schedule_tail
+<a name='L61'>  61         addl $4, %esp
+<a name='L62'>  62 
+<a name='L63'>  63 <i><font color='green'>        # Start thread proper.</font></i>
+<a name='L64'>  64         ret
+<a name='L65'>  65 .endfunc
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

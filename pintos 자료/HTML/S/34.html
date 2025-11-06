@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>src/filesys/inode.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/598.html'>filesys</a>/inode.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/56.html' title='Multiple included from 5 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/34.html#L2' title='Defined at 2 in src/filesys/inode.h.'>FILESYS_INODE_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/34.html#L1' title='Refered from 1 in src/filesys/inode.h.'>FILESYS_INODE_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='78.html'>stdbool.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='30.html'>filesys/off_t.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='128.html'>devices/block.h</a>"
+<a name='L7'>   7 
+<a name='L8'>   8 <b>struct</b> <a href='../S/114.html#L27' title='Defined at 27 in src/lib/kernel/bitmap.c.'>bitmap</a>;
+<a name='L9'>   9 
+<a name='L10'>  10 <b>void</b> <a href='../S/35.html#L62' title='Defined at 62 in src/filesys/inode.c.'>inode_init</a> (<b>void</b>);
+<a name='L11'>  11 <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/35.html#L73' title='Defined at 73 in src/filesys/inode.c.'>inode_create</a> (<a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a>);
+<a name='L12'>  12 <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L112' title='Defined at 112 in src/filesys/inode.c.'>inode_open</a> (<a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a>);
+<a name='L13'>  13 <b>struct</b> <a href='../S/35.html#L32' title='Defined at 32 in src/filesys/inode.c.'>inode</a> *<a href='../S/35.html#L146' title='Defined at 146 in src/filesys/inode.c.'>inode_reopen</a> (<b>struct</b> inode *);
+<a name='L14'>  14 <a href='../S/128.html#L15' title='Defined at 15 in src/devices/block.h.'>block_sector_t</a> <a href='../S/35.html#L155' title='Defined at 155 in src/filesys/inode.c.'>inode_get_inumber</a> (<b>const</b> <b>struct</b> inode *);
+<a name='L15'>  15 <b>void</b> <a href='../S/35.html#L164' title='Defined at 164 in src/filesys/inode.c.'>inode_close</a> (<b>struct</b> inode *);
+<a name='L16'>  16 <b>void</b> <a href='../S/35.html#L191' title='Defined at 191 in src/filesys/inode.c.'>inode_remove</a> (<b>struct</b> inode *);
+<a name='L17'>  17 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> <a href='../S/35.html#L201' title='Defined at 201 in src/filesys/inode.c.'>inode_read_at</a> (<b>struct</b> inode *, <b>void</b> *, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> offset);
+<a name='L18'>  18 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> <a href='../S/35.html#L258' title='Defined at 258 in src/filesys/inode.c.'>inode_write_at</a> (<b>struct</b> inode *, <b>const</b> <b>void</b> *, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> size, <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> offset);
+<a name='L19'>  19 <b>void</b> <a href='../S/35.html#L323' title='Defined at 323 in src/filesys/inode.c.'>inode_deny_write</a> (<b>struct</b> inode *);
+<a name='L20'>  20 <b>void</b> <a href='../S/35.html#L333' title='Defined at 333 in src/filesys/inode.c.'>inode_allow_write</a> (<b>struct</b> inode *);
+<a name='L21'>  21 <a href='../S/30.html#L9' title='Defined at 9 in src/filesys/off_t.h.'>off_t</a> <a href='../S/35.html#L342' title='Defined at 342 in src/filesys/inode.c.'>inode_length</a> (<b>const</b> <b>struct</b> inode *);
+<a name='L22'>  22 
+<a name='L23'>  23 <font color='darkred'>#endif</font> <i><font color='green'>/* filesys/inode.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

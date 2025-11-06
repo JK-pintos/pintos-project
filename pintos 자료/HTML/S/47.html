@@ -1,0 +1,114 @@
+<html>
+<head>
+<title>src/examples/ls.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/597.html'>examples</a>/ls.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L68'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L16' title='Defined at 16.'>list_dir</a>
+<li><a href='#L68' title='Defined at 68.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* ls.c</font></i>
+<a name='L2'>   2 <i><font color='green'>  </font></i>
+<a name='L3'>   3 <i><font color='green'>   Lists the contents of the directory or directories named on</font></i>
+<a name='L4'>   4 <i><font color='green'>   the command line, or of the current directory if none are</font></i>
+<a name='L5'>   5 <i><font color='green'>   named.</font></i>
+<a name='L6'>   6 <i><font color='green'></font></i>
+<a name='L7'>   7 <i><font color='green'>   By default, only the name of each file is printed.  If "-l" is</font></i>
+<a name='L8'>   8 <i><font color='green'>   given as the first argument, the type, size, and inumber of</font></i>
+<a name='L9'>   9 <i><font color='green'>   each file is also printed.  This won't work until project 4. */</font></i>
+<a name='L10'>  10 
+<a name='L11'>  11 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L12'>  12 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L13'>  13 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L14'>  14 
+<a name='L15'>  15 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L16'>  16 <a href='../R/593.html' title='Multiple refered from 2 places.'>list_dir</a> (<b>const</b> <b>char</b> *dir, bool verbose) 
+<a name='L17'>  17 <font color='red'>{</font>
+<a name='L18'>  18   <b>int</b> dir_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (<a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L19'>  19   <b>if</b> (dir_fd == -1) 
+<a name='L20'>  20     <font color='red'>{</font>
+<a name='L21'>  21       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: not found\n", <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L22'>  22       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L23'>  23     <font color='red'>}</font>
+<a name='L24'>  24 
+<a name='L25'>  25   <b>if</b> (<a href='../S/97.html#L175' title='Defined at 175 in src/lib/user/syscall.c.'>isdir</a> (dir_fd))
+<a name='L26'>  26     <font color='red'>{</font>
+<a name='L27'>  27       <b>char</b> name[<a href='../S/100.html#L16' title='Defined at 16 in src/lib/user/syscall.h.'>READDIR_MAX_LEN</a>];
+<a name='L28'>  28 
+<a name='L29'>  29       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s", <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L30'>  30       <b>if</b> (verbose)
+<a name='L31'>  31         <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (" (inumber %d)", <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (dir_fd));
+<a name='L32'>  32       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (":\n");
+<a name='L33'>  33 
+<a name='L34'>  34       <b>while</b> (<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (dir_fd, name)) 
+<a name='L35'>  35         <font color='red'>{</font>
+<a name='L36'>  36           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s", name); 
+<a name='L37'>  37           <b>if</b> (verbose) 
+<a name='L38'>  38             <font color='red'>{</font>
+<a name='L39'>  39               <b>char</b> full_name[128];
+<a name='L40'>  40               <b>int</b> entry_fd;
+<a name='L41'>  41 
+<a name='L42'>  42               <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (full_name, <b>sizeof</b> full_name, "%s/%s", <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>, name);
+<a name='L43'>  43               entry_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (full_name);
+<a name='L44'>  44 
+<a name='L45'>  45               <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (": ");
+<a name='L46'>  46               <b>if</b> (entry_fd != -1)
+<a name='L47'>  47                 <font color='red'>{</font>
+<a name='L48'>  48                   <b>if</b> (<a href='../S/97.html#L175' title='Defined at 175 in src/lib/user/syscall.c.'>isdir</a> (entry_fd))
+<a name='L49'>  49                     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("directory");
+<a name='L50'>  50                   <b>else</b>
+<a name='L51'>  51                     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%d-byte file", <a href='../S/97.html#L109' title='Defined at 109 in src/lib/user/syscall.c.'>filesize</a> (entry_fd));
+<a name='L52'>  52                   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> (", inumber %d", <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (entry_fd));
+<a name='L53'>  53                 <font color='red'>}</font>
+<a name='L54'>  54               <b>else</b>
+<a name='L55'>  55                 <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("open failed");
+<a name='L56'>  56               <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (entry_fd);
+<a name='L57'>  57             <font color='red'>}</font>
+<a name='L58'>  58           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("\n");
+<a name='L59'>  59         <font color='red'>}</font>
+<a name='L60'>  60     <font color='red'>}</font>
+<a name='L61'>  61   <b>else</b> 
+<a name='L62'>  62     <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: not a directory\n", <a href='../S/32.html#L10' title='Defined at 10 in src/filesys/directory.c.'>dir</a>);
+<a name='L63'>  63   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (dir_fd);
+<a name='L64'>  64   <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L65'>  65 <font color='red'>}</font>
+<a name='L66'>  66 
+<a name='L67'>  67 <b>int</b>
+<a name='L68'>  68 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L69'>  69 <font color='red'>{</font>
+<a name='L70'>  70   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L71'>  71   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> verbose = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L72'>  72   
+<a name='L73'>  73   <b>if</b> (argc &gt; 1 &amp;&amp; !<a href='../S/83.html#L73' title='Defined at 73 in src/lib/string.c.'>strcmp</a> (argv[1], "-l")) 
+<a name='L74'>  74     <font color='red'>{</font>
+<a name='L75'>  75       verbose = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L76'>  76       argv++;
+<a name='L77'>  77       argc--;
+<a name='L78'>  78     <font color='red'>}</font>
+<a name='L79'>  79   
+<a name='L80'>  80   <b>if</b> (argc &lt;= 1)
+<a name='L81'>  81     success = <a href='../S/47.html#L16' title='Defined at 16 in src/examples/ls.c.'>list_dir</a> (".", verbose);
+<a name='L82'>  82   <b>else</b> 
+<a name='L83'>  83     <font color='red'>{</font>
+<a name='L84'>  84       <b>int</b> i;
+<a name='L85'>  85       <b>for</b> (i = 1; i &lt; argc; i++)
+<a name='L86'>  86         <b>if</b> (!<a href='../S/47.html#L16' title='Defined at 16 in src/examples/ls.c.'>list_dir</a> (argv[i], verbose))
+<a name='L87'>  87           success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L88'>  88     <font color='red'>}</font>
+<a name='L89'>  89   <b>return</b> success ? <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a> : <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>;
+<a name='L90'>  90 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L16'>[^]</a><a href='#L68'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

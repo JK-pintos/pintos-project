@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>src/tests/threads/priority-condvar.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/607.html'>threads</a>/priority-condvar.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L17'>[^]</a><a href='#L46'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L17' title='Defined at 17.'>test_priority_condvar</a>
+<li><a href='#L46' title='Defined at 46.'>priority_condvar_thread</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Tests that cond_signal() wakes up the highest-priority thread</font></i>
+<a name='L2'>   2 <i><font color='green'>   waiting in cond_wait(). */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='572.html'>tests/threads/tests.h</a>"
+<a name='L6'>   6 <font color='darkred'>#include</font> "<a href='144.html'>threads/init.h</a>"
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='149.html'>threads/malloc.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='155.html'>threads/synch.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='164.html'>threads/thread.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='124.html'>devices/timer.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <b>static</b> <a href='../S/164.html#L116' title='Defined at 116 in src/threads/thread.h.'>thread_func</a> <a href='../S/581.html#L46' title='Defined at 46 in src/tests/threads/priority-condvar.c.'>priority_condvar_thread</a>;
+<a name='L13'>  13 <b>static</b> <b>struct</b> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a> <a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>;
+<a name='L14'>  14 <b>static</b> <b>struct</b> <a href='../S/155.html#L34' title='Defined at 34 in src/threads/synch.h.'>condition</a> <a href='../S/155.html#L34' title='Defined at 34 in src/threads/synch.h.'>condition</a>;
+<a name='L15'>  15 
+<a name='L16'>  16 <b>void</b>
+<a name='L17'>  17 <a href='../R/875.html' title='Multiple refered from 2 places.'>test_priority_condvar</a> (<b>void</b>) 
+<a name='L18'>  18 <font color='red'>{</font>
+<a name='L19'>  19   <b>int</b> i;
+<a name='L20'>  20   
+<a name='L21'>  21   <i><font color='green'>/* This test does not work with the MLFQS. */</font></i>
+<a name='L22'>  22   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (!thread_mlfqs);
+<a name='L23'>  23 
+<a name='L24'>  24   <a href='../S/167.html#L176' title='Defined at 176 in src/threads/synch.c.'>lock_init</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L25'>  25   <a href='../S/167.html#L260' title='Defined at 260 in src/threads/synch.c.'>cond_init</a> (&amp;<a href='../S/155.html#L34' title='Defined at 34 in src/threads/synch.h.'>condition</a>);
+<a name='L26'>  26 
+<a name='L27'>  27   <a href='../S/163.html#L344' title='Defined at 344 in src/threads/thread.c.'>thread_set_priority</a> (<a href='../S/164.html#L23' title='Defined at 23 in src/threads/thread.h.'>PRI_MIN</a>);
+<a name='L28'>  28   <b>for</b> (i = 0; i &lt; 10; i++) 
+<a name='L29'>  29     <font color='red'>{</font>
+<a name='L30'>  30       <b>int</b> priority = <a href='../S/164.html#L24' title='Defined at 24 in src/threads/thread.h.'>PRI_DEFAULT</a> - (i + 7) % 10 - 1;
+<a name='L31'>  31       <b>char</b> name[16];
+<a name='L32'>  32       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (name, <b>sizeof</b> name, "priority %d", priority);
+<a name='L33'>  33       <a href='../S/163.html#L166' title='Defined at 166 in src/threads/thread.c.'>thread_create</a> (name, priority, <a href='../S/581.html#L46' title='Defined at 46 in src/tests/threads/priority-condvar.c.'>priority_condvar_thread</a>, <a href='../S/92.html#L4' title='Defined at 4 in src/lib/stddef.h.'>NULL</a>);
+<a name='L34'>  34     <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36   <b>for</b> (i = 0; i &lt; 10; i++) 
+<a name='L37'>  37     <font color='red'>{</font>
+<a name='L38'>  38       <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L39'>  39       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Signaling...");
+<a name='L40'>  40       <a href='../S/167.html#L312' title='Defined at 312 in src/threads/synch.c.'>cond_signal</a> (&amp;<a href='../S/155.html#L34' title='Defined at 34 in src/threads/synch.h.'>condition</a>, &amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L41'>  41       <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L42'>  42     <font color='red'>}</font>
+<a name='L43'>  43 <font color='red'>}</font>
+<a name='L44'>  44 
+<a name='L45'>  45 <b>static</b> <b>void</b>
+<a name='L46'>  46 <a href='../R/729.html' title='Multiple refered from 2 places.'>priority_condvar_thread</a> (<b>void</b> *aux <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>) 
+<a name='L47'>  47 <font color='red'>{</font>
+<a name='L48'>  48   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread %s starting.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L49'>  49   <a href='../S/167.html#L193' title='Defined at 193 in src/threads/synch.c.'>lock_acquire</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L50'>  50   <a href='../S/167.html#L288' title='Defined at 288 in src/threads/synch.c.'>cond_wait</a> (&amp;<a href='../S/155.html#L34' title='Defined at 34 in src/threads/synch.h.'>condition</a>, &amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L51'>  51   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("Thread %s woke up.", <a href='../S/163.html#L255' title='Defined at 255 in src/threads/thread.c.'>thread_name</a> ());
+<a name='L52'>  52   <a href='../S/167.html#L229' title='Defined at 229 in src/threads/synch.c.'>lock_release</a> (&amp;<a href='../S/155.html#L21' title='Defined at 21 in src/threads/synch.h.'>lock</a>);
+<a name='L53'>  53 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L17'>[^]</a><a href='#L46'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

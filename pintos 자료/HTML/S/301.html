@@ -1,0 +1,36 @@
+<html>
+<head>
+<title>src/tests/arc4.h</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/arc4.h</h2>
+<i><font color='green'>/* [&lt;][&gt;][^][v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2><a href='../J/98.html' title='Multiple included from 12 places.'>INCLUDED FROM</a></h2>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#ifndef</font> <a href='../S/301.html#L2' title='Defined at 2 in src/tests/arc4.h.'>TESTS_ARC4_H</a>
+<a name='L2'>   2 <font color='darkred'>#define</font> <a href='../S/301.html#L1' title='Refered from 1 in src/tests/arc4.h.'>TESTS_ARC4_H</a>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='92.html'>stddef.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Alleged RC4 algorithm encryption state. */</font></i>
+<a name='L8'>   8 <b>struct</b> <a href='../R/291.html' title='Multiple refered from 29 places.'>arc4</a>
+<a name='L9'>   9   <font color='red'>{</font>
+<a name='L10'>  10     <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> s[256];
+<a name='L11'>  11     <a href='../S/87.html#L20' title='Defined at 20 in src/lib/stdint.h.'>uint8_t</a> i, j;
+<a name='L12'>  12   <font color='red'>}</font>;
+<a name='L13'>  13 
+<a name='L14'>  14 <b>void</b> <a href='../S/389.html#L14' title='Defined at 14 in src/tests/arc4.c.'>arc4_init</a> (<b>struct</b> arc4 *, <b>const</b> <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L15'>  15 <b>void</b> <a href='../S/389.html#L35' title='Defined at 35 in src/tests/arc4.c.'>arc4_crypt</a> (<b>struct</b> arc4 *, <b>void</b> *, <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a>);
+<a name='L16'>  16 
+<a name='L17'>  17 <font color='darkred'>#endif</font> <i><font color='green'>/* tests/arc4.h */</font></i>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^][v]<a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

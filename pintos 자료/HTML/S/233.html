@@ -1,0 +1,238 @@
+<html>
+<head>
+<title>src/tests/filesys/extended/tar.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/603.html'>filesys</a>/<a href='../files/605.html'>extended</a>/tar.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a><a href='#L195'>[v]</a>[top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L15' title='Defined at 15.'>main</a>
+<li><a href='#L25' title='Defined at 25.'>usage</a>
+<li><a href='#L49' title='Defined at 49.'>make_tar_archive</a>
+<li><a href='#L89' title='Defined at 89.'>archive_file</a>
+<li><a href='#L124' title='Defined at 124.'>archive_ordinary_file</a>
+<li><a href='#L160' title='Defined at 160.'>archive_directory</a>
+<li><a href='#L186' title='Defined at 186.'>write_header</a>
+<li><a href='#L195' title='Defined at 195.'>do_write</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* tar.c</font></i>
+<a name='L2'>   2 <i><font color='green'></font></i>
+<a name='L3'>   3 <i><font color='green'>   Creates a tar archive. */</font></i>
+<a name='L4'>   4 
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='88.html'>ustar.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L9'>   9 
+<a name='L10'>  10 <b>static</b> <b>void</b> <a href='../D/1057.html' title='Multiple defined in 3 places.'>usage</a> (<b>void</b>);
+<a name='L11'>  11 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/233.html#L49' title='Defined at 49 in src/tests/filesys/extended/tar.c.'>make_tar_archive</a> (<b>const</b> <b>char</b> *archive_name,
+<a name='L12'>  12                               <b>char</b> *files[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_cnt);
+<a name='L13'>  13 
+<a name='L14'>  14 <b>int</b>
+<a name='L15'>  15 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc, <b>char</b> *argv[]) 
+<a name='L16'>  16 <font color='red'>{</font>
+<a name='L17'>  17   <b>if</b> (argc &lt; 3)
+<a name='L18'>  18     <a href='../D/1057.html' title='Multiple defined in 3 places.'>usage</a> ();
+<a name='L19'>  19 
+<a name='L20'>  20   <b>return</b> (<a href='../S/233.html#L49' title='Defined at 49 in src/tests/filesys/extended/tar.c.'>make_tar_archive</a> (argv[1], argv + 2, argc - 2)
+<a name='L21'>  21           ? <a href='../S/100.html#L19' title='Defined at 19 in src/lib/user/syscall.h.'>EXIT_SUCCESS</a> : <a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>);
+<a name='L22'>  22 <font color='red'>}</font>
+<a name='L23'>  23 
+<a name='L24'>  24 <b>static</b> <b>void</b>
+<a name='L25'>  25 <a href='../R/943.html' title='Multiple refered from 13 places.'>usage</a> (<b>void</b>) 
+<a name='L26'>  26 <font color='red'>{</font>
+<a name='L27'>  27   <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("tar, tar archive creator\n"
+<a name='L28'>  28           "Usage: tar ARCHIVE FILE...\n"
+<a name='L29'>  29           "where ARCHIVE is the tar archive to create\n"
+<a name='L30'>  30           "  and FILE... is a list of files or directories to put into it.\n"
+<a name='L31'>  31           "(ARCHIVE itself will not be included in the archive, even if it\n"
+<a name='L32'>  32           "is in a directory to be archived.)\n");
+<a name='L33'>  33   <a href='../S/97.html#L72' title='Defined at 72 in src/lib/user/syscall.c.'>exit</a> (<a href='../S/100.html#L20' title='Defined at 20 in src/lib/user/syscall.h.'>EXIT_FAILURE</a>);
+<a name='L34'>  34 <font color='red'>}</font>
+<a name='L35'>  35 
+<a name='L36'>  36 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/233.html#L89' title='Defined at 89 in src/tests/filesys/extended/tar.c.'>archive_file</a> (<b>char</b> file_name[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_name_size,
+<a name='L37'>  37                           <b>int</b> archive_fd, bool *write_error);
+<a name='L38'>  38 
+<a name='L39'>  39 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/233.html#L124' title='Defined at 124 in src/tests/filesys/extended/tar.c.'>archive_ordinary_file</a> (<b>const</b> <b>char</b> *file_name, <b>int</b> file_fd,
+<a name='L40'>  40                                    <b>int</b> archive_fd, bool *write_error);
+<a name='L41'>  41 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/233.html#L160' title='Defined at 160 in src/tests/filesys/extended/tar.c.'>archive_directory</a> (<b>char</b> file_name[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_name_size,
+<a name='L42'>  42                                <b>int</b> file_fd, <b>int</b> archive_fd, bool *write_error);
+<a name='L43'>  43 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/233.html#L186' title='Defined at 186 in src/tests/filesys/extended/tar.c.'>write_header</a> (<b>const</b> <b>char</b> *file_name, <b>enum</b> ustar_type, <b>int</b> size,
+<a name='L44'>  44                           <b>int</b> archive_fd, bool *write_error);
+<a name='L45'>  45 
+<a name='L46'>  46 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> <a href='../S/233.html#L195' title='Defined at 195 in src/tests/filesys/extended/tar.c.'>do_write</a> (<b>int</b> fd, <b>const</b> <b>char</b> *buffer, <b>int</b> size, bool *write_error);
+<a name='L47'>  47 
+<a name='L48'>  48 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L49'>  49 <a href='../R/649.html' title='Multiple refered from 2 places.'>make_tar_archive</a> (<b>const</b> <b>char</b> *archive_name, <b>char</b> *files[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_cnt) 
+<a name='L50'>  50 <font color='red'>{</font>
+<a name='L51'>  51   <b>static</b> <b>const</b> <b>char</b> zeros[512];
+<a name='L52'>  52   <b>int</b> archive_fd;
+<a name='L53'>  53   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L54'>  54   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> write_error = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L55'>  55   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L56'>  56   
+<a name='L57'>  57   <b>if</b> (!<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> (archive_name, 0)) 
+<a name='L58'>  58     <font color='red'>{</font>
+<a name='L59'>  59       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: create failed\n", archive_name);
+<a name='L60'>  60       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L61'>  61     <font color='red'>}</font>
+<a name='L62'>  62   archive_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (archive_name);
+<a name='L63'>  63   <b>if</b> (archive_fd &lt; 0)
+<a name='L64'>  64     <font color='red'>{</font>
+<a name='L65'>  65       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: open failed\n", archive_name);
+<a name='L66'>  66       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L67'>  67     <font color='red'>}</font>
+<a name='L68'>  68 
+<a name='L69'>  69   <b>for</b> (i = 0; i &lt; file_cnt; i++) 
+<a name='L70'>  70     <font color='red'>{</font>
+<a name='L71'>  71       <b>char</b> file_name[128];
+<a name='L72'>  72       
+<a name='L73'>  73       <a href='../S/83.html#L326' title='Defined at 326 in src/lib/string.c.'>strlcpy</a> (file_name, files[i], <b>sizeof</b> file_name);
+<a name='L74'>  74       <b>if</b> (!<a href='../S/233.html#L89' title='Defined at 89 in src/tests/filesys/extended/tar.c.'>archive_file</a> (file_name, <b>sizeof</b> file_name,
+<a name='L75'>  75                          archive_fd, &amp;write_error))
+<a name='L76'>  76         success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L77'>  77     <font color='red'>}</font>
+<a name='L78'>  78 
+<a name='L79'>  79   <b>if</b> (!<a href='../S/233.html#L195' title='Defined at 195 in src/tests/filesys/extended/tar.c.'>do_write</a> (archive_fd, zeros, 512, &amp;write_error)
+<a name='L80'>  80       || !<a href='../S/233.html#L195' title='Defined at 195 in src/tests/filesys/extended/tar.c.'>do_write</a> (archive_fd, zeros, 512, &amp;write_error)) 
+<a name='L81'>  81     success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L82'>  82 
+<a name='L83'>  83   <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (archive_fd);
+<a name='L84'>  84 
+<a name='L85'>  85   <b>return</b> success;
+<a name='L86'>  86 <font color='red'>}</font>
+<a name='L87'>  87 
+<a name='L88'>  88 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L89'>  89 <a href='../R/295.html' title='Multiple refered from 3 places.'>archive_file</a> (<b>char</b> file_name[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_name_size,
+<a name='L90'>  90               <b>int</b> archive_fd, bool *write_error) 
+<a name='L91'>  91 <font color='red'>{</font>
+<a name='L92'>  92   <b>int</b> file_fd = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> (file_name);
+<a name='L93'>  93   <b>if</b> (file_fd &gt;= 0) 
+<a name='L94'>  94     <font color='red'>{</font>
+<a name='L95'>  95       <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success;
+<a name='L96'>  96 
+<a name='L97'>  97       <b>if</b> (<a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (file_fd) != <a href='../S/97.html#L181' title='Defined at 181 in src/lib/user/syscall.c.'>inumber</a> (archive_fd)) 
+<a name='L98'>  98         <font color='red'>{</font>
+<a name='L99'>  99           <b>if</b> (!<a href='../S/97.html#L175' title='Defined at 175 in src/lib/user/syscall.c.'>isdir</a> (file_fd))
+<a name='L100'> 100             success = <a href='../S/233.html#L124' title='Defined at 124 in src/tests/filesys/extended/tar.c.'>archive_ordinary_file</a> (file_name, file_fd,
+<a name='L101'> 101                                              archive_fd, write_error);
+<a name='L102'> 102           <b>else</b>
+<a name='L103'> 103             success = <a href='../S/233.html#L160' title='Defined at 160 in src/tests/filesys/extended/tar.c.'>archive_directory</a> (file_name, file_name_size, file_fd,
+<a name='L104'> 104                                          archive_fd, write_error);      
+<a name='L105'> 105         <font color='red'>}</font>
+<a name='L106'> 106       <b>else</b>
+<a name='L107'> 107         <font color='red'>{</font>
+<a name='L108'> 108           <i><font color='green'>/* Nothing to do: don't try to archive the archive file. */</font></i>
+<a name='L109'> 109           success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L110'> 110         <font color='red'>}</font>
+<a name='L111'> 111   
+<a name='L112'> 112       <a href='../S/97.html#L139' title='Defined at 139 in src/lib/user/syscall.c.'>close</a> (file_fd);
+<a name='L113'> 113 
+<a name='L114'> 114       <b>return</b> success;
+<a name='L115'> 115     <font color='red'>}</font>
+<a name='L116'> 116   <b>else</b>
+<a name='L117'> 117     <font color='red'>{</font>
+<a name='L118'> 118       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: open failed\n", file_name);
+<a name='L119'> 119       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L120'> 120     <font color='red'>}</font>
+<a name='L121'> 121 <font color='red'>}</font>
+<a name='L122'> 122 
+<a name='L123'> 123 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L124'> 124 <a href='../R/296.html' title='Multiple refered from 2 places.'>archive_ordinary_file</a> (<b>const</b> <b>char</b> *file_name, <b>int</b> file_fd,
+<a name='L125'> 125                        <b>int</b> archive_fd, bool *write_error)
+<a name='L126'> 126 <font color='red'>{</font>
+<a name='L127'> 127   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> read_error = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L128'> 128   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L129'> 129   <b>int</b> file_size = <a href='../S/97.html#L109' title='Defined at 109 in src/lib/user/syscall.c.'>filesize</a> (file_fd);
+<a name='L130'> 130 
+<a name='L131'> 131   <b>if</b> (!<a href='../S/233.html#L186' title='Defined at 186 in src/tests/filesys/extended/tar.c.'>write_header</a> (file_name, USTAR_REGULAR, file_size,
+<a name='L132'> 132                      archive_fd, write_error))
+<a name='L133'> 133     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L134'> 134 
+<a name='L135'> 135   <b>while</b> (file_size &gt; 0) 
+<a name='L136'> 136     <font color='red'>{</font>
+<a name='L137'> 137       <b>static</b> <b>char</b> buf[512];
+<a name='L138'> 138       <b>int</b> chunk_size = file_size &gt; 512 ? 512 : file_size;
+<a name='L139'> 139       <b>int</b> read_retval = <a href='../S/97.html#L115' title='Defined at 115 in src/lib/user/syscall.c.'>read</a> (file_fd, buf, chunk_size);
+<a name='L140'> 140       <b>int</b> bytes_read = read_retval &gt; 0 ? read_retval : 0;
+<a name='L141'> 141 
+<a name='L142'> 142       <b>if</b> (bytes_read != chunk_size &amp;&amp; !read_error) 
+<a name='L143'> 143         <font color='red'>{</font>
+<a name='L144'> 144           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: read error\n", file_name);
+<a name='L145'> 145           read_error = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L146'> 146           success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L147'> 147         <font color='red'>}</font>
+<a name='L148'> 148 
+<a name='L149'> 149       <a href='../S/83.html#L279' title='Defined at 279 in src/lib/string.c.'>memset</a> (buf + bytes_read, 0, 512 - bytes_read);
+<a name='L150'> 150       <b>if</b> (!<a href='../S/233.html#L195' title='Defined at 195 in src/tests/filesys/extended/tar.c.'>do_write</a> (archive_fd, buf, 512, write_error))
+<a name='L151'> 151         success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L152'> 152 
+<a name='L153'> 153       file_size -= chunk_size;
+<a name='L154'> 154     <font color='red'>}</font>
+<a name='L155'> 155 
+<a name='L156'> 156   <b>return</b> success;
+<a name='L157'> 157 <font color='red'>}</font>
+<a name='L158'> 158 
+<a name='L159'> 159 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L160'> 160 <a href='../R/294.html' title='Multiple refered from 2 places.'>archive_directory</a> (<b>char</b> file_name[], <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> file_name_size, <b>int</b> file_fd,
+<a name='L161'> 161                    <b>int</b> archive_fd, bool *write_error)
+<a name='L162'> 162 <font color='red'>{</font>
+<a name='L163'> 163   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> dir_len;
+<a name='L164'> 164   <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a> success = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L165'> 165 
+<a name='L166'> 166   dir_len = <a href='../S/83.html#L293' title='Defined at 293 in src/lib/string.c.'>strlen</a> (file_name);
+<a name='L167'> 167   <b>if</b> (dir_len + 1 + <a href='../S/100.html#L16' title='Defined at 16 in src/lib/user/syscall.h.'>READDIR_MAX_LEN</a> + 1 &gt; file_name_size) 
+<a name='L168'> 168     <font color='red'>{</font>
+<a name='L169'> 169       <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("%s: file name too long\n", file_name);
+<a name='L170'> 170       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L171'> 171     <font color='red'>}</font>
+<a name='L172'> 172 
+<a name='L173'> 173   <b>if</b> (!<a href='../S/233.html#L186' title='Defined at 186 in src/tests/filesys/extended/tar.c.'>write_header</a> (file_name, USTAR_DIRECTORY, 0, archive_fd, write_error))
+<a name='L174'> 174     <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L175'> 175       
+<a name='L176'> 176   file_name[dir_len] = '/';
+<a name='L177'> 177   <b>while</b> (<a href='../S/97.html#L169' title='Defined at 169 in src/lib/user/syscall.c.'>readdir</a> (file_fd, &amp;file_name[dir_len + 1])) 
+<a name='L178'> 178     <b>if</b> (!<a href='../S/233.html#L89' title='Defined at 89 in src/tests/filesys/extended/tar.c.'>archive_file</a> (file_name, file_name_size, archive_fd, write_error))
+<a name='L179'> 179       success = <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>;
+<a name='L180'> 180   file_name[dir_len] = '\0';
+<a name='L181'> 181 
+<a name='L182'> 182   <b>return</b> success;
+<a name='L183'> 183 <font color='red'>}</font>
+<a name='L184'> 184 
+<a name='L185'> 185 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L186'> 186 <a href='../R/976.html' title='Multiple refered from 3 places.'>write_header</a> (<b>const</b> <b>char</b> *file_name, <b>enum</b> ustar_type type, <b>int</b> size,
+<a name='L187'> 187               <b>int</b> archive_fd, bool *write_error) 
+<a name='L188'> 188 <font color='red'>{</font>
+<a name='L189'> 189   <b>static</b> <b>char</b> header[512];
+<a name='L190'> 190   <b>return</b> (<a href='../S/116.html#L83' title='Defined at 83 in src/lib/ustar.c.'>ustar_make_header</a> (file_name, type, size, header)
+<a name='L191'> 191           &amp;&amp; <a href='../S/233.html#L195' title='Defined at 195 in src/tests/filesys/extended/tar.c.'>do_write</a> (archive_fd, header, 512, write_error));
+<a name='L192'> 192 <font color='red'>}</font>
+<a name='L193'> 193 
+<a name='L194'> 194 <b>static</b> <a href='../S/78.html#L4' title='Defined at 4 in src/lib/stdbool.h.'>bool</a>
+<a name='L195'> 195 <a href='../R/413.html' title='Multiple refered from 5 places.'>do_write</a> (<b>int</b> fd, <b>const</b> <b>char</b> *buffer, <b>int</b> size, bool *write_error) 
+<a name='L196'> 196 <font color='red'>{</font>
+<a name='L197'> 197   <b>if</b> (<a href='../S/97.html#L121' title='Defined at 121 in src/lib/user/syscall.c.'>write</a> (fd, buffer, size) == size) 
+<a name='L198'> 198     <b>return</b> <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>;
+<a name='L199'> 199   <b>else</b>
+<a name='L200'> 200     <font color='red'>{</font>
+<a name='L201'> 201       <b>if</b> (!*write_error) 
+<a name='L202'> 202         <font color='red'>{</font>
+<a name='L203'> 203           <a href='../S/115.html#L79' title='Defined at 79 in src/lib/stdio.c.'>printf</a> ("error writing archive\n");
+<a name='L204'> 204           *write_error = <a href='../S/78.html#L5' title='Defined at 5 in src/lib/stdbool.h.'>true</a>; 
+<a name='L205'> 205         <font color='red'>}</font>
+<a name='L206'> 206       <b>return</b> <a href='../S/78.html#L6' title='Defined at 6 in src/lib/stdbool.h.'>false</a>; 
+<a name='L207'> 207     <font color='red'>}</font>
+<a name='L208'> 208 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L15'>[^]</a><a href='#L195'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

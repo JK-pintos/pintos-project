@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>src/devices/pit.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/596.html'>devices</a>/pit.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L46'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L46' title='Defined at 46.'>pit_configure_channel</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <font color='darkred'>#include</font> "<a href='139.html'>devices/pit.h</a>"
+<a name='L2'>   2 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L3'>   3 <font color='darkred'>#include</font> &lt;<a href='87.html'>stdint.h</a>&gt;
+<a name='L4'>   4 <font color='darkred'>#include</font> "<a href='150.html'>threads/interrupt.h</a>"
+<a name='L5'>   5 <font color='darkred'>#include</font> "<a href='157.html'>threads/io.h</a>"
+<a name='L6'>   6 
+<a name='L7'>   7 <i><font color='green'>/* Interface to 8254 Programmable Interrupt Timer (PIT).</font></i>
+<a name='L8'>   8 <i><font color='green'>   Refer to [8254] for details. */</font></i>
+<a name='L9'>   9 
+<a name='L10'>  10 <i><font color='green'>/* 8254 registers. */</font></i>
+<a name='L11'>  11 <font color='darkred'>#define</font> <a href='../S/118.html#L79' title='Refered from 79 in src/devices/pit.c.'>PIT_PORT_CONTROL</a>          0x43                <i><font color='green'>/* Control port. */</font></i>
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/137.html' title='Multiple refered from 2 places.'>PIT_PORT_COUNTER</a>(CHANNEL) (0x40 + (CHANNEL))  <i><font color='green'>/* Counter port. */</font></i>
+<a name='L13'>  13 
+<a name='L14'>  14 <i><font color='green'>/* PIT cycles per second. */</font></i>
+<a name='L15'>  15 <font color='darkred'>#define</font> <a href='../R/135.html' title='Multiple refered from 2 places.'>PIT_HZ</a> 1193180
+<a name='L16'>  16 
+<a name='L17'>  17 <i><font color='green'>/* Configure the given CHANNEL in the PIT.  In a PC, the PIT's</font></i>
+<a name='L18'>  18 <i><font color='green'>   three output channels are hooked up like this:</font></i>
+<a name='L19'>  19 <i><font color='green'></font></i>
+<a name='L20'>  20 <i><font color='green'>     - Channel 0 is connected to interrupt line 0, so that it can</font></i>
+<a name='L21'>  21 <i><font color='green'>       be used as a periodic timer interrupt, as implemented in</font></i>
+<a name='L22'>  22 <i><font color='green'>       Pintos in devices/timer.c.</font></i>
+<a name='L23'>  23 <i><font color='green'></font></i>
+<a name='L24'>  24 <i><font color='green'>     - Channel 1 is used for dynamic RAM refresh (in older PCs).</font></i>
+<a name='L25'>  25 <i><font color='green'>       No good can come of messing with this.</font></i>
+<a name='L26'>  26 <i><font color='green'></font></i>
+<a name='L27'>  27 <i><font color='green'>     - Channel 2 is connected to the PC speaker, so that it can</font></i>
+<a name='L28'>  28 <i><font color='green'>       be used to play a tone, as implemented in Pintos in</font></i>
+<a name='L29'>  29 <i><font color='green'>       devices/speaker.c.</font></i>
+<a name='L30'>  30 <i><font color='green'></font></i>
+<a name='L31'>  31 <i><font color='green'>   MODE specifies the form of output:</font></i>
+<a name='L32'>  32 <i><font color='green'></font></i>
+<a name='L33'>  33 <i><font color='green'>     - Mode 2 is a periodic pulse: the channel's output is 1 for</font></i>
+<a name='L34'>  34 <i><font color='green'>       most of the period, but drops to 0 briefly toward the end</font></i>
+<a name='L35'>  35 <i><font color='green'>       of the period.  This is useful for hooking up to an</font></i>
+<a name='L36'>  36 <i><font color='green'>       interrupt controller to generate a periodic interrupt.</font></i>
+<a name='L37'>  37 <i><font color='green'></font></i>
+<a name='L38'>  38 <i><font color='green'>     - Mode 3 is a square wave: for the first half of the period</font></i>
+<a name='L39'>  39 <i><font color='green'>       it is 1, for the second half it is 0.  This is useful for</font></i>
+<a name='L40'>  40 <i><font color='green'>       generating a tone on a speaker.</font></i>
+<a name='L41'>  41 <i><font color='green'></font></i>
+<a name='L42'>  42 <i><font color='green'>     - Other modes are less useful.</font></i>
+<a name='L43'>  43 <i><font color='green'></font></i>
+<a name='L44'>  44 <i><font color='green'>   FREQUENCY is the number of periods per second, in Hz. */</font></i>
+<a name='L45'>  45 <b>void</b>
+<a name='L46'>  46 <a href='../R/721.html' title='Multiple refered from 3 places.'>pit_configure_channel</a> (<b>int</b> channel, <b>int</b> mode, <b>int</b> frequency)
+<a name='L47'>  47 <font color='red'>{</font>
+<a name='L48'>  48   <a href='../S/87.html#L23' title='Defined at 23 in src/lib/stdint.h.'>uint16_t</a> count;
+<a name='L49'>  49   <b>enum</b> <a href='../S/150.html#L8' title='Defined at 8 in src/threads/interrupt.h.'>intr_level</a> old_level;
+<a name='L50'>  50 
+<a name='L51'>  51   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> == 0 || <a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> == 2);
+<a name='L52'>  52   <a href='../S/104.html#L37' title='Defined at 37 in src/lib/debug.h.'>ASSERT</a> (mode == 2 || mode == 3);
+<a name='L53'>  53 
+<a name='L54'>  54   <i><font color='green'>/* Convert FREQUENCY to a PIT counter value.  The PIT has a</font></i>
+<a name='L55'>  55 <i><font color='green'>     clock that runs at PIT_HZ cycles per second.  We must</font></i>
+<a name='L56'>  56 <i><font color='green'>     translate FREQUENCY into a number of these cycles. */</font></i>
+<a name='L57'>  57   <b>if</b> (frequency &lt; 19)
+<a name='L58'>  58     <font color='red'>{</font>
+<a name='L59'>  59       <i><font color='green'>/* Frequency is too low: the quotient would overflow the</font></i>
+<a name='L60'>  60 <i><font color='green'>         16-bit counter.  Force it to 0, which the PIT treats as</font></i>
+<a name='L61'>  61 <i><font color='green'>         65536, the highest possible count.  This yields a 18.2</font></i>
+<a name='L62'>  62 <i><font color='green'>         Hz timer, approximately. */</font></i>
+<a name='L63'>  63       count = 0;
+<a name='L64'>  64     <font color='red'>}</font>
+<a name='L65'>  65   <b>else</b> <b>if</b> (frequency &gt; <a href='../S/118.html#L15' title='Defined at 15 in src/devices/pit.c.'>PIT_HZ</a>)
+<a name='L66'>  66     <font color='red'>{</font>
+<a name='L67'>  67       <i><font color='green'>/* Frequency is too high: the quotient would underflow to</font></i>
+<a name='L68'>  68 <i><font color='green'>         0, which the PIT would interpret as 65536.  A count of 1</font></i>
+<a name='L69'>  69 <i><font color='green'>         is illegal in mode 2, so we force it to 2, which yields</font></i>
+<a name='L70'>  70 <i><font color='green'>         a 596.590 kHz timer, approximately.  (This timer rate is</font></i>
+<a name='L71'>  71 <i><font color='green'>         probably too fast to be useful anyhow.) */</font></i>
+<a name='L72'>  72       count = 2;
+<a name='L73'>  73     <font color='red'>}</font>
+<a name='L74'>  74   <b>else</b>
+<a name='L75'>  75     count = (<a href='../S/118.html#L15' title='Defined at 15 in src/devices/pit.c.'>PIT_HZ</a> + frequency / 2) / frequency;
+<a name='L76'>  76 
+<a name='L77'>  77   <i><font color='green'>/* Configure the PIT mode and load its counters. */</font></i>
+<a name='L78'>  78   old_level = <a href='../S/168.html#L104' title='Defined at 104 in src/threads/interrupt.c.'>intr_disable</a> ();
+<a name='L79'>  79   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/118.html#L11' title='Defined at 11 in src/devices/pit.c.'>PIT_PORT_CONTROL</a>, (<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a> &lt;&lt; 6) | 0x30 | (mode &lt;&lt; 1));
+<a name='L80'>  80   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/118.html#L12' title='Defined at 12 in src/devices/pit.c.'>PIT_PORT_COUNTER</a> (<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>), count);
+<a name='L81'>  81   <a href='../S/157.html#L66' title='Defined at 66 in src/threads/io.h.'>outb</a> (<a href='../S/118.html#L12' title='Defined at 12 in src/devices/pit.c.'>PIT_PORT_COUNTER</a> (<a href='../S/123.html#L64' title='Defined at 64 in src/devices/ide.c.'>channel</a>), count &gt;&gt; 8);
+<a name='L82'>  82   <a href='../S/168.html#L81' title='Defined at 81 in src/threads/interrupt.c.'>intr_set_level</a> (old_level);
+<a name='L83'>  83 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L46'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

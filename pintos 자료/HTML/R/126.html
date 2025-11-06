@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>PGMASK</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<pre>
+<a href='../S/153.html#L25'>PGMASK</a>             25 src/threads/vaddr.h   return (uintptr_t) va &amp; PGMASK;
+<a href='../S/153.html#L35'>PGMASK</a>             35 src/threads/vaddr.h   return (void *) (((uintptr_t) va + PGSIZE - 1) &amp; ~PGMASK);
+<a href='../S/153.html#L40'>PGMASK</a>             40 src/threads/vaddr.h   return (void *) ((uintptr_t) va &amp; ~PGMASK);
+<a href='../S/66.html#L275'>PGMASK</a>            275 src/userprog/process.c               uint32_t file_page = phdr.p_offset &amp; ~PGMASK;
+<a href='../S/66.html#L276'>PGMASK</a>            276 src/userprog/process.c               uint32_t mem_page = phdr.p_vaddr &amp; ~PGMASK;
+<a href='../S/66.html#L277'>PGMASK</a>            277 src/userprog/process.c               uint32_t page_offset = phdr.p_vaddr &amp; PGMASK;
+<a href='../S/66.html#L329'>PGMASK</a>            329 src/userprog/process.c   if ((phdr-&gt;p_offset &amp; PGMASK) != (phdr-&gt;p_vaddr &amp; PGMASK)) 
+</pre>
+</body>
+</html>

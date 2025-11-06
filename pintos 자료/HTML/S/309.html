@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>src/tests/vm/mmap-shuffle.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/610.html'>vm</a>/mmap-shuffle.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L17'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L17' title='Defined at 17.'>test_main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Creates a 128 kB file and repeatedly shuffles data in it</font></i>
+<a name='L2'>   2 <i><font color='green'>   through a memory mapping. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='82.html'>string.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> "<a href='301.html'>tests/arc4.h</a>"
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='300.html'>tests/cksum.h</a>"
+<a name='L9'>   9 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L10'>  10 <font color='darkred'>#include</font> "<a href='302.html'>tests/main.h</a>"
+<a name='L11'>  11 
+<a name='L12'>  12 <font color='darkred'>#define</font> <a href='../R/194.html' title='Multiple refered from 15 places.'>SIZE</a> (128 * 1024)
+<a name='L13'>  13 
+<a name='L14'>  14 <b>static</b> <b>char</b> *buf = (<b>char</b> *) 0x10000000;
+<a name='L15'>  15 
+<a name='L16'>  16 <b>void</b>
+<a name='L17'>  17 <a href='../R/863.html' title='Multiple refered from 5 places.'>test_main</a> (<b>void</b>)
+<a name='L18'>  18 <font color='red'>{</font>
+<a name='L19'>  19   <a href='../S/92.html#L10' title='Defined at 10 in src/lib/stddef.h.'>size_t</a> i;
+<a name='L20'>  20   <b>int</b> handle;
+<a name='L21'>  21 
+<a name='L22'>  22   <i><font color='green'>/* Create file, mmap. */</font></i>
+<a name='L23'>  23   CHECK (<a href='../S/97.html#L91' title='Defined at 91 in src/lib/user/syscall.c.'>create</a> ("buffer", <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>), "create \"buffer\"");
+<a name='L24'>  24   CHECK ((handle = <a href='../S/97.html#L103' title='Defined at 103 in src/lib/user/syscall.c.'>open</a> ("buffer")) &gt; 1, "open \"buffer\"");
+<a name='L25'>  25   CHECK (<a href='../S/97.html#L145' title='Defined at 145 in src/lib/user/syscall.c.'>mmap</a> (handle, buf) != <a href='../S/100.html#L13' title='Defined at 13 in src/lib/user/syscall.h.'>MAP_FAILED</a>, "mmap \"buffer\"");
+<a name='L26'>  26 
+<a name='L27'>  27   <i><font color='green'>/* Initialize. */</font></i>
+<a name='L28'>  28   <b>for</b> (i = 0; i &lt; <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>; i++)
+<a name='L29'>  29     buf[i] = i * 257;
+<a name='L30'>  30   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("init: cksum=%lu", <a href='../S/592.html#L63' title='Defined at 63 in src/tests/cksum.c.'>cksum</a> (buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>));
+<a name='L31'>  31     
+<a name='L32'>  32   <i><font color='green'>/* Shuffle repeatedly. */</font></i>
+<a name='L33'>  33   <b>for</b> (i = 0; i &lt; 10; i++)
+<a name='L34'>  34     <font color='red'>{</font>
+<a name='L35'>  35       <a href='../D/915.html' title='Multiple defined in 3 places.'>shuffle</a> (buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>, 1);
+<a name='L36'>  36       <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("shuffle %zu: cksum=%lu", i, <a href='../S/592.html#L63' title='Defined at 63 in src/tests/cksum.c.'>cksum</a> (buf, <a href='../D/266.html' title='Multiple defined in 4 places.'>SIZE</a>));
+<a name='L37'>  37     <font color='red'>}</font>
+<a name='L38'>  38 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L17'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>src/tests/userprog/multi-recurse.c</title>
+<meta name='robots' content='noindex,nofollow'>
+<meta name='generator' content='GLOBAL-5.7.1'>
+</head>
+<body text='#191970' bgcolor='#f5f5dc' vlink='gray'>
+<a name='TOP'><h2><a href='../mains.html'>root</a>/<a href='../files/595.html'>src</a>/<a href='../files/602.html'>tests</a>/<a href='../files/608.html'>userprog</a>/multi-recurse.c</h2>
+<i><font color='green'>/* [&lt;][&gt;]<a href='#L13'>[^]</a>[v][top]<a href='#BOTTOM'>[bottom]</a><a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+<hr>
+<h2>DEFINITIONS</h2>
+This source file includes following definitions.
+<ol>
+<li><a href='#L13' title='Defined at 13.'>main</a>
+</ol>
+<hr>
+<pre>
+<a name='L1'>   1 <i><font color='green'>/* Executes itself recursively to the depth indicated by the</font></i>
+<a name='L2'>   2 <i><font color='green'>   first command-line argument. */</font></i>
+<a name='L3'>   3 
+<a name='L4'>   4 <font color='darkred'>#include</font> &lt;<a href='104.html'>debug.h</a>&gt;
+<a name='L5'>   5 <font color='darkred'>#include</font> &lt;<a href='101.html'>stdlib.h</a>&gt;
+<a name='L6'>   6 <font color='darkred'>#include</font> &lt;<a href='../I/72.html'>stdio.h</a>&gt;
+<a name='L7'>   7 <font color='darkred'>#include</font> &lt;<a href='../I/94.html'>syscall.h</a>&gt;
+<a name='L8'>   8 <font color='darkred'>#include</font> "<a href='529.html'>tests/lib.h</a>"
+<a name='L9'>   9 
+<a name='L10'>  10 <b>const</b> <b>char</b> *test_name = "multi-recurse";
+<a name='L11'>  11 
+<a name='L12'>  12 <b>int</b>
+<a name='L13'>  13 <a href='../R/639.html' title='Multiple refered from 2 places.'>main</a> (<b>int</b> argc <a href='../S/104.html#L7' title='Defined at 7 in src/lib/debug.h.'>UNUSED</a>, <b>char</b> *argv[]) 
+<a name='L14'>  14 <font color='red'>{</font>
+<a name='L15'>  15   <b>int</b> n = <a href='../S/103.html#L10' title='Defined at 10 in src/lib/stdlib.c.'>atoi</a> (argv[1]);
+<a name='L16'>  16 
+<a name='L17'>  17   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("begin %d", n);
+<a name='L18'>  18   <b>if</b> (n != 0) 
+<a name='L19'>  19     <font color='red'>{</font>
+<a name='L20'>  20       <b>char</b> child_cmd[128];
+<a name='L21'>  21       <a href='../S/100.html#L8' title='Defined at 8 in src/lib/user/syscall.h.'>pid_t</a> child_pid;
+<a name='L22'>  22       <b>int</b> code;
+<a name='L23'>  23       
+<a name='L24'>  24       <a href='../S/115.html#L62' title='Defined at 62 in src/lib/stdio.c.'>snprintf</a> (child_cmd, <b>sizeof</b> child_cmd, "multi-recurse %d", n - 1);
+<a name='L25'>  25       CHECK ((child_pid = <a href='../S/97.html#L79' title='Defined at 79 in src/lib/user/syscall.c.'>exec</a> (child_cmd)) != -1, "exec(\"%s\")", child_cmd);
+<a name='L26'>  26 
+<a name='L27'>  27       code = <a href='../D/1085.html' title='Multiple defined in 2 places.'>wait</a> (child_pid);
+<a name='L28'>  28       <b>if</b> (code != n - 1)
+<a name='L29'>  29         <a href='../D/510.html' title='Multiple defined in 2 places.'>fail</a> ("wait(exec(\"%s\")) returned %d", child_cmd, code);
+<a name='L30'>  30     <font color='red'>}</font>
+<a name='L31'>  31   
+<a name='L32'>  32   <a href='../D/768.html' title='Multiple defined in 3 places.'>msg</a> ("end %d", n);
+<a name='L33'>  33   <b>return</b> n;
+<a name='L34'>  34 <font color='red'>}</font>
+</pre>
+<hr>
+<a name='BOTTOM'>
+<i><font color='green'>/* [&lt;][&gt;][^]<a href='#L13'>[v]</a><a href='#TOP'>[top]</a>[bottom]<a href='../mains.html'>[index]</a><a href='../help.html'>[help]</a> */</font></i>
+</body>
+</html>
