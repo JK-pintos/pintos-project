@@ -1,0 +1,136 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Debug Pintos (threads)",
+      "type": "shell",
+      "command": "rm -f tests/threads/${input:threads_testcase}.{output,error,result} && clear && make tests/threads/${input:threads_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/threads/build",
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug Pintos (userprog)",
+      "type": "shell",
+      "command": "rm -f tests/userprog/${input:userprog_testcase}.{output,error,result} && clear && make tests/userprog/${input:userprog_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/userprog/build",
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug Pintos (vm)",
+      "type": "shell",
+      "command": "rm -f tests/vm/${input:vm}.{output,error,result} && clear && make tests/vm/${input:vm_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/vm/build",
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug Pintos (filesys)",
+      "type": "shell",
+      "command": "rm -f tests/filesys/${input:filesys}.{output,error,result} && clear && make tests/filesys/${input:filesys_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/filesys/build",
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Pintos Directory",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/pintos/${input:dir} && make clean && make",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "dir",
+      "type": "pickString",
+      "description": "Select a Pintos directory to build",
+      "options": [
+        "threads",
+        "userprog",
+        "vm",
+        "filesys",
+      ]
+    },
+    {
+      "id": "threads_testcase",
+      "type": "pickString",
+      "description": "Select a Pintos test case to run",
+      "options": [
+        "alarm-single",
+        "alarm-multiple",
+        "alarm-simultaneous",
+        "alarm-priority",
+        "alarm-zero",
+        "alarm-negative",
+        "priority-change",
+        "priority-donate-one",
+        "priority-donate-multiple",
+        "priority-donate-multiple2",
+        "priority-donate-nest",
+        "priority-donate-sema",
+        "priority-donate-lower",
+        "priority-donate-chain",
+        "priority-fifo",
+        "priority-preempt",
+        "priority-sema",
+        "priority-condvar",
+        "mlfqs/mlfqs-load-1",
+        "mlfqs/mlfqs-load-60",
+        "mlfqs/mlfqs-load-avg",
+        "mlfqs/mlfqs-recent-1",
+        "mlfqs/mlfqs-fair-2",
+        "mlfqs/mlfqs-fair-20",
+        "mlfqs/mlfqs-nice-2",
+        "mlfqs/mlfqs-nice-10",
+        "mlfqs/mlfqs-block",
+      ]
+    },
+    {
+      "id": "userprog_testcase",
+      "type": "pickString",
+      "description": "Select a Pintos test case to run",
+      "options": []
+    },
+    {
+      "id": "vm_testcase",
+      "type": "pickString",
+      "description": "Select a Pintos test case to run",
+      "options": []
+    },
+    {
+      "id": "filesys_testcase",
+      "type": "pickString",
+      "description": "Select a Pintos test case to run",
+      "options": []
+    }
+  ]
+}
