@@ -27,6 +27,7 @@
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
+static struct list sleep_list;
 
 /* Idle thread. */
 static struct thread *idle_thread;
@@ -224,6 +225,34 @@ thread_block (void) {
 	schedule ();
 }
 
+void
+thread_sleep (int64_t ticks, int64_t start) {
+	enum intr_level	old_level;
+
+	ASSERT (!intr_context());
+	old_level = intr_disable();
+	thread_current()->sleep_tick = ticks;
+	list_push_back(&sleep_list, &(thread_current()->elem));
+	list_sort(&sleep_list, ticks_less, NULL);
+	thread_current()->status = THREAD_SLEEP;
+	intr_set_level (old_level);
+}
+
+void
+wakeup_sleep () {
+	struct thread	*cur; 
+	enum intr_level old_level;
+
+	old_level = intr_disable();
+	cur = list_head(&sleep_list);
+	if (timer_elasped(cur->sleep_start) < cur->sleep_tick)
+	{
+		cur = list_entry (list_pop_front (&ready_list), struct thread, elem);
+		list_push_back(&ready_list, cur);
+	}
+	intr_set_level(old_level);
+}
+
 /* Transitions a blocked thread T to the ready-to-run state.
    This is an error if T is not blocked.  (Use thread_yield() to
    make the running thread ready.)
@@ -418,6 +447,9 @@ init_thread (struct thread *t, const char *name, int priority) {
    idle_thread. */
 static struct thread *
 next_thread_to_run (void) {
+
+	wakeup_thread();
+
 	if (list_empty (&ready_list))
 		return idle_thread;
 	else

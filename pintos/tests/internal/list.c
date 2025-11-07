@@ -31,6 +31,8 @@ static bool value_less (const struct list_elem *, const struct list_elem *,
 static void verify_list_fwd (struct list *, int size);
 static void verify_list_bkwd (struct list *, int size);
 
+bool ticks_less (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED);
+
 /* Test the linked list implementation. */
 void
 test (void) 
@@ -133,6 +135,16 @@ value_less (const struct list_elem *a_, const struct list_elem *b_,
   const struct value *b = list_entry (b_, struct value, elem);
   
   return a->value < b->value;
+}
+
+bool
+ticks_less (const struct list_elem *a_, const struct list_elem *b_,
+            void *aux UNUSED)
+{
+  const struct value *a = list_entry (a_, struct thread, elem);
+  const struct value *b = list_entry (b_, struct thread, elem);
+
+  return (a->sleep_tick - timer_elasped(a->sleep_start)) < (b->sleep_tick - timer_elasped(b->sleep_start));
 }
 
 /* Verifies that LIST contains the values 0...SIZE when traversed
