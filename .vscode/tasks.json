@@ -16,6 +16,20 @@
       "problemMatcher": []
     },
     {
+      "label": "Run Pintos (threads)",
+      "type": "shell",
+      "command": "rm -f tests/threads/${input:threads_testcase}.{output,error,result} && clear && make tests/threads/${input:threads_testcase}.result",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/threads/build",
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Debug Pintos (userprog)",
       "type": "shell",
       "command": "rm -f tests/userprog/${input:userprog_testcase}.{output,error,result} && clear && make tests/userprog/${input:userprog_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
