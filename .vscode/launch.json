@@ -1,0 +1,48 @@
+{
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Debug (threads)",
+            "executable": "${workspaceFolder}/pintos/threads/build/kernel.o",
+            "target": "localhost:1234",
+            "remote": true,
+            "cwd": "${workspaceFolder}",
+            "valuesFormatting": "parseText",
+            "preLaunchTask": "Debug Pintos (threads)"
+        },
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Debug (userprog)",
+            "executable": "${workspaceFolder}/pintos/userprog/build/kernel.o",
+            "target": "localhost:1234",
+            "remote": true,
+            "cwd": "${workspaceFolder}",
+            "valuesFormatting": "parseText",
+            "preLaunchTask": "Debug Pintos (userprog)"
+        },
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Debug (vm)",
+            "executable": "${workspaceFolder}/pintos/vm/build/kernel.o",
+            "target": "localhost:1234",
+            "remote": true,
+            "cwd": "${workspaceFolder}",
+            "valuesFormatting": "parseText",
+            "preLaunchTask": "Debug Pintos (vm)"
+        },
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Debug (filesys)",
+            "executable": "${workspaceFolder}/pintos/filesys/build/kernel.o",
+            "target": "localhost:1234",
+            "remote": true,
+            "cwd": "${workspaceFolder}",
+            "valuesFormatting": "parseText",
+            "preLaunchTask": "Debug Pintos (filesys)"
+        }
+    ]
+}
