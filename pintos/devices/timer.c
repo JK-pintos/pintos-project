@@ -25,11 +25,14 @@ static int64_t ticks;
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
+struct list sleep_list;
 
 static intr_handler_func timer_interrupt;
 static bool too_many_loops(unsigned loops);
 static void busy_wait(int64_t loops);
 static void real_time_sleep(int64_t num, int32_t denom);
+static void wake_sleeping_threads();
+static bool sleep_list_order(struct list_elem* e1, struct list_elem* e2, void* aux);
 
 /* Sets up the 8254 Programmable Interval Timer (PIT) to
    interrupt PIT_FREQ times per second, and registers the
@@ -44,6 +47,8 @@ void timer_init(void) {
     outb(0x40, count >> 8);
 
     intr_register_ext(0x20, timer_interrupt, "8254 Timer");
+
+    list_init(&sleep_list);
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -84,10 +89,14 @@ int64_t timer_elapsed(int64_t then) { return timer_ticks() - then; }
 
 /* Suspends execution for approximately TICKS timer ticks. */
 void timer_sleep(int64_t ticks) {
-    int64_t start = timer_ticks();
+    if (ticks <= 0) return;
+    enum intr_level old_level = intr_disable();
 
-    ASSERT(intr_get_level() == INTR_ON);
-    while (timer_elapsed(start) < ticks) thread_yield();
+    struct thread* cur_thread = thread_current();
+    cur_thread->wakeup_tick = timer_ticks() + ticks;
+    list_insert_ordered(&sleep_list, &cur_thread->elem, sleep_list_order, NULL);
+    thread_block();
+    intr_set_level(old_level);
 }
 
 /* Suspends execution for approximately MS milliseconds. */
@@ -106,6 +115,8 @@ void timer_print_stats(void) { printf("Timer: %" PRId64 " ticks\n", timer_ticks(
 static void timer_interrupt(struct intr_frame* args UNUSED) {
     ticks++;
     thread_tick();
+
+    wake_sleeping_threads(ticks);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
@@ -158,4 +169,20 @@ static void real_time_sleep(int64_t num, int32_t denom) {
         ASSERT(denom % 1000 == 0);
         busy_wait(loops_per_tick * num / 1000 * TIMER_FREQ / (denom / 1000));
     }
+}
+
+static void wake_sleeping_threads() {
+    enum intr_level old_level = intr_disable();
+    while (!list_empty(&sleep_list)) {
+        struct thread* cur_thread = list_entry(list_front(&sleep_list), struct thread, elem);
+        if (cur_thread->wakeup_tick > ticks) break;
+        list_pop_front(&sleep_list);
+        thread_unblock(cur_thread);
+    }
+    intr_set_level(old_level);
+}
+
+static bool sleep_list_order(struct list_elem* e1, struct list_elem* e2, void* aux) {
+    return list_entry(e1, struct thread, elem)->wakeup_tick <
+           list_entry(e2, struct thread, elem)->wakeup_tick;
 }
