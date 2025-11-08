@@ -68,7 +68,6 @@ static tid_t allocate_tid(void);
 
 static bool sleep_list_order(struct list_elem* e1, struct list_elem* e2, void* aux);
 
-
 /* Returns true if T appears to point to a valid thread. */
 #define is_thread(t) ((t) != NULL && (t)->magic == THREAD_MAGIC)
 
@@ -331,11 +330,13 @@ void wake_sleeping_threads(int64_t tick) {
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority) {
-    int old_priority = thread_get_priority();
     thread_current()->priority = new_priority;
-    if (old_priority > new_priority) {
+
+    enum intr_level old_level = intr_disable();
+    if (!list_empty(&ready_list) &&
+        (new_priority > list_entry(list_front(&ready_list), struct thread, elem)->priority))
         thread_yield();
-    }
+    intr_set_level(old_level);
 }
 
 /* Returns the current thread's priority. */
