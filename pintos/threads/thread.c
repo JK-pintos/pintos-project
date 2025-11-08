@@ -233,9 +233,15 @@ void thread_unblock(struct thread* t) {
 
     old_level = intr_disable();
     ASSERT(t->status == THREAD_BLOCKED);
-    list_push_back(&ready_list, &t->elem);
     t->status = THREAD_READY;
+    list_insert_ordered(&ready_list, &t->elem, thread_priority_order, NULL);
     intr_set_level(old_level);
+    if (t->priority > thread_current()->priority) {
+        if (intr_context())
+            intr_yield_on_return();
+        else
+            thread_yield();
+    }
 }
 
 /* Returns the name of the running thread. */
@@ -286,16 +292,17 @@ void thread_yield(void) {
     ASSERT(!intr_context());
 
     old_level = intr_disable();
-    if (curr != idle_thread) list_push_back(&ready_list, &curr->elem);
+    if (curr != idle_thread)
+        list_insert_ordered(&ready_list, &curr->elem, thread_priority_order, NULL);
     do_schedule(THREAD_READY);
     intr_set_level(old_level);
 }
 
-/// @brief  
-/// 현재 스레드를 지정된 시간까지 재운다.  
+/// @brief
+/// 현재 스레드를 지정된 시간까지 재운다.
 /// 스레드는 sleep_list에 추가되고, wakeup_tick이 도달할 때까지 BLOCKED 상태로 전환된다.
 ///
-/// @param wakeup_tick  
+/// @param wakeup_tick
 /// 스레드가 다시 깨어날 시점의 절대 tick 값 (`timer_ticks() + ticks`)
 void thread_sleep(int64_t wakeup_tick) {
     enum intr_level old_level = intr_disable();
@@ -308,8 +315,8 @@ void thread_sleep(int64_t wakeup_tick) {
     intr_set_level(old_level);
 }
 
-/// @brief  
-/// 현재 시각(ticks)에 도달한 스레드들을 깨워 READY 상태로 전환한다.  
+/// @brief
+/// 현재 시각(ticks)에 도달한 스레드들을 깨워 READY 상태로 전환한다.
 /// (sleep_list의 맨 앞부터 검사하며, wakeup_tick이 아직 안 된 스레드는 남겨둔다.)
 void wake_sleeping_threads(int64_t tick) {
     enum intr_level old_level = intr_disable();
@@ -322,9 +329,14 @@ void wake_sleeping_threads(int64_t tick) {
     intr_set_level(old_level);
 }
 
-
 /* Sets the current thread's priority to NEW_PRIORITY. */
-void thread_set_priority(int new_priority) { thread_current()->priority = new_priority; }
+void thread_set_priority(int new_priority) {
+    int old_priority = thread_get_priority();
+    thread_current()->priority = new_priority;
+    if (old_priority > new_priority) {
+        thread_yield();
+    }
+}
 
 /* Returns the current thread's priority. */
 int thread_get_priority(void) { return thread_current()->priority; }
@@ -584,17 +596,31 @@ static tid_t allocate_tid(void) {
     return tid;
 }
 
-/// @brief  
-/// 두 스레드의 wakeup_tick 값을 비교하여 정렬 순서를 결정한다.  
+/// @brief
+/// 두 스레드의 wakeup_tick 값을 비교하여 정렬 순서를 결정한다.
 /// (timer_sleep에서 list_insert_ordered()에 사용됨)
 ///
 /// @param e1 첫 번째 리스트 요소의 포인터
 /// @param e2 두 번째 리스트 요소의 포인터
 /// @param aux 추가 인자(사용하지 않음)
-/// @return  
+/// @return
 /// e1의 wakeup_tick이 e2보다 작으면 true, 아니면 false
 static bool sleep_list_order(struct list_elem* e1, struct list_elem* e2, void* aux) {
     struct thread* thread1 = list_entry(e1, struct thread, elem);
     struct thread* thread2 = list_entry(e2, struct thread, elem);
     return thread1->wakeup_tick < thread2->wakeup_tick;
+}
+
+/// @brief
+/// 두 스레드의 priority 값을 비교하여 정렬 순서를 결정한다.
+///
+/// @param e1 첫 번째 리스트 요소의 포인터
+/// @param e2 두 번째 리스트 요소의 포인터
+/// @param aux 추가 인자(사용하지 않음)
+/// @return
+/// e1의 priority이 e2보다 크면 true, 아니면 false
+bool thread_priority_order(struct list_elem* e1, struct list_elem* e2, void* aux) {
+    struct thread* thread1 = list_entry(e1, struct thread, elem);
+    struct thread* thread2 = list_entry(e2, struct thread, elem);
+    return thread1->priority > thread2->priority;
 }
