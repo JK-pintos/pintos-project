@@ -296,11 +296,23 @@ void thread_yield(void) {
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority) { 
     enum intr_level old_level = intr_disable();
-    thread_current()->priority = new_priority; 
+    struct thread *cur = thread_current();
+    
+    if (thread_mlfqs) {
+        intr_set_level(old_level);
+        return;
+    }
+    
+    cur->base_priority = new_priority;
+    if (list_empty(&cur->donations)) {
+        cur->priority = new_priority;
+    } else {
+        donate_priority(cur);
+    }
 
     if (!list_empty(&ready_list)){
         struct thread *next = list_entry(list_front(&ready_list), struct thread, elem);
-        if (next->priority > new_priority) 
+        if (next->priority > thread_current()->priority) 
             if (intr_context())
                 intr_yield_on_return();
             else
@@ -390,6 +402,8 @@ static void init_thread(struct thread* t, const char* name, int priority) {
     strlcpy(t->name, name, sizeof t->name);
     t->tf.rsp = (uint64_t)t + PGSIZE - sizeof(void*);
     t->priority = priority;
+    t->base_priority = priority;
+    list_init(&t->donations);
     t->magic = THREAD_MAGIC;
 }
 
@@ -573,21 +587,41 @@ bool thread_priority_order(const struct list_elem* a, const struct list_elem* b,
     const struct thread* thread2 = list_entry(b, struct thread, elem);
     return thread1->priority > thread2->priority;
 }
+
+/* Compare two donated threads by priority */
+bool thread_donation_priority_order(const struct list_elem* a, const struct list_elem* b, void* aux){
+    const struct thread* thread1 = list_entry(a, struct thread, donation_elem);
+    const struct thread* thread2 = list_entry(b, struct thread, donation_elem);
+    return thread1->priority > thread2->priority;
+}
  
 void donate_priority(struct thread *t){
     ASSERT (t != NULL);
 
     int value = 0;
 
-    while (t && value < 7){
+    while (t && value < 8){
+        int old_priority = t->priority;
         int max_priority = t->base_priority;
 
         if (!list_empty(&t->donations)){
-            struct thread *give = list_entry(list_front(&t->donations), struct thread, donation_elem);
-            if (give->priority > max_priority)
-                max_priority = give->priority;
+            struct list_elem *e;
+            for (e = list_begin(&t->donations); e != list_end(&t->donations); e = list_next(e)) {
+                struct thread *give = list_entry(e, struct thread, donation_elem);
+                if (give->priority > max_priority)
+                    max_priority = give->priority;
+            }
         }
         t->priority = max_priority;
+
+        if (old_priority != max_priority && t->status == THREAD_READY) {
+            list_remove(&t->elem);
+            list_insert_ordered(&ready_list, &t->elem, thread_priority_order, NULL);
+        } else if (old_priority != max_priority && t->status == THREAD_BLOCKED && t->waiting_lock != NULL) {
+            /* Reorder within the lock's waiters list to maintain priority order. */
+            list_remove(&t->elem);
+            list_insert_ordered(&t->waiting_lock->semaphore.waiters, &t->elem, thread_priority_order, NULL);
+        }
 
         if (t->waiting_lock)
             t = t->waiting_lock->holder;

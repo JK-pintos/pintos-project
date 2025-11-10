@@ -149,5 +149,7 @@ int thread_get_load_avg (void);
 void do_iret (struct intr_frame *tf);
 
 bool thread_priority_order(const struct list_elem *a, const struct list_elem *b, void *aux);
-
+bool thread_donation_priority_order(const struct list_elem *a, const struct list_elem *b, void *aux);
+/* Priority donation function */
+void donate_priority(struct thread *t);
 #endif /* threads/thread.h */
