@@ -300,8 +300,11 @@ void thread_set_priority(int new_priority) {
 
     if (!list_empty(&ready_list)){
         struct thread *next = list_entry(list_front(&ready_list), struct thread, elem);
-        if (next->priority > thread_current()->priority) 
-            thread_yield();
+        if (next->priority > new_priority) 
+            if (intr_context())
+                intr_yield_on_return();
+            else
+                thread_yield();
     }
     intr_set_level(old_level);
 }
@@ -571,3 +574,26 @@ bool thread_priority_order(const struct list_elem* a, const struct list_elem* b,
     return thread1->priority > thread2->priority;
 }
  
+void donate_priority(struct thread *t){
+    ASSERT (t != NULL);
+
+    int value = 0;
+
+    while (t && value < 7){
+        int max_priority = t->base_priority;
+
+        if (!list_empty(&t->donations)){
+            struct thread *give = list_entry(list_front(&t->donations), struct thread, donation_elem);
+            if (give->priority > max_priority)
+                max_priority = give->priority;
+        }
+        t->priority = max_priority;
+
+        if (t->waiting_lock)
+            t = t->waiting_lock->holder;
+        else
+            break;
+
+        value++;
+    }
+}
