@@ -330,9 +330,11 @@ void wake_sleeping_threads(int64_t tick) {
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority) {
-    thread_current()->priority = new_priority;
-
     enum intr_level old_level = intr_disable();
+    struct thread* t = thread_current();
+    t->base_priority = new_priority;
+    if (list_empty(&thread_current()->donor_list)) t->priority = new_priority;
+
     if (!list_empty(&ready_list) &&
         (new_priority < list_entry(list_front(&ready_list), struct thread, elem)->priority))
         thread_yield();
@@ -421,6 +423,10 @@ static void init_thread(struct thread* t, const char* name, int priority) {
     t->tf.rsp = (uint64_t)t + PGSIZE - sizeof(void*);
     t->priority = priority;
     t->magic = THREAD_MAGIC;
+
+    t->base_priority = priority;
+    t->waiting_lock = NULL;
+    list_init(&t->donor_list);
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should
@@ -431,8 +437,11 @@ static void init_thread(struct thread* t, const char* name, int priority) {
 static struct thread* next_thread_to_run(void) {
     if (list_empty(&ready_list))
         return idle_thread;
-    else
-        return list_entry(list_pop_front(&ready_list), struct thread, elem);
+    else {
+        struct list_elem* max_elem = list_max(&ready_list, thread_priority_max, NULL);
+        list_remove(max_elem);
+        return list_entry(max_elem, struct thread, elem);
+    }
 }
 
 /* Use iretq to launch the thread */
@@ -624,4 +633,10 @@ bool thread_priority_order(struct list_elem* e1, struct list_elem* e2, void* aux
     struct thread* thread1 = list_entry(e1, struct thread, elem);
     struct thread* thread2 = list_entry(e2, struct thread, elem);
     return thread1->priority > thread2->priority;
+}
+
+bool thread_priority_max(struct list_elem* e1, struct list_elem* e2, void* aux) {
+    struct thread* thread1 = list_entry(e1, struct thread, elem);
+    struct thread* thread2 = list_entry(e2, struct thread, elem);
+    return thread1->priority < thread2->priority;
 }
