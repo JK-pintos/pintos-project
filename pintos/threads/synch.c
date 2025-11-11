@@ -251,10 +251,8 @@ lock_release (struct lock *lock) {
          struct thread *t = list_entry(e, struct thread, donation_elem);
          struct list_elem *next = list_next(e);
 
-         if (t->waiting_lock == lock){
+         if (t->waiting_lock == lock)
             list_remove(e);
-            t->waiting_lock = NULL;
-         }
          e = next;
       }
       donate_priority(cur);
