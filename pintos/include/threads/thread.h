@@ -91,7 +91,12 @@ struct thread {
 	enum thread_status status;          /* Thread state. */
 	char name[16];                      /* Name (for debugging purposes). */
 	int priority;                       /* Priority. */
-
+	
+	int base_priority;
+	struct lock *waiting_lock;
+	struct list donor_list;
+	struct list_elem donor_elem;	
+	
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              /* List element. */
 
@@ -135,14 +140,18 @@ const char *thread_name (void);
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
 
+void thread_sleep(int64_t wakeup_tick);
+void wake_sleeping_threads(int64_t tick);
+
 int thread_get_priority (void);
 void thread_set_priority (int);
-
 int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 void do_iret (struct intr_frame *tf);
+
+bool thread_priority_max(struct list_elem* e1, struct list_elem* e2, void* aux);
 
 #endif /* threads/thread.h */
