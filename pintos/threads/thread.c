@@ -233,7 +233,7 @@ void thread_unblock(struct thread* t) {
     old_level = intr_disable();
     ASSERT(t->status == THREAD_BLOCKED);
     t->status = THREAD_READY;
-    list_insert_ordered(&ready_list, &t->elem, thread_priority_order, NULL);
+    list_push_front(&ready_list, &t->elem);
     intr_set_level(old_level);
     if (t->priority > thread_current()->priority) {
         if (intr_context())
@@ -291,8 +291,7 @@ void thread_yield(void) {
     ASSERT(!intr_context());
 
     old_level = intr_disable();
-    if (curr != idle_thread)
-        list_insert_ordered(&ready_list, &curr->elem, thread_priority_order, NULL);
+    if (curr != idle_thread) list_push_front(&ready_list, &curr->elem);
     do_schedule(THREAD_READY);
     intr_set_level(old_level);
 }
@@ -336,7 +335,9 @@ void thread_set_priority(int new_priority) {
     if (list_empty(&thread_current()->donor_list)) t->priority = new_priority;
 
     if (!list_empty(&ready_list) &&
-        (new_priority < list_entry(list_front(&ready_list), struct thread, elem)->priority))
+        (new_priority <
+         list_entry(list_max(&ready_list, thread_priority_max, NULL), struct thread, elem)
+             ->priority))
         thread_yield();
     intr_set_level(old_level);
 }
@@ -621,22 +622,8 @@ static bool sleep_list_order(struct list_elem* e1, struct list_elem* e2, void* a
     return thread1->wakeup_tick < thread2->wakeup_tick;
 }
 
-/// @brief
-/// 두 스레드의 priority 값을 비교하여 정렬 순서를 결정한다.
-///
-/// @param e1 첫 번째 리스트 요소의 포인터
-/// @param e2 두 번째 리스트 요소의 포인터
-/// @param aux 추가 인자(사용하지 않음)
-/// @return
-/// e1의 priority이 e2보다 크면 true, 아니면 false
-bool thread_priority_order(struct list_elem* e1, struct list_elem* e2, void* aux) {
-    struct thread* thread1 = list_entry(e1, struct thread, elem);
-    struct thread* thread2 = list_entry(e2, struct thread, elem);
-    return thread1->priority > thread2->priority;
-}
-
 bool thread_priority_max(struct list_elem* e1, struct list_elem* e2, void* aux) {
     struct thread* thread1 = list_entry(e1, struct thread, elem);
     struct thread* thread2 = list_entry(e2, struct thread, elem);
-    return thread1->priority < thread2->priority;
+    return thread1->priority <= thread2->priority;
 }
