@@ -596,39 +596,34 @@ bool thread_donation_priority_order(const struct list_elem* a, const struct list
     return thread1->priority > thread2->priority;
 }
  
-void donate_priority(struct thread *t){
-    ASSERT (t != NULL);
+void donate_priority(struct thread *t) {
+    ASSERT(t != NULL);
 
-    int value = 0;
-
-    while (t && value < 8){
-        int old_priority = t->priority;
+    for (int depth = 0; t && depth < 8; depth++) {
         int max_priority = t->base_priority;
 
-        if (!list_empty(&t->donations)){
-            struct list_elem *e;
-            for (e = list_begin(&t->donations); e != list_end(&t->donations); e = list_next(e)) {
-                struct thread *give = list_entry(e, struct thread, donation_elem);
-                if (give->priority > max_priority)
-                    max_priority = give->priority;
+        /* current thread -> donation (MAX) */
+        for (struct list_elem *e = list_begin(&t->donations); e != list_end(&t->donations); e = list_next(e)) {
+            struct thread *d = list_entry(e, struct thread, donation_elem);
+            if (d->priority > max_priority)
+                max_priority = d->priority;
+        }
+        /* change priority -> sort */
+        if (t->priority != max_priority) {
+            t->priority = max_priority;
+
+            struct list *target = NULL;
+            if (t->status == THREAD_READY)
+                target = &ready_list;
+            else if (t->status == THREAD_BLOCKED && t->waiting_lock)
+                target = &t->waiting_lock->semaphore.waiters;
+
+            if (target) {
+                list_remove(&t->elem);
+                list_insert_ordered(target, &t->elem, thread_priority_order, NULL);
             }
         }
-        t->priority = max_priority;
-
-        if (old_priority != max_priority && t->status == THREAD_READY) {
-            list_remove(&t->elem);
-            list_insert_ordered(&ready_list, &t->elem, thread_priority_order, NULL);
-        } else if (old_priority != max_priority && t->status == THREAD_BLOCKED && t->waiting_lock != NULL) {
-            /* Reorder within the lock's waiters list to maintain priority order. */
-            list_remove(&t->elem);
-            list_insert_ordered(&t->waiting_lock->semaphore.waiters, &t->elem, thread_priority_order, NULL);
-        }
-
-        if (t->waiting_lock)
-            t = t->waiting_lock->holder;
-        else
+        if (!(t = t->waiting_lock ? t->waiting_lock->holder : NULL))
             break;
-
-        value++;
     }
 }
