@@ -198,14 +198,15 @@ lock_acquire (struct lock *lock) {
 	ASSERT (!lock_held_by_current_thread (lock));
 
    struct thread *cur = thread_current();  // 지역변수로
-   enum intr_level old_level = intr_disable();
 
    if (lock->holder != NULL && !thread_mlfqs){
+      enum intr_level old_level = intr_disable();
       cur->waiting_lock = lock;
       list_insert_ordered(&lock->holder->donations, &cur->donation_elem, thread_donation_priority_order, NULL);
       donate_priority(lock->holder);
+      intr_set_level(old_level);
    }
-   intr_set_level(old_level);
+
 	sema_down (&lock->semaphore);
    cur->waiting_lock = NULL;
 	lock->holder = cur;
