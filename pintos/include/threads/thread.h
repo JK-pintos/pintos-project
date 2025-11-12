@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/interrupt.h"
+#include "threads/fixed-point.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -102,6 +103,8 @@ struct thread {
 
 	int64_t wakeup_tick;
 
+	int nice;
+	fixed_t recent_cpu;
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4;                     /* Page map level 4 */

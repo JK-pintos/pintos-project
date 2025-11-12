@@ -13,6 +13,7 @@
 #include "threads/palloc.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "threads/fixed-point.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -68,6 +69,8 @@ static tid_t allocate_tid(void);
 
 static bool sleep_list_order(struct list_elem* e1, struct list_elem* e2, void* aux);
 
+static fixed_t load_avg;
+
 /* Returns true if T appears to point to a valid thread. */
 #define is_thread(t) ((t) != NULL && (t)->magic == THREAD_MAGIC)
 
@@ -110,6 +113,7 @@ void thread_init(void) {
     list_init(&ready_list);
     list_init(&destruction_req);
 
+    load_avg = FP_CONST(0);
     /* Set up a thread structure for the running thread. */
     initial_thread = running_thread();
     init_thread(initial_thread, "main", PRI_DEFAULT);
@@ -329,6 +333,8 @@ void wake_sleeping_threads(int64_t tick) {
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority) {
+    if(thread_mlfqs) return;
+
     enum intr_level old_level = intr_disable();
     struct thread* t = thread_current();
     t->base_priority = new_priority;
@@ -346,24 +352,35 @@ void thread_set_priority(int new_priority) {
 int thread_get_priority(void) { return thread_current()->priority; }
 
 /* Sets the current thread's nice value to NICE. */
-void thread_set_nice(int nice UNUSED) { /* TODO: Your implementation goes here */ }
+void thread_set_nice(int nice) { 
+    /* TODO: Your implementation goes here */ 
+    struct thread *t = thread_current;
+    t->nice = nice;
+
+    if(thread_mlfqs){
+        //// update priority function CALL
+        schedule();
+    }
+}
 
 /* Returns the current thread's nice value. */
 int thread_get_nice(void) {
     /* TODO: Your implementation goes here */
-    return 0;
+    return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int thread_get_load_avg(void) {
     /* TODO: Your implementation goes here */
-    return 0;
+    struct thread *t = thread_current();
+    return FP_TO_INT_ROUND(FP_MUL_MIXED(load_avg, 100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int thread_get_recent_cpu(void) {
     /* TODO: Your implementation goes here */
-    return 0;
+    struct thread *t = thread_current();
+    return FP_TO_INT_ROUND(FP_MUL_MIXED(t->recent_cpu, 100));
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -428,6 +445,9 @@ static void init_thread(struct thread* t, const char* name, int priority) {
     t->base_priority = priority;
     t->waiting_lock = NULL;
     list_init(&t->donor_list);
+
+    t->nice = 0;
+    t->recent_cpu = FP_CONST(0);
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should
@@ -626,4 +646,36 @@ bool thread_priority_max(struct list_elem* e1, struct list_elem* e2, void* aux) 
     struct thread* thread1 = list_entry(e1, struct thread, elem);
     struct thread* thread2 = list_entry(e2, struct thread, elem);
     return thread1->priority <= thread2->priority;
+}
+
+static void mlfqs_update_priority(struct thread *t){
+    if (t == idle_thread) return;
+
+    int new_priority = FP_TO_INT_ZERO(FP_SUB_MIX(FP_SUB_MIX(INT_TO_FP(PRI_MAX), FP_DIV_MIX(t->recent_cpu, 4)), 2 * t->nice));
+
+    if (new_priority > PRI_MAX)
+        new_priority = PRI_MAX;
+    else if(new_priority < PRI_MIN)
+        new_priority = PRI_MIN;
+
+    t->priority = new_priority;
+}
+
+static void mlfqs_update_recent_cpu(struct thread *t){
+    if (t == idle_thread) return;
+
+    fixed_t cf = FP_DIV(FP_MUL(INT_TO_FP(2), load_avg), FP_ADD(FP_MUL(INT_TO_FP(2), load), INT_TO_FP(1)));
+    t->recent_cpu = FP_ADD(FP_MUL(cf, t->recent_cpu), INT_TO_FP(t->nice));
+}
+
+static void mlfqs_update_load_avg(void){
+    int ready_threads = list_size(&ready_list);
+
+    if (thread_current() != idle_thread) 
+        ready_threads += 1;
+
+    fixed_t term1 = FP_MUL(FP_DIV(INT_TO_FP(59), INT_TO_FP(60)), load_avg);
+    fixed_t term2 = FP_MUL(FP_DIV(INT_TO_FP(1), INT_TO_FP(60)), INT_TO_FP(ready_threads));
+
+    load_avg = FP_ADD(term1, term2);
 }
