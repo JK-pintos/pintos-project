@@ -169,15 +169,8 @@ void thread_tick(void) {
             mlfqs_update_recent_cpu_all();
         }
 
-        if (timer_ticks() % 4 == 0) {
+        if (timer_ticks() % 4 == 0) 
             mlfqs_update_priority_all();
-            if (!list_empty(&ready_list)) {
-                struct thread* max_ready =
-                    list_entry(list_max(&ready_list, thread_priority_max, NULL), struct thread, elem);
-                if (max_ready->priority > t->priority)
-                    intr_yield_on_return();
-            }
-        }
     }
     /* Enforce preemption. */
     if (++thread_ticks >= TIME_SLICE) intr_yield_on_return();
@@ -686,7 +679,7 @@ static tid_t allocate_tid(void) {
 static bool sleep_list_order(const struct list_elem* e1, const struct list_elem* e2, void* aux) {
     struct thread* thread1 = list_entry(e1, struct thread, elem);
     struct thread* thread2 = list_entry(e2, struct thread, elem);
-    return thread1->wakeup_tick < thread2->wakeup_tick;
+    return thread1->wakeup_tick < thread2->wakeup_tick; 
 }
 
 bool thread_priority_max(const struct list_elem* e1, const struct list_elem* e2, void* aux) {
