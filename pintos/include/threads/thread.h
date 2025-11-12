@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/interrupt.h"
+#include "threads/fixed-point.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -99,9 +100,11 @@ struct thread {
 	
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              /* List element. */
-
+	struct list_elem allelem;
 	int64_t wakeup_tick;
 
+	int nice;
+	fixed_t recent_cpu;
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4;                     /* Page map level 4 */
@@ -152,6 +155,6 @@ int thread_get_load_avg (void);
 
 void do_iret (struct intr_frame *tf);
 
-bool thread_priority_max(struct list_elem* e1, struct list_elem* e2, void* aux);
+bool thread_priority_max(const struct list_elem* e1, const struct list_elem* e2, void* aux);
 
 #endif /* threads/thread.h */
