@@ -25,7 +25,7 @@
 #endif
 
 static void process_cleanup(void);
-static bool load(const char* file_name, struct intr_frame* if_);
+static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
 static void initd(void* f_name);
 static void __do_fork(void*);
 
@@ -147,8 +147,18 @@ error:
 /* Switch the current execution context to the f_name.
  * Returns -1 on fail. */
 int process_exec(void* f_name) {
-    char* file_name = f_name;
+    char* file_name;
+    char* argv[128];
+    int argc = 0;
     bool success;
+
+    // string token
+    char *token, *save_ptr;
+    for (token = strtok_r(f_name, " ", &save_ptr); token != NULL;
+         token = strtok_r(NULL, " ", &save_ptr)) {
+        argv[argc++] = token;
+    }
+    file_name = argv[0];
 
     /* We cannot use the intr_frame in the thread structure.
      * This is because when current thread rescheduled,
@@ -162,10 +172,10 @@ int process_exec(void* f_name) {
     process_cleanup();
 
     /* And then load the binary */
-    success = load(file_name, &_if);
+    success = load(file_name, argc, argv, &_if);
 
     /* If load failed, quit. */
-    palloc_free_page(file_name);
+    palloc_free_page(f_name);
     if (!success) return -1;
 
     /* Start switched process. */
@@ -186,6 +196,7 @@ int process_wait(tid_t child_tid UNUSED) {
     /* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
      * XXX:       to add infinite loop here before
      * XXX:       implementing the process_wait. */
+    thread_sleep(300);
     return -1;
 }
 
@@ -290,6 +301,7 @@ struct ELF64_PHDR {
 #define Phdr ELF64_PHDR
 
 static bool setup_stack(struct intr_frame* if_);
+static void build_user_stack(struct intr_frame* if_, int argc, char** argv);
 static bool validate_segment(const struct Phdr*, struct file*);
 static bool load_segment(struct file* file, off_t ofs, uint8_t* upage, uint32_t read_bytes,
                          uint32_t zero_bytes, bool writable);
@@ -298,7 +310,7 @@ static bool load_segment(struct file* file, off_t ofs, uint8_t* upage, uint32_t 
  * Stores the executable's entry point into *RIP
  * and its initial stack pointer into *RSP.
  * Returns true if successful, false otherwise. */
-static bool load(const char* file_name, struct intr_frame* if_) {
+static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_) {
     struct thread* t = thread_current();
     struct ELF ehdr;
     struct file* file = NULL;
@@ -378,7 +390,7 @@ static bool load(const char* file_name, struct intr_frame* if_) {
 
     /* Set up stack. */
     if (!setup_stack(if_)) goto done;
-
+    build_user_stack(if_, argc, argv);
     /* Start address. */
     if_->rip = ehdr.e_entry;
 
@@ -504,6 +516,34 @@ static bool setup_stack(struct intr_frame* if_) {
             palloc_free_page(kpage);
     }
     return success;
+}
+
+static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
+    char* uargv[argc];
+    for (int i = argc - 1; i >= 0; i--) {
+        int len = strlen(argv[i]) + 1;
+        if_->rsp -= len;
+        memcpy(if_->rsp, argv[i], len);
+        uargv[i] = if_->rsp;
+    }
+    // paading
+    if_->rsp &= ~0xF;
+
+    // null
+    if_->rsp -= sizeof(uint64_t);
+    *(uint64_t*)if_->rsp = 0;
+
+    // argv pointer
+    for (int i = argc - 1; i >= 0; i--) {
+        if_->rsp -= sizeof(uint64_t);
+        *(uint64_t*)if_->rsp = uargv[i];
+    }
+
+    if_->R.rdi = argc;
+    if_->R.rsi = if_->rsp;
+
+    if_->rsp -= sizeof(uint64_t);
+    *(uint64_t*)if_->rsp = 0;
 }
 
 /* Adds a mapping from user virtual address UPAGE to kernel

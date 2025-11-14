@@ -26,6 +26,9 @@ void syscall_handler(struct intr_frame*);
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
+static void halt(void);
+static int write(int fd, const void* buffer, unsigned size);
+
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
     write_msr(MSR_LSTAR, (uint64_t)syscall_entry);
@@ -38,7 +41,26 @@ void syscall_init(void) {
 
 /* The main system call interface */
 void syscall_handler(struct intr_frame* f UNUSED) {
-    // TODO: Your implementation goes here.
-    printf("system call!\n");
-    thread_exit();
+    uint64_t args1 = f->R.rdi, args2 = f->R.rsi, args3 = f->R.rdx;
+    switch (f->R.rax) {
+        case SYS_HALT:
+            halt();
+            break;
+        case SYS_WRITE:
+            f->R.rax = write(args1, args2, args3);
+            break;
+        default:
+            break;
+    }
+}
+
+static void halt(void) {
+    power_off();
+}
+
+static int write(int fd, const void* buffer, unsigned size) {
+    if (fd == 1) {
+        putbuf(buffer, size);
+        return size;
+    }
 }
