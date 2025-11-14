@@ -46,17 +46,37 @@ void syscall_handler(struct intr_frame* f UNUSED) {
         case SYS_HALT:
             halt();
             break;
+        case SYS_EXIT:
+            break;
+        case SYS_FORK:
+            break;
+        case SYS_EXEC:
+            break;
+        case SYS_WAIT:
+            break;
+        case SYS_CREATE:
+            break;
+        case SYS_REMOVE:
+            break;
+        case SYS_OPEN:
+            break;
+        case SYS_FILESIZE:
+            break;
+        case SYS_READ:
+            break;
         case SYS_WRITE:
             f->R.rax = write(args1, args2, args3);
             break;
-        default:
+        case SYS_SEEK:
+            break;
+        case SYS_TELL:
+            break;
+        case SYS_CLOSE:
             break;
     }
 }
 
-static void halt(void) {
-    power_off();
-}
+static void halt(void) { power_off(); }
 
 static int write(int fd, const void* buffer, unsigned size) {
     if (fd == 1) {
