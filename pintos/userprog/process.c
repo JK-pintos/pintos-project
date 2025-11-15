@@ -216,8 +216,8 @@ void process_exit(void) {
     struct thread* cur = thread_current();
 
     // 부모 깨우기
-    sema_up(&cur->child_entry->wait_sema);
     printf("%s: exit(%d)\n", cur->name, cur->child_entry->exit_status);
+    sema_up(&cur->child_entry->wait_sema);
     process_cleanup();
 }
 
@@ -532,28 +532,23 @@ static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
     char* uargv[argc];
     for (int i = argc - 1; i >= 0; i--) {
         int len = strlen(argv[i]) + 1;
-        if_->rsp -= len;
+        uargv[i] = (if_->rsp -= len);
         memcpy(if_->rsp, argv[i], len);
-        uargv[i] = if_->rsp;
     }
     // paading
     if_->rsp &= ~0xF;
 
     // null
-    if_->rsp -= sizeof(uint64_t);
-    *(uint64_t*)if_->rsp = 0;
+    *(uint64_t*)(if_->rsp -= 8) = 0;
 
     // argv pointer
-    for (int i = argc - 1; i >= 0; i--) {
-        if_->rsp -= sizeof(uint64_t);
-        *(uint64_t*)if_->rsp = uargv[i];
-    }
+    if_->rsp -= argc * sizeof(uint64_t);
+    memcpy((void*)if_->rsp, uargv, argc * sizeof(uint64_t));
 
     if_->R.rdi = argc;
     if_->R.rsi = if_->rsp;
 
-    if_->rsp -= sizeof(uint64_t);
-    *(uint64_t*)if_->rsp = 0;
+    *(uint64_t*)(if_->rsp -= 8) = 0;
 }
 
 /* Adds a mapping from user virtual address UPAGE to kernel
