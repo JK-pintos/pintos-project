@@ -27,6 +27,8 @@ void syscall_handler(struct intr_frame*);
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
 static void halt(void);
+static void exit(int status);
+static int wait(int pid);
 static int write(int fd, const void* buffer, unsigned size);
 
 void syscall_init(void) {
@@ -47,12 +49,14 @@ void syscall_handler(struct intr_frame* f UNUSED) {
             halt();
             break;
         case SYS_EXIT:
+            exit(args1);
             break;
         case SYS_FORK:
             break;
         case SYS_EXEC:
             break;
         case SYS_WAIT:
+            f->R.rax = wait(args1);
             break;
         case SYS_CREATE:
             break;
@@ -77,6 +81,13 @@ void syscall_handler(struct intr_frame* f UNUSED) {
 }
 
 static void halt(void) { power_off(); }
+
+static void exit(int status) {
+    thread_current()->child_entry->exit_status = status;
+    thread_exit();
+}
+
+static int wait(int pid) { return process_wait(pid); }
 
 static int write(int fd, const void* buffer, unsigned size) {
     if (fd == 1) {

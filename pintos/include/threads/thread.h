@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 
+#include "synch.h"
 #include "threads/fixed-point.h"
 #include "threads/interrupt.h"
 #ifdef VM
@@ -105,6 +106,9 @@ struct thread {
 
     int nice;
     fixed_t recent_cpu;
+
+    struct list child_list;
+    struct child_info* child_entry;
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint64_t* pml4; /* Page map level 4 */
@@ -117,6 +121,14 @@ struct thread {
     /* Owned by thread.c. */
     struct intr_frame tf; /* Information for switching */
     unsigned magic;       /* Detects stack overflow. */
+};
+
+struct child_info {
+    tid_t tid;
+    int exit_status;
+    bool exit;
+    struct list_elem child_elem;
+    struct semaphore wait_sema;
 };
 
 /* If false (default), use round-robin scheduler.
@@ -132,6 +144,10 @@ void thread_print_stats(void);
 
 typedef void thread_func(void* aux);
 tid_t thread_create(const char* name, int priority, thread_func*, void*);
+
+void asdf(struct child_info* child_info, struct thread* t);
+
+void ㅁㄴㅇㄹ(struct child_info* child_info);
 
 void thread_block(void);
 void thread_unblock(struct thread*);

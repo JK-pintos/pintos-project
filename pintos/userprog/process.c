@@ -48,7 +48,7 @@ tid_t process_create_initd(const char* file_name) {
     strlcpy(fn_copy, file_name, PGSIZE);
 
     /* Create a new thread to execute FILE_NAME. */
-    tid = thread_create(file_name, PRI_DEFAULT, initd, fn_copy);
+    tid = thread_create(strtok_r(file_name, " ", &file_name), PRI_DEFAULT, initd, fn_copy);
     if (tid == TID_ERROR) palloc_free_page(fn_copy);
     return tid;
 }
@@ -192,22 +192,33 @@ int process_exec(void* f_name) {
  *
  * This function will be implemented in problem 2-2.  For now, it
  * does nothing. */
-int process_wait(tid_t child_tid UNUSED) {
-    /* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
-     * XXX:       to add infinite loop here before
-     * XXX:       implementing the process_wait. */
-    thread_sleep(300);
-    return -1;
+int process_wait(tid_t child_tid) {
+    struct thread* cur = thread_current();
+    struct child_info* child_info = NULL;
+
+    struct list_elem* e = list_begin(&cur->child_list);
+    for (; e != list_end(&cur->child_list); e = list_next(e)) {
+        child_info = list_entry(e, struct child_info, child_elem);
+        if (child_info->tid == child_tid) break;
+    }
+
+    if (e == list_end(&cur->child_list) || child_info->exit) return -1;
+
+    sema_down(&child_info->wait_sema);
+
+    int result = child_info->exit_status;
+    palloc_free_page(child_info);
+    return result;
 }
 
 /* Exit the process. This function is called by thread_exit (). */
 void process_exit(void) {
-    struct thread* curr = thread_current();
-    /* TODO: Your code goes here.
-     * TODO: Implement process termination message (see
-     * TODO: project2/process_termination.html).
-     * TODO: We recommend you to implement process resource cleanup here. */
+    struct thread* cur = thread_current();
+    cur->child_entry->exit = true;
 
+    // 부모 깨우기
+    sema_up(&cur->child_entry->wait_sema);
+    printf("%s: exit(%d)\n", cur->name, cur->child_entry->exit_status);
     process_cleanup();
 }
 
