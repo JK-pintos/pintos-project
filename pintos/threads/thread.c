@@ -479,12 +479,19 @@ static void init_thread(struct thread* t, const char* name, int priority) {
     t->priority = priority;
     t->magic = THREAD_MAGIC;
 
-    t->base_priority = priority;
-    t->waiting_lock = NULL;
-    list_init(&t->donor_list);
+	t->base_priority = priority;
+	t->waiting_lock = NULL;
+	list_init(&t->donor_list);
 
-    t->nice = 0;
-    t->recent_cpu = FP_CONST(0);
+#ifdef USERPROG
+	t->exit_code = -1;
+	sema_init (&t->wait_sema, 0);
+	sema_init (&t->exit_sema, 0);
+	list_init (&t->children);
+#endif
+
+	t->nice = 0;
+	t->recent_cpu = FP_CONST(0);
     old_level = intr_disable();
     list_push_back(&all_list, &t->allelem);
     intr_set_level(old_level);

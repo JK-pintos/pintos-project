@@ -7,9 +7,19 @@
 #include "userprog/gdt.h"
 #include "threads/flags.h"
 #include "intrinsic.h"
+#include "threads/init.h"
+#include "threads/synch.h"
+#include "filesys/filesys.h"
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
+void halt(void);
+void sys_exit(int status);
+int sys_write(int fd, const void *buffer, unsigned size);
+
+static struct lock file_lock;
+static bool sys_create(const char *file, unsigned initial_size);
+void check_address(const void *addr);
 
 /* System call.
  *
@@ -35,12 +45,69 @@ syscall_init (void) {
 	 * mode stack. Therefore, we masked the FLAG_FL. */
 	write_msr(MSR_SYSCALL_MASK,
 			FLAG_IF | FLAG_TF | FLAG_DF | FLAG_IOPL | FLAG_AC | FLAG_NT);
+	lock_init(&file_lock);
 }
 
 /* The main system call interface */
 void
 syscall_handler (struct intr_frame *f UNUSED) {
 	// TODO: Your implementation goes here.
-	printf ("system call!\n");
-	thread_exit ();
+	uint64_t syscall_num = f->R.rax;
+
+	switch (syscall_num){
+		case SYS_HALT: 
+			halt();
+			break;
+		
+		case SYS_EXIT:
+			sys_exit(f->R.rdi);
+			break;
+			
+		case SYS_WRITE:
+			f->R.rax = sys_write(f->R.rdi, f->R.rsi, f->R.rdx);
+			break;
+		
+		case SYS_CREATE:
+			f->R.rax = sys_create(f->R.rdi, f->R.rsi);
+			break;
+
+		default:
+			printf("unknown syscall: %lld\n", syscall_num);
+			sys_exit(-1);
+	}
+}
+
+
+void halt(void) {
+    power_off();
+}
+
+void sys_exit(int status) {
+	struct thread *cur = thread_current();
+	cur->exit_code = status;
+    printf("%s: exit(%d)\n", thread_name(), status);
+	sema_up(&cur->wait_sema);
+	sema_down(&cur->exit_sema);
+    thread_exit();
+}
+
+int sys_write(int fd, const void *buffer, unsigned size) {
+    if (fd == 1) { 
+        putbuf(buffer, size);
+        return size;
+    }
+    return -1;
+}
+
+static bool sys_create(const char *file, unsigned initial_size){
+	check_address(file);
+	lock_acquire(&file_lock);
+	bool success = filesys_create(file, initial_size);
+	lock_release(&file_lock);
+	return success;
+}
+
+void check_address(const void *addr){
+	if (addr == NULL || !is_user_vaddr(addr) || pml4_get_page(thread_current()->pml4, addr) == NULL)
+		sys_exit(-1);
 }
