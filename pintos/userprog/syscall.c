@@ -7,9 +7,13 @@
 #include "userprog/gdt.h"
 #include "threads/flags.h"
 #include "intrinsic.h"
+#include "threads/init.h"
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
+void halt(void);
+void sys_exit(int status);
+int sys_write(int fd, const void *buffer, unsigned size);
 
 /* System call.
  *
@@ -41,6 +45,45 @@ syscall_init (void) {
 void
 syscall_handler (struct intr_frame *f UNUSED) {
 	// TODO: Your implementation goes here.
-	printf ("system call!\n");
-	thread_exit ();
+	uint64_t syscall_num = f->R.rax;
+
+	switch (syscall_num){
+		case SYS_HALT: 
+			halt();
+			break;
+		
+		case SYS_EXIT:
+			sys_exit(f->R.rdi);
+			break;
+
+		case SYS_WRITE:
+			f->R.rax = sys_write(f->R.rdi, f->R.rsi, f->R.rdx);
+			break;
+		
+		default:
+			printf("unknown syscall: %lld\n", syscall_num);
+			sys_exit(-1);
+	}
+}
+
+
+void halt(void) {
+    power_off();
+}
+
+void sys_exit(int status) {
+	struct thread *cur = thread_current();
+	cur->exit_code = status;
+    printf("%s: exit(%d)\n", thread_name(), status);
+	sema_up(&cur->wait_sema);
+	sema_down(&cur->exit_sema);
+    thread_exit();
+}
+
+int sys_write(int fd, const void *buffer, unsigned size) {
+    if (fd == 1) { 
+        putbuf(buffer, size);
+        return size;
+    }
+    return -1;
 }

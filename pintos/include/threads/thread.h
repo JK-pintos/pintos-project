@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "threads/interrupt.h"
 #include "threads/fixed-point.h"
+#include "threads/synch.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -105,6 +106,13 @@ struct thread {
 
 	int nice;
 	fixed_t recent_cpu;
+
+	struct semaphore wait_sema;
+	struct semaphore exit_sema;
+	int exit_code;
+	struct list children;
+	struct list_elem child_elem;
+
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4;                     /* Page map level 4 */

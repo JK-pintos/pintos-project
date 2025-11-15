@@ -14,23 +14,32 @@
 #include "threads/init.h"
 #include "threads/interrupt.h"
 #include "threads/palloc.h"
+#include "threads/malloc.h"
+#include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/mmu.h"
 #include "threads/vaddr.h"
 #include "intrinsic.h"
+
 #ifdef VM
 #include "vm/vm.h"
 #endif
 
 static void process_cleanup (void);
-static bool load (const char *file_name, struct intr_frame *if_);
+static bool load (const char *program, const char *cmdline, struct intr_frame *if_);
+struct exec_args {
+	char *cmdline;
+	struct thread *parent;
+	struct semaphore start_sema;
+};
+
 static void initd (void *f_name);
 static void __do_fork (void *);
 
 /* General process initializer for initd and other process. */
 static void
 process_init (void) {
-	struct thread *current = thread_current ();
+	thread_current ()->exit_code = -1;
 }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
@@ -42,6 +51,9 @@ tid_t
 process_create_initd (const char *file_name) {
 	char *fn_copy;
 	tid_t tid;
+	struct exec_args *args;
+	char thread_name[16];
+	char *name_ptr, *save_ptr;
 
 	/* Make a copy of FILE_NAME.
 	 * Otherwise there's a race between the caller and load(). */
@@ -50,23 +62,51 @@ process_create_initd (const char *file_name) {
 		return TID_ERROR;
 	strlcpy (fn_copy, file_name, PGSIZE);
 
-	/* Create a new thread to execute FILE_NAME. */
-	tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
-	if (tid == TID_ERROR)
+	args = malloc (sizeof *args);
+	if (args == NULL) {
 		palloc_free_page (fn_copy);
+		return TID_ERROR;
+	}
+	args->cmdline = fn_copy;
+	args->parent = thread_current ();
+	sema_init (&args->start_sema, 0);
+
+	strlcpy (thread_name, file_name, sizeof thread_name);
+	name_ptr = strtok_r (thread_name, " ", &save_ptr);
+	if (name_ptr == NULL)
+		name_ptr = thread_name;
+
+	/* Create a new thread to execute FILE_NAME. */
+	tid = thread_create (name_ptr, PRI_DEFAULT, initd, args);
+	if (tid == TID_ERROR) {
+		palloc_free_page (fn_copy);
+		free (args);
+	}
+	else
+		sema_down (&args->start_sema);
 	return tid;
 }
 
 /* A thread function that launches first user process. */
 static void
 initd (void *f_name) {
+	struct exec_args *args = f_name;
+	struct thread *parent = args->parent;
+	char *cmdline = args->cmdline;
+
 #ifdef VM
 	supplemental_page_table_init (&thread_current ()->spt);
 #endif
 
 	process_init ();
 
-	if (process_exec (f_name) < 0)
+	if (parent != NULL)
+		list_push_back (&parent->children, &thread_current ()->child_elem);
+
+	sema_up (&args->start_sema);
+	free (args);
+
+	if (process_exec (cmdline) < 0)
 		PANIC("Fail to launch initd\n");
 	NOT_REACHED ();
 }
@@ -142,7 +182,6 @@ __do_fork (void *aux) {
 	if (!pml4_for_each (parent->pml4, duplicate_pte, parent))
 		goto error;
 #endif
-
 	/* TODO: Your code goes here.
 	 * TODO: Hint) To duplicate the file object, use `file_duplicate`
 	 * TODO:       in include/filesys/file.h. Note that parent should not return
@@ -150,6 +189,7 @@ __do_fork (void *aux) {
 	 * TODO:       the resources of parent.*/
 
 	process_init ();
+	list_push_back(&parent->children, &current->child_elem);
 
 	/* Finally, switch to the newly created process. */
 	if (succ)
@@ -176,10 +216,24 @@ process_exec (void *f_name) {
 	/* We first kill the current context */
 	process_cleanup ();
 
+	char *fn_copy = palloc_get_page(0);
+	if (fn_copy == NULL)
+		return -1;
+
+	strlcpy(fn_copy, file_name, PGSIZE);
+
+	char *save_ptr;
+	char *program = strtok_r(fn_copy, " ", &save_ptr);
+
+	if (program == NULL){
+		palloc_free_page(fn_copy);	
+		return -1;
+	}
 	/* And then load the binary */
-	success = load (file_name, &_if);
+	success = load (program, file_name, &_if);
 
 	/* If load failed, quit. */
+	palloc_free_page(fn_copy);
 	palloc_free_page (file_name);
 	if (!success)
 		return -1;
@@ -204,19 +258,37 @@ process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
-	return -1;
+	struct thread *cur = thread_current ();
+	struct thread *child = NULL;
+	struct list_elem *e;
+	for (e = list_begin(&cur->children); e != list_end(&cur->children); e = list_next(e)) {
+        struct thread *t = list_entry(e, struct thread, child_elem);
+        if (t->tid == child_tid) {
+            child = t;
+            break;
+        }
+    }
+
+	if (child == NULL) return -1;
+
+	sema_down(&child->wait_sema);
+
+	int status = child->exit_code;
+	list_remove(&child->child_elem);
+	sema_up(&child->exit_sema);
+	return status;
 }
 
 /* Exit the process. This function is called by thread_exit (). */
 void
 process_exit (void) {
-	struct thread *curr = thread_current ();
+	struct thread *cur = thread_current ();
 	/* TODO: Your code goes here.
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-
 	process_cleanup ();
+	sema_up(&cur->exit_sema);
 }
 
 /* Free the current process's resources. */
@@ -321,7 +393,7 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
  * and its initial stack pointer into *RSP.
  * Returns true if successful, false otherwise. */
 static bool
-load (const char *file_name, struct intr_frame *if_) {
+load (const char *program, const char *cmdline, struct intr_frame *if_) {
 	struct thread *t = thread_current ();
 	struct ELF ehdr;
 	struct file *file = NULL;
@@ -336,9 +408,9 @@ load (const char *file_name, struct intr_frame *if_) {
 	process_activate (thread_current ());
 
 	/* Open executable file. */
-	file = filesys_open (file_name);
+	file = filesys_open (program);
 	if (file == NULL) {
-		printf ("load: %s: open failed\n", file_name);
+		printf ("load: %s: open failed\n", program);
 		goto done;
 	}
 
@@ -350,7 +422,7 @@ load (const char *file_name, struct intr_frame *if_) {
 			|| ehdr.e_version != 1
 			|| ehdr.e_phentsize != sizeof (struct Phdr)
 			|| ehdr.e_phnum > 1024) {
-		printf ("load: %s: error loading executable\n", file_name);
+		printf ("load: %s: error loading executable\n", program);
 		goto done;
 	}
 
@@ -414,8 +486,67 @@ load (const char *file_name, struct intr_frame *if_) {
 	/* Start address. */
 	if_->rip = ehdr.e_entry;
 
-	/* TODO: Your code goes here.
-	 * TODO: Implement argument passing (see project2/argument_passing.html). */
+	char *cmdline_copy = palloc_get_page (0);
+	if (cmdline_copy == NULL)
+		goto done;
+
+	strlcpy (cmdline_copy, cmdline, PGSIZE);
+
+	char **argv = malloc (sizeof (char *) * PGSIZE);
+	if (argv == NULL) {
+		palloc_free_page (cmdline_copy);
+		goto done;
+	}
+
+	int argc = 0;
+	char *save_ptr;
+	const char *delim = " \f\n\r\t\v";
+	for (char *token = strtok_r (cmdline_copy, delim, &save_ptr); token != NULL; token = strtok_r (NULL, delim, &save_ptr)) {
+		argv[argc++] = token;
+	}
+
+	uintptr_t rsp = if_->rsp;
+	for (int idx = argc - 1; idx >= 0; idx--) {
+		size_t len = strlen (argv[idx]) + 1;
+		rsp -= len;
+		memcpy ((void *) rsp, argv[idx], len);
+		argv[idx] = (char *) rsp;
+	}
+
+	size_t pad = rsp & 0xF;
+	if (pad != 0) {
+		rsp &= ~0xF;
+		memset ((void *) rsp, 0, pad);
+	}
+
+	rsp -= sizeof (char *);
+	memset ((void *) rsp, 0, sizeof (char *));
+
+	for (int idx = argc - 1; idx >= 0; idx--) {
+		rsp -= sizeof (char *);
+		memcpy ((void *) rsp, &argv[idx], sizeof (char *));
+	}
+
+	char **argv_user = (char **) rsp;
+
+	rsp -= sizeof (char **);
+	memcpy ((void *) rsp, &argv_user, sizeof (char **));
+
+	uint64_t argc_val = (uint64_t) argc;
+	rsp -= sizeof (uint64_t);
+	memcpy ((void *) rsp, &argc_val, sizeof (uint64_t));
+
+	rsp -= sizeof (void *);
+	memset ((void *) rsp, 0, sizeof (void *));
+
+	if_->rsp = rsp;
+	//hex_dump(rsp, (void *) rsp, USER_STACK - rsp, true);
+	if_->R.rdi = argc;
+	if_->R.rsi = (uint64_t) argv_user;
+
+	free (argv);
+	palloc_free_page (cmdline_copy);
+
 
 	success = true;
 
