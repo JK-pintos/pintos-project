@@ -202,8 +202,8 @@ int process_wait(tid_t child_tid) {
         if (child_info->tid == child_tid) break;
     }
 
-    if (e == list_end(&cur->child_list) || child_info->exit) return -1;
-
+    if (e == list_end(&cur->child_list) || child_info->wait) return -1;
+    child_info->wait = true;
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
@@ -214,7 +214,6 @@ int process_wait(tid_t child_tid) {
 /* Exit the process. This function is called by thread_exit (). */
 void process_exit(void) {
     struct thread* cur = thread_current();
-    cur->child_entry->exit = true;
 
     // 부모 깨우기
     sema_up(&cur->child_entry->wait_sema);

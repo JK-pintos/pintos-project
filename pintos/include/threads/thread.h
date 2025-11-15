@@ -126,7 +126,7 @@ struct thread {
 struct child_info {
     tid_t tid;
     int exit_status;
-    bool exit;
+    bool wait;
     struct list_elem child_elem;
     struct semaphore wait_sema;
 };

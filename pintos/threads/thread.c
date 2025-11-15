@@ -231,7 +231,7 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     struct child_info* child_info = palloc_get_page(PAL_ZERO);
     sema_init(&child_info->wait_sema, 0);
     child_info->tid = tid;
-    child_info->exit = false;
+    child_info->wait = false;
     child_info->exit_status = -1;
     t->child_entry = child_info;
     list_push_front(&parent_t->child_list, &child_info->child_elem);
