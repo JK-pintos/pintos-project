@@ -204,6 +204,8 @@ process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
+	for (int i = 0 ; i < 1000000000; i++);
+
 	return -1;
 }
 
@@ -316,6 +318,47 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
 		uint32_t read_bytes, uint32_t zero_bytes,
 		bool writable);
 
+void	parse_and_pass_argv(const char *file_name, struct intr_frame *if_)
+{ //4kb 2개라서 스택이 터진게 아닐까.. 
+	char*		cur_rsp;
+	char		buffer[500];
+	char		*token, *save;
+	char		*argv[100];
+	int			ac = 0, idx = 0;
+
+	strlcpy(buffer, file_name, strlen(file_name) + 1);
+	cur_rsp = if_->rsp;
+	token = strtok_r(buffer, " ", &save);
+	while (token)
+	{
+		cur_rsp -= (strlen(token) + 1);
+		memmove(cur_rsp, token, strlen(token) + 1);
+		argv[ac] = cur_rsp;
+		ac++;
+		token = strtok_r(NULL, " ", &save);
+	}
+
+	cur_rsp -= sizeof(char **);
+	*((char **)cur_rsp) = 0;
+	idx = ac - 1;
+	while (idx >= 0)
+	{
+		cur_rsp -= sizeof(char **);
+		*((char **)cur_rsp) = argv[idx];
+		idx--;
+	}
+	if_->R.rdi = ac;
+	if_->R.rsi = (uint64_t)cur_rsp;
+	cur_rsp = (uintptr_t)cur_rsp & ~(0xf);
+	cur_rsp -= sizeof(char **);
+	*((char **)cur_rsp) = 0;
+	if_->rsp = (uintptr_t)cur_rsp;
+
+	// printf("[DEBUG] Stack after pushing args:\n");
+	hex_dump((uintptr_t) if_->rsp, if_->rsp, USER_STACK - (uintptr_t) if_->rsp, true);
+
+}
+
 /* Loads an ELF executable from FILE_NAME into the current thread.
  * Stores the executable's entry point into *RIP
  * and its initial stack pointer into *RSP.
@@ -329,6 +372,11 @@ load (const char *file_name, struct intr_frame *if_) {
 	bool success = false;
 	int i;
 
+	char file_name_copy[128];
+	char *token, *save_ptr;
+	strlcpy(file_name_copy, file_name, sizeof file_name_copy);
+	token = strtok_r(file_name_copy, " ", &save_ptr);
+                                                  
 	/* Allocate and activate page directory. */
 	t->pml4 = pml4_create ();
 	if (t->pml4 == NULL)
@@ -336,7 +384,7 @@ load (const char *file_name, struct intr_frame *if_) {
 	process_activate (thread_current ());
 
 	/* Open executable file. */
-	file = filesys_open (file_name);
+	file = filesys_open (token);
 	if (file == NULL) {
 		printf ("load: %s: open failed\n", file_name);
 		goto done;
@@ -406,7 +454,6 @@ load (const char *file_name, struct intr_frame *if_) {
 				break;
 		}
 	}
-
 	/* Set up stack. */
 	if (!setup_stack (if_))
 		goto done;
@@ -416,13 +463,14 @@ load (const char *file_name, struct intr_frame *if_) {
 
 	/* TODO: Your code goes here.
 	 * TODO: Implement argument passing (see project2/argument_passing.html). */
+	parse_and_pass_argv(file_name, if_);
 
 	success = true;
 
 done:
 	/* We arrive here whether the load is successful or not. */
 	file_close (file);
-	return success;
+	return success; 
 }
 
 

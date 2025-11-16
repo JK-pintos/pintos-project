@@ -10,6 +10,9 @@
 #include "vm/vm.h"
 #endif
 
+#ifndef USERPROG
+#define USERPROG
+#endif
 
 /* States in a thread's life cycle. */
 enum thread_status {
@@ -97,6 +100,8 @@ struct thread {
 	struct lock *waiting_lock;
 	struct list donor_list;
 	struct list_elem donor_elem;	
+
+	struct file	*file_entry[128];
 	
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              /* List element. */
@@ -156,5 +161,8 @@ int thread_get_load_avg (void);
 void do_iret (struct intr_frame *tf);
 
 bool thread_priority_max(const struct list_elem* e1, const struct list_elem* e2, void* aux);
+
+struct file *get_fake_stdin_entry(void);
+struct file *get_fake_stdout_entry(void);
 
 #endif /* threads/thread.h */

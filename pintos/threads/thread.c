@@ -4,6 +4,7 @@
 #include <random.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "intrinsic.h"
@@ -15,9 +16,13 @@
 #include "threads/vaddr.h"
 #include "threads/fixed-point.h"
 #include "devices/timer.h"
+#include "filesys/file.h"
+
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
+
+#include <stdlib.h>
 
 /* Random value for struct thread's `magic' member.
    Used to detect stack overflow.  See the big comment at the top
@@ -58,6 +63,10 @@ static unsigned thread_ticks; /* # of timer ticks since last yield. */
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 bool thread_mlfqs;
+
+
+struct file     *fake_stdin_entry;
+struct file     *fake_stdout_entry;
 
 static void kernel_thread(thread_func*, void* aux);
 
@@ -120,6 +129,12 @@ void thread_init(void) {
     list_init(&ready_list);
     list_init(&destruction_req);
     list_init(&all_list);
+    // fake_stdin_entry = malloc(sizeof(struct file));
+    // if (!fake_stdin_entry)
+    //     PANIC("malloc failed\n");
+    // fake_stdout_entry = malloc(sizeof(struct file));
+    // if (!fake_stdout_entry)
+    //     PANIC("malloc failed\n");
 
     load_avg = FP_CONST(0);
     /* Set up a thread structure for the running thread. */
@@ -217,6 +232,10 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
         mlfqs_update_priority(t);
     }
 
+    memset(t->file_entry, 0, sizeof(t->file_entry));
+    // t->file_entry[0] = fake_stdin_entry;
+    // t->file_entry[1] = fake_stdout_entry;
+
     /* Call the kernel_thread if it scheduled.
      * Note) rdi is 1st argument, and rsi is 2nd argument. */
     t->tf.rip = (uintptr_t)kernel_thread;
@@ -309,6 +328,11 @@ void thread_exit(void) {
        We will be destroyed during the call to schedule_tail(). */
     intr_disable();
     list_remove(&thread_current()->allelem);
+    // if (thread_current() == initial_thread)
+    // {
+    //     free(fake_stdin_entry);
+    //     free(fake_stdout_entry);
+    // }
     do_schedule(THREAD_DYING);
     NOT_REACHED();
 }
@@ -742,4 +766,14 @@ static void mlfqs_update_priority_all(void) {
         struct thread *t = list_entry(e, struct thread, allelem);
         mlfqs_update_priority(t);
     }
+}
+
+struct file *get_fake_stdin_entry(void)
+{
+    return fake_stdin_entry;
+}
+
+struct file *get_fake_stdout_entry(void)
+{
+    return fake_stdin_entry;
 }
