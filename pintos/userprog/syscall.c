@@ -8,6 +8,7 @@
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/loader.h"
+#include "threads/synch.h"
 #include "threads/thread.h"
 #include "userprog/gdt.h"
 #include "userprog/validate.h"
@@ -28,6 +29,8 @@ void syscall_handler(struct intr_frame*);
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
+struct lock file_lock;
+
 static void halt(void);
 static void exit(int status);
 static int wait(int pid);
@@ -42,6 +45,7 @@ void syscall_init(void) {
      * until the syscall_entry swaps the userland stack to the kernel
      * mode stack. Therefore, we masked the FLAG_FL. */
     write_msr(MSR_SYSCALL_MASK, FLAG_IF | FLAG_TF | FLAG_DF | FLAG_IOPL | FLAG_AC | FLAG_NT);
+    lock_init(&file_lock);
 }
 
 /* The main system call interface */
@@ -94,8 +98,11 @@ static void exit(int status) {
 static int wait(int pid) { return process_wait(pid); }
 
 static bool create(const char* file, unsigned initial_size) {
-    if (file == NULL || !validate_string(file, false)) exit(-1);
-    return filesys_create(file, initial_size);
+    if (file == NULL || !validate_ptr(file, false)) exit(-1);
+    lock_acquire(&file_lock);
+    bool result = filesys_create(file, initial_size);
+    lock_release(&file_lock);
+    return result;
 }
 
 static int write(int fd, const void* buffer, unsigned size) {
