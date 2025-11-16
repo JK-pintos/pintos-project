@@ -539,16 +539,16 @@ static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
     if_->rsp &= ~0xF;
 
     // null
-    *(uint64_t*)(if_->rsp -= 8) = 0;
+    *(char**)(if_->rsp -= 8) = 0;
 
     // argv pointer
-    if_->rsp -= argc * sizeof(uint64_t);
-    memcpy((void*)if_->rsp, uargv, argc * sizeof(uint64_t));
+    if_->rsp -= argc * sizeof(char*);
+    memcpy((void*)if_->rsp, uargv, argc * sizeof(char*));
 
     if_->R.rdi = argc;
     if_->R.rsi = if_->rsp;
 
-    *(uint64_t*)(if_->rsp -= 8) = 0;
+    *(char**)(if_->rsp -= 8) = 0;
 }
 
 /* Adds a mapping from user virtual address UPAGE to kernel
