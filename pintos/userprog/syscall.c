@@ -3,12 +3,14 @@
 #include <stdio.h>
 #include <syscall-nr.h>
 
+#include "filesys/filesys.h"
 #include "intrinsic.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/loader.h"
 #include "threads/thread.h"
 #include "userprog/gdt.h"
+#include "userprog/validate.h"
 
 void syscall_entry(void);
 void syscall_handler(struct intr_frame*);
@@ -29,6 +31,7 @@ void syscall_handler(struct intr_frame*);
 static void halt(void);
 static void exit(int status);
 static int wait(int pid);
+static bool create(const char* file, unsigned initial_size);
 static int write(int fd, const void* buffer, unsigned size);
 
 void syscall_init(void) {
@@ -59,6 +62,7 @@ void syscall_handler(struct intr_frame* f UNUSED) {
             f->R.rax = wait(args1);
             break;
         case SYS_CREATE:
+            f->R.rax = create(args1, args2);
             break;
         case SYS_REMOVE:
             break;
@@ -88,6 +92,11 @@ static void exit(int status) {
 }
 
 static int wait(int pid) { return process_wait(pid); }
+
+static bool create(const char* file, unsigned initial_size) {
+    if (file == NULL || !validate_string(file, false)) exit(-1);
+    return filesys_create(file, initial_size);
+}
 
 static int write(int fd, const void* buffer, unsigned size) {
     if (fd == 1) {
