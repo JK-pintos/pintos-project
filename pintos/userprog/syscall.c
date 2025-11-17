@@ -70,6 +70,7 @@ void syscall_handler(struct intr_frame* f UNUSED) {
             f->R.rax = create(args1, args2);
             break;
         case SYS_REMOVE:
+            f->R.rax = remove(args1);
             break;
         case SYS_OPEN:
             break;
@@ -111,7 +112,7 @@ static bool remove(const char* file) {
     lock_acquire(&file_lock);
     bool result = filesys_remove(file);
     lock_release(&file_lock);
-    return true;
+    return result;
 }
 
 static int write(int fd, const void* buffer, unsigned size) {
