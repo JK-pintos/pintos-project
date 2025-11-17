@@ -100,7 +100,7 @@ static void syscall_exit(int status) {
 static int syscall_wait(int pid) { return process_wait(pid); }
 
 static bool create(const char* file, unsigned initial_size) {
-    if (file == NULL || !validate_ptr(file, false)) exit(-1);
+    if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
     bool result = filesys_create(file, initial_size);
     lock_release(&file_lock);
@@ -108,7 +108,7 @@ static bool create(const char* file, unsigned initial_size) {
 }
 
 static bool remove(const char* file) {
-    if (file == NULL || !validate_ptr(file, false)) exit(-1);
+    if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
     bool result = filesys_remove(file);
     lock_release(&file_lock);
