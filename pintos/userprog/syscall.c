@@ -35,6 +35,7 @@ static void halt(void);
 static void exit(int status);
 static int wait(int pid);
 static bool create(const char* file, unsigned initial_size);
+static bool remove(const char* file);
 static int write(int fd, const void* buffer, unsigned size);
 
 void syscall_init(void) {
@@ -103,6 +104,14 @@ static bool create(const char* file, unsigned initial_size) {
     bool result = filesys_create(file, initial_size);
     lock_release(&file_lock);
     return result;
+}
+
+static bool remove(const char* file) {
+    if (file == NULL || !validate_ptr(file, false)) exit(-1);
+    lock_acquire(&file_lock);
+    bool result = filesys_remove(file);
+    lock_release(&file_lock);
+    return true;
 }
 
 static int write(int fd, const void* buffer, unsigned size) {
