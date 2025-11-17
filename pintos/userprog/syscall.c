@@ -34,8 +34,8 @@ struct lock file_lock;
 static void syscall_halt(void);
 static void syscall_exit(int status);
 static int syscall_wait(int pid);
-static bool create(const char* file, unsigned initial_size);
-static bool remove(const char* file);
+static bool syscall_create(const char* file, unsigned initial_size);
+static bool syscall_remove(const char* file);
 static int syscall_write(int fd, const void* buffer, unsigned size);
 
 void syscall_init(void) {
@@ -67,10 +67,10 @@ void syscall_handler(struct intr_frame* f) {
             f->R.rax = syscall_wait(arg1);
             break;
         case SYS_CREATE:
-            f->R.rax = create(arg1, arg2);
+            f->R.rax = syscall_create(arg1, arg2);
             break;
         case SYS_REMOVE:
-            f->R.rax = remove(arg1);
+            f->R.rax = syscall_remove(arg1);
             break;
         case SYS_OPEN:
             break;
@@ -99,7 +99,7 @@ static void syscall_exit(int status) {
 
 static int syscall_wait(int pid) { return process_wait(pid); }
 
-static bool create(const char* file, unsigned initial_size) {
+static bool syscall_create(const char* file, unsigned initial_size) {
     if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
     bool result = filesys_create(file, initial_size);
@@ -107,7 +107,7 @@ static bool create(const char* file, unsigned initial_size) {
     return result;
 }
 
-static bool remove(const char* file) {
+static bool syscall_remove(const char* file) {
     if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
     bool result = filesys_remove(file);
