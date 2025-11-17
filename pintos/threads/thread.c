@@ -230,6 +230,7 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
 #ifdef USERPROG
     t->my_entry = palloc_get_page(PAL_ZERO);
     sema_init(&t->my_entry->wait_sema, 0);
+    t->my_entry->tid = tid;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
 #endif
 
