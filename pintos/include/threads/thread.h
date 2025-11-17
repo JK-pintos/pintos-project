@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "threads/interrupt.h"
 #include "threads/fixed-point.h"
+#include "synch.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -102,10 +103,16 @@ struct thread {
 	struct list_elem donor_elem;	
 
 	struct file	*file_entry[128];
+
+	struct semaphore	exit_sema;
+	struct list 		child_list;
+	
+	int	exit_status;
 	
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              /* List element. */
 	struct list_elem allelem;
+	struct list_elem parent_child_elem;
 	int64_t wakeup_tick;
 
 	int nice;
@@ -128,6 +135,9 @@ struct thread {
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+extern struct file	*fake_stdin_entry;
+extern struct file	*fake_stdout_entry;
 
 void thread_init (void);
 void thread_start (void);
@@ -164,5 +174,7 @@ bool thread_priority_max(const struct list_elem* e1, const struct list_elem* e2,
 
 struct file *get_fake_stdin_entry(void);
 struct file *get_fake_stdout_entry(void);
+
+struct thread *get_tid_thread(tid_t target);
 
 #endif /* threads/thread.h */

@@ -41,7 +41,9 @@ process_init (void) {
 tid_t
 process_create_initd (const char *file_name) {
 	char *fn_copy;
+	char *just_file_name;
 	tid_t tid;
+	int		i = 0;
 
 	/* Make a copy of FILE_NAME.
 	 * Otherwise there's a race between the caller and load(). */
@@ -50,10 +52,19 @@ process_create_initd (const char *file_name) {
 		return TID_ERROR;
 	strlcpy (fn_copy, file_name, PGSIZE);
 
+	while (file_name[i] != ' ')
+		i++;
+	just_file_name = (char *)malloc(sizeof(char) * (i + 1));
+	if (just_file_name == NULL)
+		PANIC("malloc failed\n");
+	strlcpy (just_file_name, file_name, i + 1);
+	just_file_name[i] = '\0';
+
 	/* Create a new thread to execute FILE_NAME. */
-	tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
+	tid = thread_create (just_file_name, PRI_DEFAULT, initd, fn_copy);
 	if (tid == TID_ERROR)
 		palloc_free_page (fn_copy);
+	free(just_file_name);
 	return tid;
 }
 
@@ -200,13 +211,17 @@ process_exec (void *f_name) {
  * This function will be implemented in problem 2-2.  For now, it
  * does nothing. */
 int
-process_wait (tid_t child_tid UNUSED) {
+process_wait (tid_t child_tid) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
-	for (int i = 0 ; i < 1000000000; i++);
+	struct thread	*child;
 
-	return -1;
+	child = get_tid_thread(child_tid); //원래는 child인지 검사해야하는데 fork가 없어서 임시로
+	if (child == NULL)
+		return -1;	//-1리턴말고 다른 방법이 있을지? 
+	sema_down(&(child->exit_sema));
+	return child->exit_status;
 }
 
 /* Exit the process. This function is called by thread_exit (). */
@@ -217,7 +232,9 @@ process_exit (void) {
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-
+	
+	printf("%s: exit(%d)\n", curr->name, curr->exit_status);
+	sema_up(&(curr->exit_sema));
 	process_cleanup ();
 }
 
@@ -319,7 +336,7 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
 		bool writable);
 
 void	parse_and_pass_argv(const char *file_name, struct intr_frame *if_)
-{ //4kb 2개라서 스택이 터진게 아닐까.. 
+{
 	char*		cur_rsp;
 	char		buffer[500];
 	char		*token, *save;
@@ -333,10 +350,12 @@ void	parse_and_pass_argv(const char *file_name, struct intr_frame *if_)
 	{
 		cur_rsp -= (strlen(token) + 1);
 		memmove(cur_rsp, token, strlen(token) + 1);
-		argv[ac] = cur_rsp;
+		argv[ac] = (char **)cur_rsp;
 		ac++;
 		token = strtok_r(NULL, " ", &save);
 	}
+
+	cur_rsp = (char*)((uintptr_t)cur_rsp & ~(0x7));
 
 	cur_rsp -= sizeof(char **);
 	*((char **)cur_rsp) = 0;
@@ -353,10 +372,6 @@ void	parse_and_pass_argv(const char *file_name, struct intr_frame *if_)
 	cur_rsp -= sizeof(char **);
 	*((char **)cur_rsp) = 0;
 	if_->rsp = (uintptr_t)cur_rsp;
-
-	// printf("[DEBUG] Stack after pushing args:\n");
-	hex_dump((uintptr_t) if_->rsp, if_->rsp, USER_STACK - (uintptr_t) if_->rsp, true);
-
 }
 
 /* Loads an ELF executable from FILE_NAME into the current thread.

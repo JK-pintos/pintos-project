@@ -49,12 +49,14 @@ syscall_handler (struct intr_frame *f) {
 
 			break;
 		case SYS_EXIT:
+			syscall_exit(f->R.rdi);
 			break;
 		case SYS_FORK:
 			break;
 		case SYS_EXEC:
 			break;
 		case SYS_WAIT:
+			f->R.rax = syscall_wait(f->R.rdi);
 			break;
 		case SYS_CREATE:
 			break;
@@ -87,9 +89,11 @@ syscall_handler (struct intr_frame *f) {
 // {
 // }
 
-// void		syscall_exit(int status)
-// {
-// }
+void		syscall_exit(int status)
+{
+	thread_current()->exit_status = status;
+	thread_exit();
+}
 
 // tid_t		syscall_fork(const char *thread_name)
 // {
@@ -99,9 +103,10 @@ syscall_handler (struct intr_frame *f) {
 // {
 // }
 
-// int			syscall_wait(tid_t pid)
-// {
-// }
+int			syscall_wait(tid_t pid)
+{
+	return process_wait(pid); //fork에서 pid List 삽입 ..?
+}
 
 // bool		syscall_create(const char *file, unsigned initial_size)
 // {

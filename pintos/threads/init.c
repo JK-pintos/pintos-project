@@ -37,6 +37,8 @@
 #include "filesys/filesys.h"
 #include "filesys/fsutil.h"
 #endif
+#include "filesys/filesys.h"
+
 
 /* Page-map-level-4 with kernel mappings only. */
 uint64_t *base_pml4;
@@ -50,6 +52,9 @@ static bool format_filesys;
 bool power_off_when_done;
 
 bool thread_tests;
+
+struct file     *fake_stdin_entry;
+struct file     *fake_stdout_entry;
 
 static void bss_init (void);
 static void paging_init (uint64_t mem_end);
@@ -105,6 +110,17 @@ main (void) {
 	thread_start ();
 	serial_init_queue ();
 	timer_calibrate ();
+
+	/* Initialize stdin, stdout entry */
+	fake_stdin_entry = malloc(sizeof(fake_stdin_entry));
+	if (fake_stdin_entry == NULL)
+		PANIC("malloc failed\n");
+	fake_stdout_entry = malloc(sizeof(fake_stdout_entry));
+	if (fake_stdout_entry == NULL)
+		PANIC("malloc failed\n");
+	
+	thread_current()->file_entry[0] = fake_stdin_entry;
+	thread_current()->file_entry[1] = fake_stdout_entry;
 
 #ifdef FILESYS
 	/* Initialize file system. */

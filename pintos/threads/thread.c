@@ -64,9 +64,8 @@ static unsigned thread_ticks; /* # of timer ticks since last yield. */
    Controlled by kernel command-line option "-o mlfqs". */
 bool thread_mlfqs;
 
-
-struct file     *fake_stdin_entry;
-struct file     *fake_stdout_entry;
+// struct file     *fake_stdin_entry;
+// struct file     *fake_stdout_entry;
 
 static void kernel_thread(thread_func*, void* aux);
 
@@ -129,12 +128,6 @@ void thread_init(void) {
     list_init(&ready_list);
     list_init(&destruction_req);
     list_init(&all_list);
-    // fake_stdin_entry = malloc(sizeof(struct file));
-    // if (!fake_stdin_entry)
-    //     PANIC("malloc failed\n");
-    // fake_stdout_entry = malloc(sizeof(struct file));
-    // if (!fake_stdout_entry)
-    //     PANIC("malloc failed\n");
 
     load_avg = FP_CONST(0);
     /* Set up a thread structure for the running thread. */
@@ -142,6 +135,7 @@ void thread_init(void) {
     init_thread(initial_thread, "main", PRI_DEFAULT);
     initial_thread->status = THREAD_RUNNING;
     initial_thread->tid = allocate_tid();
+
 
     list_init(&sleep_list);
 }
@@ -328,11 +322,6 @@ void thread_exit(void) {
        We will be destroyed during the call to schedule_tail(). */
     intr_disable();
     list_remove(&thread_current()->allelem);
-    // if (thread_current() == initial_thread)
-    // {
-    //     free(fake_stdin_entry);
-    //     free(fake_stdout_entry);
-    // }
     do_schedule(THREAD_DYING);
     NOT_REACHED();
 }
@@ -506,6 +495,10 @@ static void init_thread(struct thread* t, const char* name, int priority) {
     t->base_priority = priority;
     t->waiting_lock = NULL;
     list_init(&t->donor_list);
+    sema_init(&t->exit_sema, 0);
+    t->exit_status = 0;
+    t->file_entry[0] = fake_stdin_entry;
+    t->file_entry[1] = fake_stdout_entry;
 
     t->nice = 0;
     t->recent_cpu = FP_CONST(0);
@@ -768,12 +761,13 @@ static void mlfqs_update_priority_all(void) {
     }
 }
 
-struct file *get_fake_stdin_entry(void)
+struct thread *get_tid_thread(tid_t target)
 {
-    return fake_stdin_entry;
-}
-
-struct file *get_fake_stdout_entry(void)
-{
-    return fake_stdin_entry;
+    struct list_elem *e;
+    for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)) {
+        struct thread *t = list_entry(e, struct thread, allelem);
+        if (t->tid == target)
+            return t;
+    }
+    return NULL;
 }

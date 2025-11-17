@@ -9,7 +9,7 @@ enum {
 void        syscall_init (void);
 
 // void		syscall_halt(void);
-// void		syscall_exit(int status);
+void		syscall_exit(int status);
 // tid_t		syscall_fork(const char *thread_name);
 // int			syscall_exec(const char *cmd_line);
 // int			syscall_wait(tid_t pid);
