@@ -1,15 +1,17 @@
 #include "userprog/syscall.h"
+
 #include <stdio.h>
 #include <syscall-nr.h>
-#include "threads/interrupt.h"
-#include "threads/thread.h"
-#include "threads/loader.h"
-#include "userprog/gdt.h"
-#include "threads/flags.h"
-#include "intrinsic.h"
 
-void syscall_entry (void);
-void syscall_handler (struct intr_frame *);
+#include "intrinsic.h"
+#include "threads/flags.h"
+#include "threads/interrupt.h"
+#include "threads/loader.h"
+#include "threads/thread.h"
+#include "userprog/gdt.h"
+
+void syscall_entry(void);
+void syscall_handler(struct intr_frame*);
 
 /* System call.
  *
@@ -24,23 +26,72 @@ void syscall_handler (struct intr_frame *);
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
-void
-syscall_init (void) {
-	write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48  |
-			((uint64_t)SEL_KCSEG) << 32);
-	write_msr(MSR_LSTAR, (uint64_t) syscall_entry);
+static void syscall_halt(void);
+static void syscall_exit(int status);
+static int syscall_wait(int pid);
+static int syscall_write(int fd, const void* buffer, unsigned size);
 
-	/* The interrupt service rountine should not serve any interrupts
-	 * until the syscall_entry swaps the userland stack to the kernel
-	 * mode stack. Therefore, we masked the FLAG_FL. */
-	write_msr(MSR_SYSCALL_MASK,
-			FLAG_IF | FLAG_TF | FLAG_DF | FLAG_IOPL | FLAG_AC | FLAG_NT);
+void syscall_init(void) {
+    write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
+    write_msr(MSR_LSTAR, (uint64_t)syscall_entry);
+
+    /* The interrupt service rountine should not serve any interrupts
+     * until the syscall_entry swaps the userland stack to the kernel
+     * mode stack. Therefore, we masked the FLAG_FL. */
+    write_msr(MSR_SYSCALL_MASK, FLAG_IF | FLAG_TF | FLAG_DF | FLAG_IOPL | FLAG_AC | FLAG_NT);
 }
 
 /* The main system call interface */
-void
-syscall_handler (struct intr_frame *f UNUSED) {
-	// TODO: Your implementation goes here.
-	printf ("system call!\n");
-	thread_exit ();
+void syscall_handler(struct intr_frame* f) {
+    uint64_t arg1 = f->R.rdi, arg2 = f->R.rsi, arg3 = f->R.rdx;
+    switch (f->R.rax) {
+        case SYS_HALT:
+            syscall_halt();
+            break;
+        case SYS_EXIT:
+            syscall_exit(arg1);
+            break;
+        case SYS_FORK:
+            break;
+        case SYS_EXEC:
+            break;
+        case SYS_WAIT:
+            f->R.rax = syscall_wait(arg1);
+            break;
+        case SYS_CREATE:
+            break;
+        case SYS_REMOVE:
+            break;
+        case SYS_OPEN:
+            break;
+        case SYS_FILESIZE:
+            break;
+        case SYS_READ:
+            break;
+        case SYS_WRITE:
+            f->R.rax = syscall_write(arg1, arg2, arg3);
+            break;
+        case SYS_SEEK:
+            break;
+        case SYS_TELL:
+            break;
+        case SYS_CLOSE:
+            break;
+    }
+}
+
+static void syscall_halt(void) { power_off(); }
+
+static void syscall_exit(int status) {
+    thread_current()->my_entry->exit_status = status;
+    thread_exit();
+}
+
+static int syscall_wait(int pid) { return process_wait(pid); }
+
+static int syscall_write(int fd, const void* buffer, unsigned size) {
+    if (fd == 1) {
+        putbuf(buffer, size);
+        return size;
+    }
 }
