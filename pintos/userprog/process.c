@@ -212,7 +212,7 @@ int process_wait(tid_t child_tid) {
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
-    palloc_free_page(child_info);
+    free(child_info);
     return result;
 }
 

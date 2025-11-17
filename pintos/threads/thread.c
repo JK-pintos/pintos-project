@@ -4,6 +4,7 @@
 #include <random.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "devices/timer.h"
@@ -228,7 +229,7 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     t->tf.eflags = FLAG_IF;
 
 #ifdef USERPROG
-    t->my_entry = palloc_get_page(PAL_ZERO);
+    t->my_entry = calloc(1, sizeof(struct child_info));
     sema_init(&t->my_entry->wait_sema, 0);
     t->my_entry->tid = tid;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
