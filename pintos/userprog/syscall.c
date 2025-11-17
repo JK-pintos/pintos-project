@@ -26,10 +26,10 @@ void syscall_handler(struct intr_frame*);
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
-static void halt(void);
-static void exit(int status);
-static int wait(int pid);
-static int write(int fd, const void* buffer, unsigned size);
+static void syscall_halt(void);
+static void syscall_exit(int status);
+static int syscall_wait(int pid);
+static int syscall_write(int fd, const void* buffer, unsigned size);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -42,21 +42,21 @@ void syscall_init(void) {
 }
 
 /* The main system call interface */
-void syscall_handler(struct intr_frame* f UNUSED) {
-    uint64_t args1 = f->R.rdi, args2 = f->R.rsi, args3 = f->R.rdx;
+void syscall_handler(struct intr_frame* f) {
+    uint64_t arg1 = f->R.rdi, arg2 = f->R.rsi, arg3 = f->R.rdx;
     switch (f->R.rax) {
         case SYS_HALT:
-            halt();
+            syscall_halt();
             break;
         case SYS_EXIT:
-            exit(args1);
+            syscall_exit(arg1);
             break;
         case SYS_FORK:
             break;
         case SYS_EXEC:
             break;
         case SYS_WAIT:
-            f->R.rax = wait(args1);
+            f->R.rax = syscall_wait(arg1);
             break;
         case SYS_CREATE:
             break;
@@ -69,7 +69,7 @@ void syscall_handler(struct intr_frame* f UNUSED) {
         case SYS_READ:
             break;
         case SYS_WRITE:
-            f->R.rax = write(args1, args2, args3);
+            f->R.rax = syscall_write(arg1, arg2, arg3);
             break;
         case SYS_SEEK:
             break;
@@ -80,16 +80,16 @@ void syscall_handler(struct intr_frame* f UNUSED) {
     }
 }
 
-static void halt(void) { power_off(); }
+static void syscall_halt(void) { power_off(); }
 
-static void exit(int status) {
-    thread_current()->child_entry->exit_status = status;
+static void syscall_exit(int status) {
+    thread_current()->my_entry->exit_status = status;
     thread_exit();
 }
 
-static int wait(int pid) { return process_wait(pid); }
+static int syscall_wait(int pid) { return process_wait(pid); }
 
-static int write(int fd, const void* buffer, unsigned size) {
+static int syscall_write(int fd, const void* buffer, unsigned size) {
     if (fd == 1) {
         putbuf(buffer, size);
         return size;

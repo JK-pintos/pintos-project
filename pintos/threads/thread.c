@@ -227,17 +227,14 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     t->tf.cs = SEL_KCSEG;
     t->tf.eflags = FLAG_IF;
 
-    // save parent thread
-    struct child_info* child_info = palloc_get_page(PAL_ZERO);
-    sema_init(&child_info->wait_sema, 0);
-    child_info->tid = tid;
-    child_info->wait = false;
-    child_info->exit_status = -1;
-    t->child_entry = child_info;
-    list_push_front(&parent_t->child_list, &child_info->child_elem);
+#ifdef USERPROG
+    t->my_entry = palloc_get_page(PAL_ZERO);
+    sema_init(&t->my_entry->wait_sema, 0);
+    list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
+#endif
 
     list_push_back(&all_list, &t->allelem);
-    
+
     /* Add to run queue. */
     thread_unblock(t);
 
@@ -497,7 +494,9 @@ static void init_thread(struct thread* t, const char* name, int priority) {
     old_level = intr_disable();
     intr_set_level(old_level);
 
+#ifdef USERPROG
     list_init(&t->child_list);
+#endif
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should

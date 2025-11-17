@@ -30,7 +30,12 @@ static void initd(void* f_name);
 static void __do_fork(void*);
 
 /* General process initializer for initd and other process. */
-static void process_init(void) { struct thread* current = thread_current(); }
+static void process_init(void) {
+    struct child_info* my_entry = thread_current()->my_entry;
+    my_entry->tid = thread_current()->tid;
+    my_entry->wait = false;
+    my_entry->exit_status = -1;
+}
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
  * The new thread may be scheduled (and may even exit)
@@ -216,8 +221,8 @@ void process_exit(void) {
     struct thread* cur = thread_current();
 
     // 부모 깨우기
-    printf("%s: exit(%d)\n", cur->name, cur->child_entry->exit_status);
-    sema_up(&cur->child_entry->wait_sema);
+    printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
+    sema_up(&cur->my_entry->wait_sema);
     process_cleanup();
 }
 
@@ -535,8 +540,11 @@ static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
         uargv[i] = (if_->rsp -= len);
         memcpy(if_->rsp, argv[i], len);
     }
+
     // paading
+    char* temp = if_->rsp;
     if_->rsp &= ~0xF;
+    if (temp - if_->rsp > 0) memset(if_->rsp, 0, temp - if_->rsp);
 
     // null
     *(char**)(if_->rsp -= 8) = 0;
