@@ -262,7 +262,7 @@ process_wait (tid_t child_tid UNUSED) {
 	struct thread *child = NULL;
 	struct list_elem *e;
 	for (e = list_begin(&cur->children); e != list_end(&cur->children); e = list_next(e)) {
-        struct thread *t = list_entry(e, struct thread, child_elem);
+        struct thread *t = list_entry(e, struct thread, child_elem); 
         if (t->tid == child_tid) {
             child = t;
             break;
@@ -536,8 +536,8 @@ load (const char *program, const char *cmdline, struct intr_frame *if_) {
 	rsp -= sizeof (uint64_t);
 	memcpy ((void *) rsp, &argc_val, sizeof (uint64_t));
 
-	rsp -= sizeof (void *);
-	memset ((void *) rsp, 0, sizeof (void *));
+	// rsp -= sizeof (void *);
+	// memset ((void *) rsp, 0, sizeof (void *));
 
 	if_->rsp = rsp;
 	//hex_dump(rsp, (void *) rsp, USER_STACK - rsp, true);
