@@ -136,7 +136,7 @@ static int syscall_open(const char* file) {
 
 static int syscall_filesize(int fd) {
     struct thread* cur = thread_current();
-    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return;
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return -1;
     lock_acquire(&file_lock);
     int result = file_length(cur->fd_table[fd]);
     lock_release(&file_lock);
@@ -160,11 +160,17 @@ int syscall_read(int fd, void* buffer, unsigned size) {
 }
 
 static int syscall_write(int fd, const void* buffer, unsigned size) {
+    if (size == 0) return 0;
+    if (!validate_ptr(buffer, false)) syscall_exit(-1);
+    struct thread* cur = thread_current();
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return -1;
     if (fd == 1) {
         putbuf(buffer, size);
         return size;
     }
-    
+    struct file* file = cur->fd_table[fd];
+    int result = file_write(file, buffer, size);
+    return result;
 }
 
 static void syscall_close(int fd) {
