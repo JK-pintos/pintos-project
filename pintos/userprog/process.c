@@ -536,27 +536,43 @@ static bool setup_stack(struct intr_frame* if_) {
 static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
     char* uargv[argc];
     for (int i = argc - 1; i >= 0; i--) {
-        int len = strlen(argv[i]) + 1;
-        uargv[i] = (if_->rsp -= len);
-        memcpy(if_->rsp, argv[i], len);
+        size_t len = strlen(argv[i]) + 1;
+        if_->rsp -= len;
+        memcpy((void*)if_->rsp, argv[i], len);
+        uargv[i] = (char*)if_->rsp;
     }
+    
+    /* stack alignment to 16 bytes */
+    size_t pad = if_->rsp % 16;
+    if (pad != 0) {
+        if_->rsp -= pad;
+        memset((void*)if_->rsp, 0, pad);
+    }
+    
+    /* sentinel */
+    if_->rsp -= sizeof(char*);
+    *(char**)if_->rsp = NULL;
 
-    // paading
-    char* temp = if_->rsp;
-    if_->rsp &= ~0xF;
-    if (temp - if_->rsp > 0) memset(if_->rsp, 0, temp - if_->rsp);
-
-    // null
-    *(char**)(if_->rsp -= 8) = 0;
-
-    // argv pointer
+    /* argv[] pointers */
     if_->rsp -= argc * sizeof(char*);
     memcpy((void*)if_->rsp, uargv, argc * sizeof(char*));
+    char **argv_user = (char**)if_->rsp;
 
+    /* push argc */
+    if_->rsp -= sizeof(uint64_t);
+    *(uint64_t*)if_->rsp = argc;
+
+    /* push argv pointer */
+    if_->rsp -= sizeof(char**);
+    *(char**)if_->rsp = argv_user;
+
+    /* push fake return address */
+    if_->rsp -= sizeof(void*);
+    *(void**)if_->rsp = 0;
+
+    /* register setup */
     if_->R.rdi = argc;
-    if_->R.rsi = if_->rsp;
-
-    *(char**)(if_->rsp -= 8) = 0;
+    if_->R.rsi = (uint64_t)argv_user;
 }
 
 /* Adds a mapping from user virtual address UPAGE to kernel
