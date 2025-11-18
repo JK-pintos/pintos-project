@@ -90,7 +90,7 @@ void syscall_handler(struct intr_frame* f) {
         case SYS_TELL:
             break;
         case SYS_CLOSE:
-            syscall_open(arg1);
+            syscall_close(arg1);
             break;
     }
 }
@@ -137,4 +137,11 @@ static int syscall_write(int fd, const void* buffer, unsigned size) {
     }
 }
 
-static void syscall_close(int fd) {}
+static void syscall_close(int fd) {
+    struct thread* cur = thread_current();
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd]) return;
+    lock_acquire(&file_lock);
+    file_close(fd);
+    cur->fd_table[fd] = NULL;
+    lock_release(&file_lock);
+}
