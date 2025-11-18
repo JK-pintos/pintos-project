@@ -1,3 +1,14 @@
 {
     "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 100 }",
+    "files.associations": {
+        "*.c": "c",
+        "thread.h": "c",
+        "validate.h": "c",
+        "filesys.h": "c",
+        "fd_util.h": "c",
+        "string.h": "c",
+        "inode.h": "c",
+        "atomic": "c",
+        "*.inc": "c"
+    },
 }
