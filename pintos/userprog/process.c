@@ -233,6 +233,12 @@ void process_exit(void) {
 static void process_cleanup(void) {
     struct thread* curr = thread_current();
 
+    for (int i = 2; i < curr->fd_table_size; i++) {
+        if (curr->fd_table[i] == NULL) continue;
+        file_close(curr->fd_table[i]);
+        curr->fd_table[i] = NULL;
+    }
+
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);
 #endif
