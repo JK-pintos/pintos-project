@@ -38,8 +38,10 @@ static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
 static int syscall_open(const char* file);
-static void syscall_close(int fd);
+static int syscall_filesize(int fd);
+static int syscall_read(int fd, void* buffer, unsigned size);
 static int syscall_write(int fd, const void* buffer, unsigned size);
+static void syscall_close(int fd);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -79,8 +81,10 @@ void syscall_handler(struct intr_frame* f) {
             f->R.rax = syscall_open(arg1);
             break;
         case SYS_FILESIZE:
+            f->R.rax = syscall_filesize(arg1);
             break;
         case SYS_READ:
+            f->R.rax = syscall_read(arg1, arg2, arg3);
             break;
         case SYS_WRITE:
             f->R.rax = syscall_write(arg1, arg2, arg3);
@@ -128,6 +132,19 @@ static int syscall_open(const char* file) {
     int result = allocate_fd(open_file);
     lock_release(&file_lock);
     return result;
+}
+
+static int syscall_filesize(int fd) {
+    struct thread* cur = thread_current();
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd]) return;
+    lock_acquire(&file_lock);
+    int result = file_length(cur->fd_table[fd]);
+    lock_release(&file_lock);
+    return result;
+}
+
+int syscall_read(int fd, void* buffer, unsigned size) {
+
 }
 
 static int syscall_write(int fd, const void* buffer, unsigned size) {
