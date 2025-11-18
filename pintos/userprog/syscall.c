@@ -162,12 +162,12 @@ int syscall_read(int fd, void* buffer, unsigned size) {
 static int syscall_write(int fd, const void* buffer, unsigned size) {
     if (size == 0) return 0;
     if (!validate_ptr(buffer, false)) syscall_exit(-1);
-    struct thread* cur = thread_current();
-    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return -1;
     if (fd == 1) {
         putbuf(buffer, size);
         return size;
     }
+    struct thread* cur = thread_current();
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return -1;
     struct file* file = cur->fd_table[fd];
     int result = file_write(file, buffer, size);
     return result;

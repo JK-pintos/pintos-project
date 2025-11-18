@@ -13,7 +13,6 @@ void fd_init() {
     struct thread* cur = thread_current();
     cur->fd_table_size = FD_TABLE_DAFULT_SIZE;
     cur->fd_table = calloc(1, sizeof(struct file*) * cur->fd_table_size);
-    cur->fd_table[1] = malloc(sizeof(struct file*));
 }
 
 int allocate_fd(struct file* f) {
