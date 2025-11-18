@@ -29,7 +29,6 @@ typedef int tid_t;
 #define PRI_MIN 0      /* Lowest priority. */
 #define PRI_DEFAULT 31 /* Default priority. */
 #define PRI_MAX 63     /* Highest priority. */
-#define FD_MAX 128
 /* A kernel thread or user process.
  *
  * Each thread structure is stored in its own 4 kB page.  The
@@ -107,8 +106,9 @@ struct thread {
     int nice;
     fixed_t recent_cpu;
 
-	struct file *fd_table[FD_MAX];
+	struct file **fd_table;
 	int next_fd;
+    int fd_table_size;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */

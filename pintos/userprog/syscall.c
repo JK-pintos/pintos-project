@@ -45,6 +45,8 @@ static void syscall_close(int fd);
 
 static void fd_close(struct thread *t, int fd);
 static int fd_allocate(struct thread *t, struct file *f);
+static void grow_fd_table(struct thread *t);
+static struct file* find_file_by_fd(int fd);
 static void check_address(const void *addr);
 
 void syscall_init(void) {
@@ -148,25 +150,40 @@ static void syscall_close(int fd){
 	fd_close(thread_current(), fd);
 }
 
-static void fd_table_init(struct thread *t){
-	for (int i = 0; i < FD_MAX; i++)
-		t->fd_table[i] = NULL;
-	t->next_fd = 3;
-}
 
 static void fd_close(struct thread *t, int fd){
-	if (fd < 3 || fd >= FD_MAX) return;
+	if (fd < 3 || fd >= t->fd_table_size) return;
 	if (t->fd_table[fd] == NULL) return;
 	file_close(t->fd_table[fd]);
 	t->fd_table[fd] = NULL;
 }
 
 static int fd_allocate(struct thread *t, struct file *f){
-	for (int fd = 3; fd < FD_MAX; fd++){
-		if (t->fd_table[fd] == NULL){
-			t->fd_table[fd] = f;
-			return fd;
-		}
-	}
-	return -1;
+    while (t->next_fd >= t->fd_table_size) {
+        grow_fd_table(t); 
+    }
+    t->fd_table[t->next_fd] = f;
+
+    return t->next_fd++;
+}
+
+static void grow_fd_table(struct thread *t) {
+    int new_size = t->fd_table_size * 2;
+    struct file **new_table = malloc(sizeof(struct file*) * new_size);
+
+    for (int i = 0; i < new_size; i++) {
+        new_table[i] = (i < t->fd_table_size) ? t->fd_table[i] : NULL;
+    }
+    free(t->fd_table);
+    t->fd_table = new_table;
+    t->fd_table_size = new_size;
+}
+
+static struct file* find_file_by_fd(int fd) {
+    struct thread *t = thread_current();
+
+    if (fd < 0 || fd >= t->fd_table_size)
+        return NULL;
+
+    return t->fd_table[fd];
 }

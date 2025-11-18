@@ -28,7 +28,7 @@ static void process_cleanup(void);
 static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
 static void initd(void* f_name);
 static void __do_fork(void*);
-
+static void fd_table_init(struct thread *t);
 /* General process initializer for initd and other process. */
 static void process_init(void) {
     struct child_info* my_entry = thread_current()->my_entry;
@@ -175,7 +175,8 @@ int process_exec(void* f_name) {
 
     /* We first kill the current context */
     process_cleanup();
-
+    
+    fd_table_init(thread_current());
     /* And then load the binary */
     success = load(file_name, argc, argv, &_if);
 
@@ -229,6 +230,12 @@ void process_exit(void) {
 /* Free the current process's resources. */
 static void process_cleanup(void) {
     struct thread* curr = thread_current();
+
+    for (int i = 3; i < curr->fd_table_size; i++){
+        if (curr->fd_table[i] != NULL)
+            file_close(curr->fd_table[i]);
+    }
+    free(curr->fd_table);
 
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);
@@ -542,13 +549,13 @@ static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
         uargv[i] = (char*)if_->rsp;
     }
     
-    /* stack alignment to 16 bytes */
+    /* Calculate padding so the final stack pointer stays 16-byte aligned. */
     size_t pad = if_->rsp % 16;
     if (pad != 0) {
         if_->rsp -= pad;
         memset((void*)if_->rsp, 0, pad);
     }
-    
+
     /* sentinel */
     if_->rsp -= sizeof(char*);
     *(char**)if_->rsp = NULL;
@@ -556,15 +563,15 @@ static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
     /* argv[] pointers */
     if_->rsp -= argc * sizeof(char*);
     memcpy((void*)if_->rsp, uargv, argc * sizeof(char*));
-    char **argv_user = (char**)if_->rsp;
+    char** argv_user = (char**)if_->rsp;
+
+    /* push argv pointer */
+    if_->rsp -= sizeof(char**);
+    *(char**)(if_->rsp) = argv_user;
 
     /* push argc */
     if_->rsp -= sizeof(uint64_t);
     *(uint64_t*)if_->rsp = argc;
-
-    /* push argv pointer */
-    if_->rsp -= sizeof(char**);
-    *(char**)if_->rsp = argv_user;
 
     /* push fake return address */
     if_->rsp -= sizeof(void*);
@@ -656,3 +663,12 @@ static bool setup_stack(struct intr_frame* if_) {
     return success;
 }
 #endif /* VM */
+
+
+static void fd_table_init(struct thread *t){
+    t->fd_table_size = 64;
+    t->fd_table = malloc(sizeof(struct file*) * t->fd_table_size);
+	for (int i = 0; i < t->fd_table_size; i++)
+		t->fd_table[i] = NULL;
+	t->next_fd = 3;
+}
