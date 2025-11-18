@@ -30,6 +30,8 @@ static void syscall_halt(void);
 static void syscall_exit(int status);
 static int syscall_wait(int pid);
 static int syscall_write(int fd, const void* buffer, unsigned size);
+static bool syscall_create(const char *flie, unsigned initial_size);
+static void check_address(void *addr);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -59,6 +61,7 @@ void syscall_handler(struct intr_frame* f) {
             f->R.rax = syscall_wait(arg1);
             break;
         case SYS_CREATE:
+			f->R.rax = syscall_create(arg1, arg2);
             break;
         case SYS_REMOVE:
             break;
@@ -94,4 +97,14 @@ static int syscall_write(int fd, const void* buffer, unsigned size) {
         putbuf(buffer, size);
         return size;
     }
+}
+
+static bool syscall_create(const char *file, unsigned initial_size){
+	check_address(file);
+	return filesys_create(file, initial_size);
+}
+
+static void check_address(void *addr){
+	if (addr == NULL || !is_user_vaddr(addr) || pml4_get_page(thread_current()->pml4, addr) == NULL)
+	syscall_exit(-1);
 }
