@@ -4,7 +4,7 @@
 #include "threads/vaddr.h"
 
 static int64_t get_user(const uint8_t* uaddr);
-static bool put_user(uint8_t* udst, uint8_t byte);
+static int64_t put_user(uint8_t* udst, uint8_t byte);
 
 bool validate_ptr(const void* uaddr, bool write) {
     if (!is_user_vaddr(uaddr)) return false;
@@ -22,7 +22,7 @@ static int64_t get_user(const uint8_t* uaddr) {
     return result;
 }
 
-static bool put_user(uint8_t* udst, uint8_t byte) {
+static int64_t put_user(uint8_t* udst, uint8_t byte) {
     int64_t error_code;
     __asm __volatile(
         "movabsq $done_put, %0\n"
@@ -30,5 +30,5 @@ static bool put_user(uint8_t* udst, uint8_t byte) {
         "done_put:\n"
         : "=&a"(error_code), "=m"(*udst)
         : "q"(byte));
-    return error_code != -1;
+    return error_code;
 }
