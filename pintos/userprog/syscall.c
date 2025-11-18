@@ -10,6 +10,7 @@
 #include "threads/loader.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+#include "userprog/fd_util.h"
 #include "userprog/gdt.h"
 #include "userprog/validate.h"
 
@@ -36,6 +37,8 @@ static void syscall_exit(int status);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
+static int syscall_open(const char* file);
+static void syscall_close(int fd);
 static int syscall_write(int fd, const void* buffer, unsigned size);
 
 void syscall_init(void) {
@@ -73,6 +76,7 @@ void syscall_handler(struct intr_frame* f) {
             f->R.rax = syscall_remove(arg1);
             break;
         case SYS_OPEN:
+            f->R.rax = syscall_open(arg1);
             break;
         case SYS_FILESIZE:
             break;
@@ -86,6 +90,7 @@ void syscall_handler(struct intr_frame* f) {
         case SYS_TELL:
             break;
         case SYS_CLOSE:
+            syscall_open(arg1);
             break;
     }
 }
@@ -115,9 +120,21 @@ static bool syscall_remove(const char* file) {
     return result;
 }
 
+static int syscall_open(const char* file) {
+    if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
+    struct thread* cur = thread_current();
+    lock_acquire(&file_lock);
+    struct file* open_file = filesys_open(file);
+    int result = allocate_fd(open_file);
+    lock_release(&file_lock);
+    return result;
+}
+
 static int syscall_write(int fd, const void* buffer, unsigned size) {
     if (fd == 1) {
         putbuf(buffer, size);
         return size;
     }
 }
+
+static void syscall_close(int fd) {}

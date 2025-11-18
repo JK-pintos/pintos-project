@@ -18,6 +18,7 @@
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "userprog/fd_util.h"
 #include "userprog/gdt.h"
 #include "userprog/tss.h"
 #ifdef VM
@@ -31,10 +32,12 @@ static void __do_fork(void*);
 
 /* General process initializer for initd and other process. */
 static void process_init(void) {
-    struct child_info* my_entry = thread_current()->my_entry;
-    my_entry->tid = thread_current()->tid;
-    my_entry->wait = false;
-    my_entry->exit_status = -1;
+    struct thread* cur = thread_current();
+    struct child_info* my_entry = cur->my_entry;
+    cur->my_entry->tid = cur->tid;
+    cur->my_entry->wait = false;
+    cur->my_entry->exit_status = -1;
+    fd_init();
 }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
