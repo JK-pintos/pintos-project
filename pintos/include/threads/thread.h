@@ -113,6 +113,9 @@ struct thread {
 
     struct list child_list;
     struct child_info* my_entry;
+
+    struct file** fd_table;
+    int fd_table_size;
 #endif
 #ifdef VM
     /* Table for whole virtual memory owned by thread. */
