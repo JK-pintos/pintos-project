@@ -560,18 +560,10 @@ static void build_user_stack(struct intr_frame* if_, int argc, char** argv) {
     if_->rsp -= sizeof(char*);
     *(char**)if_->rsp = NULL;
 
-    /* argv[] pointers */
-    if_->rsp -= argc * sizeof(char*);
-    memcpy((void*)if_->rsp, uargv, argc * sizeof(char*));
-    char** argv_user = (char**)if_->rsp;
-
-    /* push argv pointer */
-    if_->rsp -= sizeof(char**);
-    *(char**)(if_->rsp) = argv_user;
-
-    /* push argc */
-    if_->rsp -= sizeof(uint64_t);
-    *(uint64_t*)if_->rsp = argc;
+    /* Push argv[i] pointers */
+    if_->rsp -= argc * sizeof(char *);
+    memcpy((void *)if_->rsp, uargv, argc * sizeof(char *));
+    char **argv_user = (char **)if_->rsp;
 
     /* push fake return address */
     if_->rsp -= sizeof(void*);
