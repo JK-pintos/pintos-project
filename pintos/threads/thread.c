@@ -232,6 +232,7 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     sema_init(&t->my_entry->wait_sema, 0);
     t->my_entry->tid = tid;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
+    thread_fdt_init(t);
 #endif
 
     list_push_back(&all_list, &t->allelem);
@@ -240,6 +241,24 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     thread_unblock(t);
 
     return tid;
+}
+
+/* initializes thread's file descriptor table list. */
+void thread_fdt_init(struct thread* t) {
+#ifdef USERPROG
+    struct fdt_block    *first_fdt_block;
+
+    list_init(&(t->fdt_block_list));
+    first_fdt_block = (struct fdt_block *)malloc(sizeof(first_fdt_block));
+    if (!first_fdt_block)
+        PANIC("malloc failed\n");
+    memset(first_fdt_block, 0, sizeof(first_fdt_block)); // NULL 초기화
+    first_fdt_block->entry[0] = fake_stdin_entry;
+    first_fdt_block->entry[1] = fake_stdout_entry;
+    first_fdt_block->available_idx = 2;
+    list_push_back(&(t->fdt_block_list), &(first_fdt_block->elem));
+    lock_init(&(t->fdt_lock));
+#endif
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled

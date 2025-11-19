@@ -51,6 +51,9 @@ bool power_off_when_done;
 
 bool thread_tests;
 
+struct file *fake_stdin_entry = NULL;
+struct file *fake_stdout_entry = NULL;
+
 static void bss_init (void);
 static void paging_init (uint64_t mem_end);
 
@@ -114,6 +117,15 @@ main (void) {
 
 #ifdef VM
 	vm_init ();
+#endif
+
+#ifdef USERPROG
+	fake_stdin_entry = (struct file *)malloc(sizeof(struct file));
+	if (!fake_stdin_entry)	
+		PANIC("malloc failed\n");
+	fake_stdout_entry = (struct file *)malloc(sizeof(struct file));
+	if (!fake_stdout_entry)	
+		PANIC("malloc failed\n");
 #endif
 
 	printf ("Boot complete.\n");

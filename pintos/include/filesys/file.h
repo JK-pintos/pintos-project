@@ -2,6 +2,24 @@
 #define FILESYS_FILE_H
 
 #include "filesys/off_t.h"
+#include <stddef.h>
+#include <stdbool.h>
+#include "list.h"
+
+#define FD_BLOCK_MAX    128
+
+/* An open file. */
+struct file {
+	struct inode *inode;        /* File's inode. */
+	off_t pos;                  /* Current position. */
+	bool deny_write;            /* Has file_deny_write() been called? */
+};
+
+struct fdt_block {
+    struct file *entry[FD_BLOCK_MAX]; 
+    int available_idx;
+    struct list_elem   elem;
+};
 
 struct inode;
 

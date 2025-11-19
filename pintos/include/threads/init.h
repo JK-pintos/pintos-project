@@ -17,4 +17,8 @@ extern bool power_off_when_done;
 
 void power_off (void) NO_RETURN;
 
+/* fake stdin, stdout entries */
+extern struct file *fake_stdin_entry;
+extern struct file *fake_stdout_entry;
+
 #endif /* threads/init.h */

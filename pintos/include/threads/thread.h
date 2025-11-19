@@ -6,8 +6,10 @@
 #include <stdint.h>
 
 #include "synch.h"
+#include "threads/init.h"
 #include "threads/fixed-point.h"
 #include "threads/interrupt.h"
+#include "filesys/file.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -113,6 +115,9 @@ struct thread {
 
     struct list child_list;
     struct child_info* my_entry;
+
+    struct list fdt_block_list;
+    struct lock fdt_lock;
 #endif
 #ifdef VM
     /* Table for whole virtual memory owned by thread. */
@@ -169,5 +174,7 @@ int thread_get_load_avg(void);
 void do_iret(struct intr_frame* tf);
 
 bool thread_priority_max(const struct list_elem* e1, const struct list_elem* e2, void* aux);
+
+void    thread_fdt_init(struct thread *t);
 
 #endif /* threads/thread.h */
