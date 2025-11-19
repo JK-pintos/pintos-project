@@ -35,6 +35,8 @@ static bool	valid_address(const void *addr);
 static void syscall_halt(void);
 static void syscall_exit(int status);
 static int syscall_wait(int pid);
+static int syscall_filesize(int fd);
+static int syscall_read(int fd, void *buffer, unsigned size);
 static int syscall_write(int fd, const void* buffer, unsigned size);
 static bool syscall_create(const char *file, unsigned initial_size);
 static int	syscall_open(const char *file);
@@ -76,8 +78,10 @@ void syscall_handler(struct intr_frame* f) {
 			f->R.rax = syscall_open(arg1);
             break;
         case SYS_FILESIZE:
+            f->R.rax = syscall_filesize(arg1);
             break;
         case SYS_READ:
+            f->R.rax = syscall_read(arg1, arg2, arg3);
             break;
         case SYS_WRITE:
             f->R.rax = syscall_write(arg1, arg2, arg3);
@@ -109,39 +113,157 @@ static void syscall_exit(int status) {
 
 static int syscall_wait(int pid) { return process_wait(pid); }
 
-static int syscall_write(int fd, const void* buffer, unsigned size) {
-    // if (fd == 1) {
-    //     putbuf(buffer, size);
-    //     return size;
-    // }
-  
+static int syscall_filesize(int fd)
+{
+    struct list_elem    *e;
+    struct list_elem    *tail;
+    struct fdt_block    *block;
+    int                 block_start_fd = 0;
 
-    // size 유효성 검사도 해야함 
-    if (valid_address(buffer) == false)
-        syscall_exit(-1);
-    #ifdef USERPROG
-    struct list_elem *e = list_begin(&(thread_current()->fdt_block_list));
-    int block_start_fd = 0;
+    if (fd < 0)
+        return -1;
+    
+    lock_acquire(&(thread_current()->fdt_lock));
+    e = list_begin(&(thread_current()->fdt_block_list));
+    tail = list_tail(&(thread_current()->fdt_block_list));
     while (block_start_fd + FD_BLOCK_MAX <= fd)
     {
+        if (e == tail)
+            break ;
         e = list_next(e);
-        if (e == list_tail(&(thread_current()->fdt_block_list)))
-            return -1; //할당안된 Fd를 넘겼다고 판단
         block_start_fd += FD_BLOCK_MAX;
     }
-    if (block_start_fd + FD_BLOCK_MAX <= fd)
+
+    if (e == tail)
+    {
+        lock_release(&(thread_current()->fdt_lock));
         return -1;
-    struct fdt_block    *block = list_entry(e, struct fdt_block, elem);
+    }
+
+    block = list_entry(e, struct fdt_block, elem);
+    if (block->entry[fd - block_start_fd] == NULL || block->entry[fd - block_start_fd] == fake_stdin_entry || block->entry[fd - block_start_fd] == fake_stdout_entry)
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return -1;
+    }
+    else
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return file_length(block->entry[fd - block_start_fd]);
+    }
+}
+
+static int stdin_read(void *buffer, unsigned size)
+{
+    unsigned char   *buff = (char *)buffer;
+    int             read_bytes = 0;
+    unsigned char   c;
+
+    while (read_bytes < size)
+    {
+        buff[read_bytes] = input_getc();
+        read_bytes++;
+    }
+    return read_bytes;
+}
+
+static int syscall_read(int fd, void *buffer, unsigned size)
+{
+    struct list_elem    *e;
+    struct list_elem    *tail;
+    struct fdt_block    *block;
+    int                 block_start_fd = 0;
+
+    if (fd < 0)
+        return -1;
+
+    if (size == 0)
+        return 0;
+    
+    if (valid_address(buffer) == false || valid_address(buffer + size - 1) == false)
+        syscall_exit(-1);
+
+    lock_acquire(&(thread_current()->fdt_lock));
+    e = list_begin(&(thread_current()->fdt_block_list));
+    tail = list_tail(&(thread_current()->fdt_block_list));
+    while (block_start_fd + FD_BLOCK_MAX <= fd)
+    {
+        if (e == tail)
+            break ;
+        e = list_next(e);
+        block_start_fd += FD_BLOCK_MAX;
+    }
+
+    if (e == tail)
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return -1;
+    }
+
+    block = list_entry(e, struct fdt_block, elem);
+    if (block->entry[fd - block_start_fd] == NULL || block->entry[fd - block_start_fd] == fake_stdout_entry)
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return -1;
+    }
+    else if (block->entry[fd - block_start_fd] == fake_stdin_entry)
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return stdin_read(buffer, size);
+    }
+    else
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return file_read(block->entry[fd - block_start_fd], buffer, size);
+    }
+}
+
+static int syscall_write(int fd, const void* buffer, unsigned size) {
+    struct list_elem    *e;
+    struct list_elem    *tail;
+    struct fdt_block    *block;
+    int                 block_start_fd = 0;
+
+    if (fd < 0)
+        return -1;
+
+    if (valid_address(buffer) == false || valid_address(buffer + size - 1) == false)
+        syscall_exit(-1);
+    
+    lock_acquire(&(thread_current()->fdt_lock));
+    e = list_begin(&(thread_current()->fdt_block_list));
+    tail = list_tail(&(thread_current()->fdt_block_list));
+    while (block_start_fd + FD_BLOCK_MAX <= fd)
+    {
+        if (e == tail)
+            break ;
+        e = list_next(e);
+        block_start_fd += FD_BLOCK_MAX;
+    }
+
+    if (e == tail)
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return -1;
+    }
+
+    block = list_entry(e, struct fdt_block, elem);
     if (block->entry[fd - block_start_fd] == NULL || block->entry[fd - block_start_fd] == fake_stdin_entry)
+    {
+        lock_release(&(thread_current()->fdt_lock));
         return (-1);
+    }
     if (block->entry[fd - block_start_fd] == fake_stdout_entry)
     {
         putbuf(buffer,size);
+        lock_release(&(thread_current()->fdt_lock));
         return size;
     }
-    
-     
-    #endif
+    else
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return file_write(block->entry[fd - block_start_fd], buffer, size);
+    }
 }
 
 static bool syscall_create(const char *file, unsigned initial_size)
@@ -243,13 +365,13 @@ static void	syscall_close(int fd)
             block = list_entry(e, struct fdt_block, elem);
             close_entry = block->entry[fd - block_base_idx];
             block->entry[fd - block_base_idx] = NULL;
-            if (close_entry != NULL && close_entry != fake_stdin_entry && close_entry != fake_stdout_entry)
-            {
-                file_close (close_entry); 
-            }
             if (fd - block_base_idx < block->available_idx)
                 block->available_idx = fd - block_base_idx;
             lock_release(&(thread_current()->fdt_lock));
+
+            if (close_entry != NULL && close_entry != fake_stdin_entry && close_entry != fake_stdout_entry)
+                file_close (close_entry); 
+            
             return ;
         }
         e = list_next(e);
@@ -257,3 +379,4 @@ static void	syscall_close(int fd)
     }
     lock_release(&(thread_current()->fdt_lock));
 }
+
