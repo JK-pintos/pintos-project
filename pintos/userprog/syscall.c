@@ -12,6 +12,7 @@
 #include "threads/thread.h"
 #include "userprog/fd_util.h"
 #include "userprog/gdt.h"
+#include "userprog/process.h"
 #include "userprog/validate.h"
 
 void syscall_entry(void);
@@ -34,6 +35,7 @@ struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
+static int exec(const char* cmd_line);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
@@ -69,6 +71,7 @@ void syscall_handler(struct intr_frame* f) {
         case SYS_FORK:
             break;
         case SYS_EXEC:
+            f->R.rax = exec(arg1);
             break;
         case SYS_WAIT:
             f->R.rax = syscall_wait(arg1);
@@ -106,6 +109,12 @@ static void syscall_halt(void) { power_off(); }
 static void syscall_exit(int status) {
     thread_current()->my_entry->exit_status = status;
     thread_exit();
+}
+
+static int exec(const char* cmd_line) {
+    if (cmd_line == NULL || !validate_ptr(cmd_line, false)) syscall_exit(-1);
+    process_exec(cmd_line);
+    syscall_exit(-1);
 }
 
 static int syscall_wait(int pid) { return process_wait(pid); }
