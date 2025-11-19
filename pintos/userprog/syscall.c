@@ -1,7 +1,9 @@
 #include "userprog/syscall.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <syscall-nr.h>
+#include <stdlib.h>
 
 #include "intrinsic.h"
 #include "threads/flags.h"
@@ -38,9 +40,14 @@ static struct lock file_lock;
 static void syscall_halt(void);
 static void syscall_exit(int status);
 static int syscall_wait(int pid);
-static int syscall_write(int fd, const void* buffer, unsigned size);
 static bool syscall_create(const char *flie, unsigned initial_size);
+static bool syscall_remove(const char *file);
 static int syscall_open(const char *file);
+static int syscall_filesize(int fd);
+static int syscall_read(int fd, void *buffer, unsigned size);
+static int syscall_write(int fd, const void* buffer, unsigned size);
+static void syscall_seek(int fd, unsigned position);
+static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
 
 static void fd_close(struct thread *t, int fd);
@@ -81,22 +88,28 @@ void syscall_handler(struct intr_frame* f) {
 			f->R.rax = syscall_create(arg1, arg2);
             break;
         case SYS_REMOVE:
+            f->R.rax = syscall_remove(arg1);
             break;
         case SYS_OPEN:
 			f->R.rax = syscall_open(arg1);
             break;
         case SYS_FILESIZE:
+            f->R.rax = syscall_filesize(arg1);
             break;
         case SYS_READ:
+            f->R.rax = syscall_read(arg1, arg2, arg3);
             break;
         case SYS_WRITE:
             f->R.rax = syscall_write(arg1, arg2, arg3);
             break;
         case SYS_SEEK:
+            syscall_seek(arg1, arg2);
             break;
         case SYS_TELL:
+            f->R.rax = syscall_tell(arg1);
             break;
         case SYS_CLOSE:
+            syscall_close(arg1);
             break;
     }
 }
@@ -110,31 +123,25 @@ static void syscall_exit(int status) {
 
 static int syscall_wait(int pid) { return process_wait(pid); }
 
-static int syscall_write(int fd, const void* buffer, unsigned size) {
-    if (fd == 1) {
-        putbuf(buffer, size);
-        return size;
-    }
-}
-
-static bool syscall_create(const char *file, unsigned initial_size){
+static bool syscall_create(const char* file, unsigned initial_size){
 	check_address(file);
 	lock_acquire(&file_lock);
     bool success = filesys_create(file, initial_size);
     lock_release(&file_lock);
     return success;
-
 }
 
-static void check_address(const void *addr){
-	if (addr == NULL || !is_user_vaddr(addr) || pml4_get_page(thread_current()->pml4, addr) == NULL)
-	syscall_exit(-1);
+static bool syscall_remove(const char *file){
+    check_address(file);
+    return filesys_remove(file);
 }
 
 static int syscall_open(const char *file){
 	check_address(file);
 
+    lock_acquire(&file_lock);
 	struct file *f = filesys_open(file);
+    lock_release(&file_lock);
 	if (f == NULL) return -1;
 
 	struct thread *cur = thread_current();
@@ -146,15 +153,97 @@ static int syscall_open(const char *file){
 	return fd;
 }
 
+static int syscall_filesize(int fd) {
+    struct file* f = find_file_by_fd(fd);
+    if (f == NULL) return -1;
+
+    lock_acquire(&file_lock);
+    int length = file_length(f);
+    lock_release(&file_lock);
+    return length;
+}
+
+static int syscall_read(int fd, void *buffer, unsigned size){
+    uint8_t* buf = buffer;
+    check_address(buf);
+    check_address(buf + size - 1);
+
+    struct thread *t = thread_current();
+
+    if (fd == 0){
+        for (unsigned i = 0; i < size; i++)
+            buf[i] = input_getc();
+        return size;
+    }
+
+    if (fd == 1 || fd < 0) return -1;
+    if (fd >= t->fd_table_size) return -1;
+    struct file *f = t->fd_table[fd];
+    if (f == NULL) return -1;
+
+    lock_acquire(&file_lock);
+    int bytes = file_read(f, buffer, size);
+    lock_release(&file_lock);
+
+    return bytes;
+}
+
+static int syscall_write(int fd, const void* buffer, unsigned size) {
+    uint8_t* buf = buffer;
+    check_address(buf);
+    check_address(buf + size - 1);
+
+    if (fd == 1) {
+        putbuf(buffer, size);
+        return size;
+    }
+
+    if (fd < 0) return -1;
+    struct file* f = find_file_by_fd(fd);
+    if (f == NULL) return -1;
+
+    lock_acquire(&file_lock);
+    int bytes = file_write(f, buffer, size);
+    lock_release(&file_lock);
+    return bytes;
+}
+
+static void syscall_seek(int fd, unsigned position){
+    struct file *f = find_file_by_fd(fd);
+    if (f == NULL) return;
+
+    lock_acquire(&file_lock);
+    file_seek(f, position);
+    lock_release(&file_lock);
+}
+
+static unsigned syscall_tell(int fd){
+    struct file *f = find_file_by_fd(fd);
+    if (f == NULL) return 0;
+
+    lock_acquire(&file_lock);
+    unsigned pos = file_tell(f);
+    lock_release(&file_lock);
+
+    return pos;
+}
+
 static void syscall_close(int fd){
 	fd_close(thread_current(), fd);
+}
+
+static void check_address(const void *addr){
+	if (addr == NULL || !is_user_vaddr(addr) || pml4_get_page(thread_current()->pml4, addr) == NULL)
+	syscall_exit(-1);
 }
 
 
 static void fd_close(struct thread *t, int fd){
 	if (fd < 3 || fd >= t->fd_table_size) return;
 	if (t->fd_table[fd] == NULL) return;
+    lock_acquire(&file_lock);
 	file_close(t->fd_table[fd]);
+    lock_release(&file_lock);
 	t->fd_table[fd] = NULL;
 }
 
@@ -174,7 +263,7 @@ static void grow_fd_table(struct thread *t) {
     for (int i = 0; i < new_size; i++) {
         new_table[i] = (i < t->fd_table_size) ? t->fd_table[i] : NULL;
     }
-    free(t->fd_table);
+    //free(t->fd_table);
     t->fd_table = new_table;
     t->fd_table_size = new_size;
 }
