@@ -41,6 +41,8 @@ static int syscall_open(const char* file);
 static int syscall_filesize(int fd);
 static int syscall_read(int fd, void* buffer, unsigned size);
 static int syscall_write(int fd, const void* buffer, unsigned size);
+static void syscall_seek(int fd, unsigned position);
+static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
 
 void syscall_init(void) {
@@ -171,6 +173,24 @@ static int syscall_write(int fd, const void* buffer, unsigned size) {
     struct file* file = cur->fd_table[fd];
     int result = file_write(file, buffer, size);
     return result;
+}
+
+static void syscall_seek(int fd, unsigned position) {
+    struct thread* cur = thread_current();
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return;
+    struct file* file = cur->fd_table[fd];
+    lock_acquire(&file_lock);
+    file_seek(file, position);
+    lock_release(&file_lock);
+}
+
+static unsigned syscall_tell(int fd) {
+    struct thread* cur = thread_current();
+    if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return;
+    struct file* file = cur->fd_table[fd];
+    lock_acquire(&file_lock);
+    file_tell(file);
+    lock_release(&file_lock);
 }
 
 static void syscall_close(int fd) {
