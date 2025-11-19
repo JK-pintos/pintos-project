@@ -37,7 +37,7 @@ static void process_init(void) {
     cur->my_entry->tid = cur->tid;
     cur->my_entry->wait = false;
     cur->my_entry->exit_status = -1;
-    fd_init();
+    fd_init(cur);
 }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
@@ -232,12 +232,8 @@ void process_exit(void) {
 /* Free the current process's resources. */
 static void process_cleanup(void) {
     struct thread* curr = thread_current();
-
-    for (int i = 2; i < curr->fd_table_size; i++) {
-        if (curr->fd_table[i] == NULL) continue;
-        file_close(curr->fd_table[i]);
-        curr->fd_table[i] = NULL;
-    }
+    
+    // fd_close_all(curr->fd_table);
 
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);
