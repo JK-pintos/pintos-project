@@ -95,8 +95,10 @@ void syscall_handler(struct intr_frame* f) {
             f->R.rax = syscall_write(arg1, arg2, arg3);
             break;
         case SYS_SEEK:
+            syscall_seek(arg1, arg2);
             break;
         case SYS_TELL:
+            f->R.rax = syscall_tell(arg1);
             break;
         case SYS_CLOSE:
             syscall_close(arg1);
