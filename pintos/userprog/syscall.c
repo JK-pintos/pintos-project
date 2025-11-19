@@ -170,8 +170,10 @@ static int syscall_write(int fd, const void* buffer, unsigned size) {
     }
     struct thread* cur = thread_current();
     if (fd < 0 || cur->fd_table_size <= fd || cur->fd_table[fd] == NULL) return -1;
+    lock_acquire(&file_lock);
     struct file* file = cur->fd_table[fd];
     int result = file_write(file, buffer, size);
+    lock_release(&file_lock);
     return result;
 }
 
