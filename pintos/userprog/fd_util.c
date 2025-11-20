@@ -46,10 +46,26 @@ void fd_close(struct fd_table* fd_t, int fd) {
     if (fd < fd_t->next_fd) fd_t->next_fd = fd;
 }
 
-void fd_close_all(struct fd_table* fd_t) {
-    for (int i = 2; i < fd_t->size; i++) {
-        fd_close(fd_t, i);
+void copy_fd_table(struct fd_table* dst, struct fd_table* src) {
+    unsigned long* new_bitmap = calloc(src->size, sizeof(unsigned long));
+    struct file** new_file_list = calloc(src->size, sizeof(struct file*));
+
+    memcpy(new_bitmap, src->bitmap, src->size);
+    memcpy(new_file_list, src->file_list, src->size);
+
+    free(dst->bitmap);
+    free(dst->file_list);
+    dst->size = src->size;
+    dst->bitmap = new_bitmap;
+    dst->file_list = new_file_list;
+}
+
+void fd_clean(struct thread* t) {
+    for (int i = 2; i < t->fd_table->size; i++) {
+        fd_close(t->fd_table, i);
     }
+    free(t->fd_table);
+    t->fd_table = NULL;
 }
 
 static int fd_find_next(struct fd_table* fd_t) {
@@ -74,6 +90,8 @@ static void fd_table_expand(struct fd_table* fd_t) {
     memcpy(new_bitmap, fd_t->bitmap, fd_t->size);
     memcpy(new_file_list, fd_t->file_list, fd_t->size);
 
+    free(fd_t->bitmap);
+    free(fd_t->file_list);
     fd_t->size = new_size;
     fd_t->bitmap = new_bitmap;
     fd_t->file_list = new_file_list;

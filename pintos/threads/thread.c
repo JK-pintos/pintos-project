@@ -232,6 +232,8 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     t->my_entry = calloc(1, sizeof(struct child_info));
     sema_init(&t->my_entry->wait_sema, 0);
     t->my_entry->tid = tid;
+    t->my_entry->wait = false;
+    t->my_entry->exit_status = -1;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
 #endif
 
