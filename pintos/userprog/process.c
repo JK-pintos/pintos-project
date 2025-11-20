@@ -269,7 +269,10 @@ int process_wait(tid_t child_tid) {
 void process_exit(void) {
     struct thread* cur = thread_current();
 
-    // 부모 깨우기
+    /* Kernel threads (threads tests) don't have user resources. */
+    if (cur->pml4 == NULL) return;
+
+    /* User process: report exit and wake waiting parent. */
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     sema_up(&cur->my_entry->wait_sema);
     process_cleanup(false);
@@ -279,6 +282,8 @@ void process_exit(void) {
 static void process_cleanup(bool flag) {
     struct thread* curr = thread_current();
     
+    if (curr->pml4 == NULL) return;
+
     if (!flag) {
         for (int i = 3; i < curr->fd_table_size; i++) {
             if (curr->fd_table[i] != NULL)
