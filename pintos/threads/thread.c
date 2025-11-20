@@ -249,10 +249,10 @@ void thread_fdt_init(struct thread* t) {
     struct fdt_block    *first_fdt_block;
 
     list_init(&(t->fdt_block_list));
-    first_fdt_block = (struct fdt_block *)malloc(sizeof(first_fdt_block));
+    first_fdt_block = (struct fdt_block *)malloc(sizeof(struct fdt_block));
     if (!first_fdt_block)
         PANIC("malloc failed\n");
-    memset(first_fdt_block, 0, sizeof(first_fdt_block)); // NULL 초기화
+    memset(first_fdt_block, 0, sizeof(struct fdt_block)); // NULL 초기화
     first_fdt_block->entry[0] = fake_stdin_entry;
     first_fdt_block->entry[1] = fake_stdout_entry;
     first_fdt_block->available_idx = 2;

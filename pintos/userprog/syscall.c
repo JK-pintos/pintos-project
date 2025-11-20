@@ -11,6 +11,8 @@
 #include "threads/loader.h"
 #include "threads/thread.h"
 #include "userprog/gdt.h"
+#include "userprog/process.h"
+#include "threads/malloc.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
 
@@ -44,6 +46,7 @@ static int	syscall_open(const char *file);
 static void	syscall_close(int fd);
 static void syscall_seek(int fd, unsigned position);
 static unsigned syscall_tell(int fd);
+static tid_t    syscall_fork(const char *thread_name, struct intr_frame *f);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -66,6 +69,7 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
+            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
             break;
@@ -137,27 +141,12 @@ static struct fdt_block *get_fd_block(int *fd)
 
 static struct file *get_fd_entry(int fd)
 {
-    struct list_elem    *e;
-    struct list_elem    *tail;
-    struct fdt_block    *block;
-    int                 block_start_fd = 0;
+    struct fdt_block *block;
 
-    e = list_begin(&(thread_current()->fdt_block_list));
-    tail = list_tail(&(thread_current()->fdt_block_list));
-    while (block_start_fd + FD_BLOCK_MAX <= fd)
-    {
-        if (e == tail)
-            break ;
-        e = list_next(e);
-        block_start_fd += FD_BLOCK_MAX;
-    }
-
-    if (e == tail)
-        return NULL;
-
-    block = list_entry(e, struct fdt_block, elem);
-    return (block->entry[fd -block_start_fd]);
-
+    block = get_fd_block(&fd);
+    if (!block)
+        return (NULL);
+    return (block->entry[fd]);
 }
 
 static void syscall_halt(void) { power_off(); }
@@ -330,10 +319,8 @@ static int	syscall_open(const char *file)
 
 static void	syscall_close(int fd)
 {
-    struct file *close_entry;
-    struct list_elem *e;
-    struct fdt_block *block;
-    int block_base_idx = 0;
+    struct fdt_block    *block;
+    struct file         *close_entry;
     
     lock_acquire(&(thread_current()->fdt_lock));
     if (fd < 0 || list_empty(&(thread_current()->fdt_block_list)))
@@ -341,36 +328,66 @@ static void	syscall_close(int fd)
         lock_release(&(thread_current()->fdt_lock));
         return ;
     }
-    
-    e = list_begin(&(thread_current()->fdt_block_list));
-    while (e != list_tail(&(thread_current()->fdt_block_list)))
-    {
-        if (block_base_idx <= fd && fd < block_base_idx + FD_BLOCK_MAX)
-        {
-            block = list_entry(e, struct fdt_block, elem);
-            close_entry = block->entry[fd - block_base_idx];
-            block->entry[fd - block_base_idx] = NULL;
-            if (fd - block_base_idx < block->available_idx)
-                block->available_idx = fd - block_base_idx;
-            lock_release(&(thread_current()->fdt_lock));
 
-            if (close_entry != NULL && close_entry != fake_stdin_entry && close_entry != fake_stdout_entry)
-                file_close (close_entry); 
-            
-            return ;
-        }
-        e = list_next(e);
-        block_base_idx += FD_BLOCK_MAX;
+    block = get_fd_block(&fd);
+    if (!block)
+    {
+        lock_release(&(thread_current()->fdt_lock));
+        return ;
     }
+    close_entry = block->entry[fd];
+    block->entry[fd] = NULL;
+    if (fd < block->available_idx || block->available_idx == -1)
+        block->available_idx = fd;
     lock_release(&(thread_current()->fdt_lock));
+    if (close_entry != NULL && close_entry != fake_stdin_entry && close_entry != fake_stdout_entry)
+        file_close (close_entry); 
 }
 
 static void syscall_seek(int fd, unsigned position)
 {
+    struct file *entry;
 
+    if (fd < 0)
+        return ;
+    
+    lock_acquire(&(thread_current()->fdt_lock));
+    entry = get_fd_entry(fd);
+    lock_release(&(thread_current()->fdt_lock));
+    if (!entry)
+        return ;
+
+    file_seek(entry, position);
 }
 
 static unsigned syscall_tell(int fd)
 {
+    struct file *entry;
 
+    if (fd < 0)
+        return -1;
+    
+    lock_acquire(&(thread_current()->fdt_lock));
+    entry = get_fd_entry(fd);
+    lock_release(&(thread_current()->fdt_lock));
+    if (!entry)
+        return -1;
+
+    return file_tell(entry);
+}
+
+static tid_t    syscall_fork(const char *thread_name, struct intr_frame *f)
+{
+    tid_t   child_tid;
+
+    if (false == valid_address(thread_name))
+        syscall_exit(-1);
+    
+    child_tid = process_fork(thread_name, f);
+    if (child_tid == TID_ERROR)
+        return TID_ERROR;
+    else if (child_tid == thread_current()->tid)
+        return 0;
+    else
+        return child_tid;
 }

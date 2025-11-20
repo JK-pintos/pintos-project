@@ -6,7 +6,9 @@
 #include <stdbool.h>
 #include "list.h"
 
-#define FD_BLOCK_MAX    128
+#define FD_BLOCK_MAX        128
+// #define BITS_PER_LONG       (sizeof(long) * 8)
+// #define FD_BLOCK_BITMASK    ((FD_BLOCK_MAX + BITS_PER_LONG - 1) / BITS_PER_LONG)
 
 /* An open file. */
 struct file {
@@ -16,9 +18,10 @@ struct file {
 };
 
 struct fdt_block {
-    struct file *entry[FD_BLOCK_MAX]; 
-    int available_idx;
-    struct list_elem   elem;
+    struct list_elem    elem;
+    int                 available_idx;
+    // long                bitmask[FD_BLOCK_BITMASK];
+    struct file         *entry[FD_BLOCK_MAX]; 
 };
 
 struct inode;

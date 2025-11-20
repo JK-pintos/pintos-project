@@ -24,6 +24,11 @@
 #include "vm/vm.h"
 #endif
 
+struct tmp_fork_struct {
+    struct intr_frame *usr_f;
+    struct thread *parent;
+};
+
 static void process_cleanup(void);
 static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
 static void initd(void* f_name);
@@ -72,9 +77,20 @@ static void initd(void* f_name) {
 
 /* Clones the current process as `name`. Returns the new process's thread id, or
  * TID_ERROR if the thread cannot be created. */
-tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
+tid_t process_fork(const char* name, struct intr_frame* if_) {
     /* Clone current thread to new thread.*/
-    return thread_create(name, PRI_DEFAULT, __do_fork, thread_current());
+
+    struct tmp_fork_struct  *tmp;
+    int res;
+
+    tmp = (struct tmp_fork_struct *)malloc(sizeof(struct tmp_fork_struct));
+    if (!tmp)
+        PANIC("malloc failed\n");
+    tmp->parent = thread_current();
+    tmp->usr_f = if_;
+    res = thread_create(name, PRI_DEFAULT, __do_fork, tmp);
+    free (tmp);
+    return res;
 }
 
 #ifndef VM
@@ -108,16 +124,81 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
 }
 #endif
 
+static void copy_fdt_block(struct fdt_block *parent_block, struct fdt_block *curr_block, struct thread *current)
+{
+    struct file *parent_entry;
+    struct file *new_entry;
+    int i = 0;
+
+    ASSERT(parent_block);
+
+    // 현재 블록이 주어지면 그 블록에 복사 -> 아니면 새로 생성해서 복사 
+    if (!curr_block)
+    {
+        curr_block = (struct fdt_block *)calloc(1, sizeof(struct fdt_block));
+        if (!curr_block)
+            PANIC("malloc failed\n");
+    }
+
+    while (i < FD_BLOCK_MAX)
+    {
+        if (parent_block->entry[i] == fake_stdin_entry || parent_block->entry[i] == fake_stdout_entry)
+            curr_block->entry[i] = parent_block->entry[i];
+        else if (parent_block->entry[i])
+        {
+            new_entry = file_duplicate(parent_block->entry[i]);
+            curr_block->entry[i] = new_entry;
+        }
+        i++;
+    }
+    list_push_back(&(current->fdt_block_list), &(curr_block->elem));
+}
+
+static void copy_fdt_block_list(struct thread *parent, struct thread *current)
+{
+    struct list_elem    *parent_e;
+    struct list_elem    *curr_e;
+    struct list_elem    *parent_tail;
+    struct list_elem    *curr_tail;
+    struct fdt_block    *parent_block;
+    struct fdt_block    *curr_block = NULL;
+
+    lock_acquire(&(parent->fdt_lock));
+    lock_acquire(&(current->fdt_lock));
+
+    parent_e = list_begin(&(parent->fdt_block_list));
+    parent_tail = list_tail(&(parent->fdt_block_list));
+    curr_e = list_begin(&(current->fdt_block_list));
+    curr_tail = list_tail(&(current->fdt_block_list));
+
+    while (parent_e != parent_tail)
+    {
+        parent_block = list_entry(parent_e, struct fdt_block, elem);
+        if (curr_e != curr_tail)
+            curr_block = list_entry(curr_e, struct fdt_block, elem);
+        copy_fdt_block(parent_block, curr_block, current);
+        if (curr_e != curr_tail)
+            curr_e = list_next(curr_e);
+        else
+            curr_block = NULL;
+        parent_e = list_next(parent_e);
+    }
+
+    lock_release(&(parent->fdt_lock));
+    lock_release(&(current->fdt_lock));
+}
+
 /* A thread function that copies parent's execution context.
  * Hint) parent->tf does not hold the userland context of the process.
  *       That is, you are required to pass second argument of process_fork to
  *       this function. */
 static void __do_fork(void* aux) {
+    struct tmp_fork_struct  *wrapper = (struct tmp_fork_struct *)aux;
     struct intr_frame if_;
-    struct thread* parent = (struct thread*)aux;
+    struct thread* parent = wrapper->parent;
     struct thread* current = thread_current();
     /* TODO: somehow pass the parent_if. (i.e. process_fork()'s if_) */
-    struct intr_frame* parent_if;
+    struct intr_frame* parent_if = wrapper->usr_f;
     bool succ = true;
 
     /* 1. Read the cpu context to local stack. */
@@ -140,6 +221,8 @@ static void __do_fork(void* aux) {
      * TODO:       in include/filesys/file.h. Note that parent should not return
      * TODO:       from the fork() until this function successfully duplicates
      * TODO:       the resources of parent.*/
+
+    copy_fdt_block_list(parent, current);
 
     process_init();
 
