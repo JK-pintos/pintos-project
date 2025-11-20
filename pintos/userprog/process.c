@@ -32,7 +32,7 @@ struct fork_args {
     struct semaphore sema;
 };
 
-static void process_cleanup(void);
+static void process_cleanup(bool flag);
 static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
 static void initd(void* f_name);
 static void __do_fork(void*);
@@ -43,6 +43,7 @@ static void process_init(void) {
     my_entry->tid = thread_current()->tid;
     my_entry->wait = false;
     my_entry->exit_status = -1;
+    fd_table_init(thread_current());
 }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
@@ -213,22 +214,23 @@ int process_exec(void* f_name) {
     /* We cannot use the intr_frame in the thread structure.
      * This is because when current thread rescheduled,
      * it stores the execution information to the member. */
-    struct intr_frame _if;
+    struct intr_frame _if; 
+    memset(&_if, 0, sizeof _if);
+
     _if.ds = _if.es = _if.ss = SEL_UDSEG;
     _if.cs = SEL_UCSEG;
     _if.eflags = FLAG_IF | FLAG_MBS;
 
-    /* We first kill the current context */
-    process_cleanup();
+    process_cleanup(true);
     
-    fd_table_init(thread_current());
     /* And then load the binary */
     success = load(file_name, argc, argv, &_if);
 
     /* If load failed, quit. */
     palloc_free_page(f_name);
-    if (!success) return -1;
-
+    if (!success){
+        return -1;
+    } 
     /* Start switched process. */
     do_iret(&_if);
     NOT_REACHED();
@@ -270,18 +272,20 @@ void process_exit(void) {
     // 부모 깨우기
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     sema_up(&cur->my_entry->wait_sema);
-    process_cleanup();
+    process_cleanup(false);
 }
 
 /* Free the current process's resources. */
-static void process_cleanup(void) {
+static void process_cleanup(bool flag) {
     struct thread* curr = thread_current();
-
-    for (int i = 3; i < curr->fd_table_size; i++){
-        if (curr->fd_table[i] != NULL)
-            file_close(curr->fd_table[i]);
+    
+    if (!flag) {
+        for (int i = 3; i < curr->fd_table_size; i++) {
+            if (curr->fd_table[i] != NULL)
+                file_close(curr->fd_table[i]);
+        }
+        free(curr->fd_table);
     }
-    free(curr->fd_table);
 
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);
