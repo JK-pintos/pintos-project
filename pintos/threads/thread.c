@@ -17,6 +17,7 @@
 #include "threads/vaddr.h"
 #ifdef USERPROG
 #include "userprog/process.h"
+#include "userprog/fdtable.h"
 #endif
 
 /* Random value for struct thread's `magic' member.
@@ -232,6 +233,7 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     sema_init(&t->my_entry->wait_sema, 0);
     t->my_entry->tid = tid;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
+    fdt_list_init(t);
 #endif
 
     list_push_back(&all_list, &t->allelem);
