@@ -1,4 +1,5 @@
 exec-bad-ptr PASS
+fork-multiple PASS
 args-dbl-space PASS
 read-bad-fd PASS
 args-multiple PASS
@@ -8,6 +9,8 @@ exec-arg FAIL
 exec-missing FAIL
 read-bad-ptr PASS
 create-long PASS
+fork-close PASS
+fork-boundary PASS
 create-bound PASS
 read-normal PASS
 open-empty PASS
@@ -26,8 +29,10 @@ halt PASS
 write-bad-fd PASS
 open-boundary PASS
 create-null PASS
+fork-recursive PASS
 open-bad-ptr PASS
 write-normal PASS
+fork-once PASS
 write-boundary PASS
 wait-killed FAIL
 close-bad-fd PASS
@@ -36,6 +41,7 @@ write-bad-ptr PASS
 wait-simple FAIL
 exec-once FAIL
 args-many PASS
+fork-read PASS
 write-zero PASS
 create-exists PASS
 open-normal PASS

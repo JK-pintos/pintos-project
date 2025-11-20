@@ -14,6 +14,7 @@
 #include "threads/flags.h"
 #include "threads/init.h"
 #include "threads/interrupt.h"
+#include "threads/malloc.h"
 #include "threads/mmu.h"
 #include "threads/palloc.h"
 #include "threads/thread.h"
@@ -23,6 +24,13 @@
 #ifdef VM
 #include "vm/vm.h"
 #endif
+
+struct fork_args {
+    struct thread *parent;
+    struct intr_frame *parent_if;
+    bool success;
+    struct semaphore sema;
+};
 
 static void process_cleanup(void);
 static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
@@ -74,7 +82,25 @@ static void initd(void* f_name) {
  * TID_ERROR if the thread cannot be created. */
 tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
     /* Clone current thread to new thread.*/
-    return thread_create(name, PRI_DEFAULT, __do_fork, thread_current());
+    struct thread *parent = thread_current();
+    struct fork_args *fa = malloc(sizeof(struct fork_args));
+    fa->parent = parent;
+    fa->parent_if = if_;
+    fa->success = false;
+    sema_init(&fa->sema, 0);
+
+    tid_t tid = thread_create(name ,PRI_DEFAULT, __do_fork, fa);
+
+    if (tid == TID_ERROR){
+        free(fa);
+        return TID_ERROR;
+    }
+
+    sema_down(&fa->sema);
+
+    if (!fa->success) return TID_ERROR;
+
+    return tid;
 }
 
 #ifndef VM
@@ -82,27 +108,28 @@ tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
  * pml4_for_each. This is only for the project 2. */
 static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
     struct thread* current = thread_current();
-    struct thread* parent = (struct thread*)aux;
-    void* parent_page;
-    void* newpage;
-    bool writable;
-
+	struct thread *parent = aux;
     /* 1. TODO: If the parent_page is kernel page, then return immediately. */
-
+    if (is_kernel_vaddr(va)) return true;
     /* 2. Resolve VA from the parent's page map level 4. */
-    parent_page = pml4_get_page(parent->pml4, va);
+    void *parent_page = pml4_get_page(parent->pml4, va);
+    if (parent_page == NULL) return true;
 
     /* 3. TODO: Allocate new PAL_USER page for the child and set result to
      *    TODO: NEWPAGE. */
-
+    void *newpage = palloc_get_page(PAL_USER);
+    if (newpage == NULL) return false;
     /* 4. TODO: Duplicate parent's page to the new page and
      *    TODO: check whether parent's page is writable or not (set WRITABLE
      *    TODO: according to the result). */
-
+    memcpy(newpage, parent_page, PGSIZE);
+    bool writable = (*pte & PTE_W) != 0;
     /* 5. Add new page to child's page table at address VA with WRITABLE
      *    permission. */
     if (!pml4_set_page(current->pml4, va, newpage, writable)) {
         /* 6. TODO: if fail to insert page, do error handling. */
+        palloc_free_page(newpage);
+        return false;
     }
     return true;
 }
@@ -114,14 +141,16 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
  *       this function. */
 static void __do_fork(void* aux) {
     struct intr_frame if_;
-    struct thread* parent = (struct thread*)aux;
+    struct fork_args *fa = aux;
+    struct thread* parent = fa->parent;
+    struct intr_frame* parent_if = fa->parent_if;
     struct thread* current = thread_current();
     /* TODO: somehow pass the parent_if. (i.e. process_fork()'s if_) */
-    struct intr_frame* parent_if;
     bool succ = true;
 
     /* 1. Read the cpu context to local stack. */
     memcpy(&if_, parent_if, sizeof(struct intr_frame));
+    if_.R.rax = 0;
 
     /* 2. Duplicate PT */
     current->pml4 = pml4_create();
@@ -140,12 +169,28 @@ static void __do_fork(void* aux) {
      * TODO:       in include/filesys/file.h. Note that parent should not return
      * TODO:       from the fork() until this function successfully duplicates
      * TODO:       the resources of parent.*/
+    /* Duplicate the parent's file descriptor table. */
+    current->fd_table_size = parent->fd_table_size;
+    current->fd_table = calloc(current->fd_table_size, sizeof(struct file*));
+    if (current->fd_table == NULL) goto error;
 
-    process_init();
+    for (int i = 0; i < parent->next_fd; i++) {
+        if (parent->fd_table[i] != NULL) {
+            current->fd_table[i] = file_duplicate(parent->fd_table[i]);
+            if (current->fd_table[i] == NULL) goto error;
+        }
+    }
+    current->next_fd = parent->next_fd;
 
+    fa->success = true;
+    sema_up(&fa->sema);
+
+    do_iret(&if_);
+    NOT_REACHED();
     /* Finally, switch to the newly created process. */
-    if (succ) do_iret(&if_);
 error:
+    fa->success = false;
+    sema_up(&fa->sema);
     thread_exit();
 }
 
@@ -213,6 +258,7 @@ int process_wait(tid_t child_tid) {
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
+    list_remove(&child_info->child_elem);
     palloc_free_page(child_info);
     return result;
 }

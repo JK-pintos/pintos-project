@@ -18,6 +18,8 @@
 #include "filesys/filesys.h"
 #include "filesys/file.h"
 
+#include "devices/input.h"
+
 
 void syscall_entry(void);
 void syscall_handler(struct intr_frame*);
@@ -39,6 +41,7 @@ static struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
+static tid_t syscall_fork(const char *name, struct intr_frame *f);
 static int syscall_wait(int pid);
 static bool syscall_create(const char *flie, unsigned initial_size);
 static bool syscall_remove(const char *file);
@@ -78,6 +81,7 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
+            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
             break;
@@ -119,6 +123,10 @@ static void syscall_halt(void) { power_off(); }
 static void syscall_exit(int status) {
     thread_current()->my_entry->exit_status = status;
     thread_exit();
+}
+
+static tid_t syscall_fork(const char *name, struct intr_frame *f){
+    return process_fork(name, f);
 }
 
 static int syscall_wait(int pid) { return process_wait(pid); }
