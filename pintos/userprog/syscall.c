@@ -44,7 +44,7 @@ void syscall_handler(struct intr_frame*);
 struct lock file_lock;
 
 static void syscall_halt(void);
-static void syscall_exit(int status);
+void syscall_exit(int status);
 static tid_t syscall_fork(const char *name, struct intr_frame *f);
 static int syscall_exec(const char *cmd_line);
 static int syscall_wait(int pid);
@@ -120,7 +120,7 @@ void syscall_handler(struct intr_frame* f) {
 
 static void syscall_halt(void) { power_off(); }
 
-static void syscall_exit(int status) {
+void syscall_exit(int status) {
     thread_current()->my_entry->exit_status = status;
     thread_exit();
 }
