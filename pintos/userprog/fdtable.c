@@ -5,9 +5,9 @@ struct file* stdout_entry = NULL;
 
 /* init stdin, stdout entry (fake) */
 void init_std_fds() {
-    stdin_entry = (struct file*)malloc(sizeof(struct file));
+    stdin_entry = (struct file*)malloc(sizeof(struct file*));
     if (!stdin_entry) PANIC("malloc failed\n");
-    stdout_entry = (struct file*)malloc(sizeof(struct file));
+    stdout_entry = (struct file*)malloc(sizeof(struct file*));
     if (!stdout_entry) PANIC("malloc failed\n");
 }
 
