@@ -27,6 +27,7 @@
 #include "userprog/gdt.h"
 #include "userprog/syscall.h"
 #include "userprog/tss.h"
+#include "userprog/fdtable.h"
 #endif
 #include "tests/threads/tests.h"
 #ifdef VM
@@ -105,6 +106,10 @@ main (void) {
 	thread_start ();
 	serial_init_queue ();
 	timer_calibrate ();
+
+#ifdef USERPROG
+	init_std_fds();
+#endif
 
 #ifdef FILESYS
 	/* Initialize file system. */

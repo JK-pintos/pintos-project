@@ -2,6 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Run Pintos (threads)",
+      "type": "shell",
+      "command": "rm -f tests/threads/${input:threads_testcase}.{output,error,result} && clear && make tests/threads/${input:threads_testcase}.result",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/threads/build",
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Debug Pintos (threads)",
       "type": "shell",
       "command": "rm -f tests/threads/${input:threads_testcase}.{output,error,result} && clear && make tests/threads/${input:threads_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
@@ -16,16 +30,16 @@
       "problemMatcher": []
     },
     {
-      "label": "Run Pintos (threads)",
+      "label": "Run Pintos (userprog)",
       "type": "shell",
-      "command": "rm -f tests/threads/${input:threads_testcase}.{output,error,result} && clear && make tests/threads/${input:threads_testcase}.result",
+      "command": "rm -f tests/userprog/${input:userprog_testcase}.{output,error,result} && clear && make tests/userprog/${input:userprog_testcase}.result",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
         "panel": "dedicated"
       },
       "options": {
-        "cwd": "${workspaceFolder}/pintos/threads/build",
+        "cwd": "${workspaceFolder}/pintos/userprog/build",
       },
       "problemMatcher": []
     },
@@ -44,9 +58,9 @@
       "problemMatcher": []
     },
     {
-      "label": "Debug Pintos (vm)",
+      "label": "Run Pintos (vm)",
       "type": "shell",
-      "command": "rm -f tests/vm/${input:vm}.{output,error,result} && clear && make tests/vm/${input:vm_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "command": "rm -f tests/vm/${input:vm_testcase}.{output,error,result} && clear && make tests/vm/${input:vm_testcase}.result",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
@@ -58,9 +72,37 @@
       "problemMatcher": []
     },
     {
+      "label": "Debug Pintos (vm)",
+      "type": "shell",
+      "command": "rm -f tests/vm/${input:vm_testcase}.{output,error,result} && clear && make tests/vm/${input:vm_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/vm/build",
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Pintos (filesys)",
+      "type": "shell",
+      "command": "rm -f tests/filesys/${input:filesys_testcase}.{output,error,result} && clear && make tests/filesys/${input:filesys_testcase}.result",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/pintos/filesys/build",
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Debug Pintos (filesys)",
       "type": "shell",
-      "command": "rm -f tests/filesys/${input:filesys}.{output,error,result} && clear && make tests/filesys/${input:filesys_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
+      "command": "rm -f tests/filesys/${input:filesys_testcase}.{output,error,result} && clear && make tests/filesys/${input:filesys_testcase}.result PINTOS_ARGS='-T 99999 --gdb'",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
@@ -132,7 +174,74 @@
       "id": "userprog_testcase",
       "type": "pickString",
       "description": "Select a Pintos test case to run",
-      "options": []
+      "options": [
+        "args-none",
+        "args-single",
+        "args-multiple",
+        "args-many",
+        "args-dbl-space",
+        "halt",
+        "exit",
+        "create-normal",
+        "create-empty",
+        "create-null",
+        "create-bad-ptr",
+        "create-long",
+        "create-exists",
+        "create-bound",
+        "open-normal",
+        "open-missing",
+        "open-boundary",
+        "open-empty",
+        "open-null",
+        "open-bad-ptr",
+        "open-twice",
+        "close-normal",
+        "close-twice",
+        "close-bad-fd",
+        "read-normal",
+        "read-bad-fd",
+        "read-boundary",
+        "read-zero",
+        "read-stdout",
+        "read-bad-ptr",
+        "write-normal",
+        "write-bad-fd",
+        "write-boundary",
+        "write-zero",
+        "write-stdin",
+        "write-bad-ptr",
+        "fork-once",
+        "fork-multiple",
+        "fork-recursive",
+        "fork-read",
+        "fork-close",
+        "fork-boundary",
+        "exec-once",
+        "exec-arg",
+        "exec-boundary",
+        "exec-missing",
+        "exec-bad-ptr",
+        "exec-read",
+        "wait-simple",
+        "wait-twice",
+        "wait-killed",
+        "wait-bad-pid",
+        "multi-recurse",
+        "multi-child-fd",
+        "rox-simple",
+        "rox-child",
+        "rox-multichild",
+        "bad-read",
+        "bad-write",
+        "bad-read2",
+        "bad-write2",
+        "bad-jump",
+        "bad-jump2",
+        "no-vm/multi-oom",
+        "dup2/dup2-simple",
+        "dup2/dup2-complex"
+      ]
     },
     {
       "id": "vm_testcase",
@@ -144,7 +253,21 @@
       "id": "filesys_testcase",
       "type": "pickString",
       "description": "Select a Pintos test case to run",
-      "options": []
+      "options": [
+        "base/lg-create",
+        "base/lg-full",
+        "base/lg-random",
+        "base/lg-seq-block",
+        "base/lg-seq-random",
+        "base/sm-create",
+        "base/sm-full",
+        "base/sm-random",
+        "base/sm-seq-block",
+        "base/sm-seq-random",
+        "base/syn-read",
+        "base/syn-remove",
+        "base/syn-write",
+      ]
     }
   ]
 }

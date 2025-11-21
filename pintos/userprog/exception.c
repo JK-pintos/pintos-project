@@ -146,6 +146,12 @@ page_fault (struct intr_frame *f) {
 		return;
 #endif
 
+	if(!user) {
+		f->rip = f->R.rax;
+		f->R.rax = -1;
+		return;
+	}
+
 	/* Count page faults. */
 	page_fault_cnt++;
 
