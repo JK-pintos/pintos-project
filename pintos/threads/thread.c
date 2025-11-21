@@ -500,6 +500,7 @@ static void init_thread(struct thread* t, const char* name, int priority) {
 
 #ifdef USERPROG
     list_init(&t->child_list);
+    sema_init(&t->fork_sema, 0);
 #endif
 }
 

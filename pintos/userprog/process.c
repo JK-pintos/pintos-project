@@ -79,15 +79,15 @@ static void initd(void* f_name) {
  * TID_ERROR if the thread cannot be created. */
 tid_t process_fork(const char* name, struct intr_frame* if_) {
     /* Clone current thread to new thread.*/
+    struct thread* cur = thread_current();
     struct fork_struct* fork_args = malloc(sizeof *fork_args);
-    fork_args->t = thread_current();
+    fork_args->t = cur;
     fork_args->if_ = if_;
 
     tid_t tid = thread_create(name, PRI_DEFAULT, __do_fork, fork_args);
-    process_wait(tid);
-    free(fork_args);
-    printf("tid: %d\n", tid);
 
+    sema_down(&cur->fork_sema);
+    free(fork_args);
     return tid;
 }
 
@@ -158,12 +158,11 @@ static void __do_fork(void* aux) {
 #endif
     process_init();
     copy_fd_table(current->fd_table, parent->fd_table);
-
-    sema_up(&current->my_entry->wait_sema);
+    sema_up(&parent->fork_sema);
     /* Finally, switch to the newly created process. */
     if (succ) do_iret(&if_);
 error:
-    sema_up(&current->my_entry->wait_sema);
+    sema_up(&parent->fork_sema);
     thread_exit();
 }
 

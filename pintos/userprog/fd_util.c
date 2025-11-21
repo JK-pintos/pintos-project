@@ -84,7 +84,7 @@ static int fd_find_next(struct fd_table* fd_t) {
 
 static void fd_table_expand(struct fd_table* fd_t) {
     int new_size = fd_t->size * 2;
-    unsigned long* new_bitmap = calloc(new_size, sizeof(unsigned long));
+    unsigned long* new_bitmap = calloc(new_size / WORD_SIZE, sizeof(unsigned long));
     struct file** new_file_list = calloc(new_size, sizeof(struct file*));
 
     memcpy(new_bitmap, fd_t->bitmap, fd_t->size);
