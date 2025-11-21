@@ -44,6 +44,7 @@ void                fd_close(struct thread *t, int fd);
 void                fdt_list_cleanup(struct thread* t);
 void                fdt_block_append(struct thread *t);
 void                scan_for_next_fd(struct fdt_block *block);
+void                fd_table_copy(struct thread* dst, struct thread* src);
 
 #endif
 
