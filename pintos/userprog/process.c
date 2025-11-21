@@ -283,6 +283,13 @@ void process_exit(void) {
     if (cur->pml4 == NULL) return;
     // 부모 깨우기
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
+
+    if (cur->running_file != NULL) {
+        file_allow_write(cur->running_file);
+        file_close(cur->running_file);
+        cur->running_file = NULL;
+    }
+
     sema_up(&cur->my_entry->wait_sema);
     process_cleanup(false);
 }
@@ -410,6 +417,9 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
         printf("load: %s: open failed\n", file_name);
         goto done;
     }
+    
+    t->running_file = file;
+    file_deny_write(file);
 
     /* Read and verify executable header. */
     if (file_read(file, &ehdr, sizeof ehdr) != sizeof ehdr ||
@@ -482,7 +492,10 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
 
 done:
     /* We arrive here whether the load is successful or not. */
-    file_close(file);
+    if (!success && file != NULL) {
+        file_close(file);
+        t->running_file = NULL;
+    }
     return success;
 }
 
