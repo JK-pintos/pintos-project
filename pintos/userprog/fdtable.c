@@ -14,7 +14,6 @@ void init_std_fds() {
 void fdt_list_init(struct thread* t) {
     struct fdt_block* first_fdt_block;
 
-    list_init(&(t->fdt_block_list));
     first_fdt_block = (struct fdt_block*)calloc(1, sizeof(struct fdt_block));
     if (!first_fdt_block) PANIC("malloc failed\n");
 
@@ -114,7 +113,7 @@ void fdt_list_cleanup(struct thread* t) {
         block = list_entry(e, struct fdt_block, elem);
         for (i = 0; i < FD_BLOCK_MAX; i++) {
             entry = block->entry[i];
-            if (entry) file_close(entry);
+            if (entry && entry != stdout_entry && entry != stdin_entry) file_close(entry);
         }
         free(block);
     }
@@ -145,4 +144,25 @@ void scan_for_next_fd(struct fdt_block* block) {
         idx++;
     }
     block->available_idx = -1;
+}
+
+void fd_table_copy(struct thread* dst, struct thread* src) {
+    struct list_elem* src_e = list_begin(&src->fdt_block_list);
+    struct list_elem* src_tail = list_tail(&src->fdt_block_list);
+    struct list_elem* dst_e = list_begin(&dst->fdt_block_list);
+    struct list_elem* dst_tail = list_tail(&dst->fdt_block_list);
+    
+    if (!list_empty(&(src->fdt_block_list))) {
+        while (src_e != src_tail) {
+            struct fdt_block* src_block = list_entry(src_e, struct fdt_block, elem);
+            struct fdt_block* dst_block = list_entry(dst_e, struct fdt_block, elem);
+            for (int i = 0; i < FD_BLOCK_MAX; i++) {
+                if(src_block->entry[i] == NULL || src_block->entry[i] == stdin_entry || src_block->entry[i] == stdout_entry) continue;
+                dst_block->entry[i] = file_duplicate(src_block->entry[i]);
+            }
+            if (list_next(src_e) != src_tail && list_next(dst_e) == dst_tail) fdt_block_append(dst);
+            src_e = list_next(src_e);
+            dst_e = list_next(dst_e);
+        }
+    }
 }

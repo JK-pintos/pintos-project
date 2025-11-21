@@ -12,8 +12,10 @@
 #include "threads/malloc.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+#include "user/syscall.h"
 #include "userprog/fdtable.h"
 #include "userprog/gdt.h"
+#include "userprog/process.h"
 #include "userprog/validate.h"
 
 void syscall_entry(void);
@@ -36,8 +38,8 @@ struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
-// static tid_t  syscall_fork(const char *thread_name);
-// static int    syscall_exec(const char *cmd_line);
+static pid_t syscall_fork(const char* thread_name, struct intr_frame* if_);
+static int syscall_exec(const char* cmd_line);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
@@ -71,6 +73,7 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
+            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
             f->R.rax = syscall_exec(arg1);
@@ -116,12 +119,12 @@ static void syscall_exit(int status) {
 }
 
 static pid_t syscall_fork(const char* thread_name, struct intr_frame* if_) {
-    if (thread_name == NULL || !validate_ptr(thread_name, false)) syscall_exit(-1);
+    if (thread_name == NULL || !valid_address(thread_name, false)) syscall_exit(-1);
     return process_fork(thread_name, if_);
 }
 
 static int syscall_exec(const char* cmd_line) {
-    if (cmd_line == NULL || !validate_ptr(cmd_line, false)) syscall_exit(-1);
+    if (cmd_line == NULL || !valid_address(cmd_line, false)) syscall_exit(-1);
     process_exec(cmd_line);
     syscall_exit(-1);
 }

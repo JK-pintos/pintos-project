@@ -19,7 +19,7 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
-#include "userprog/fd_util.h"
+#include "userprog/fdtable.h"
 #include "userprog/gdt.h"
 #include "userprog/tss.h"
 #ifdef VM
@@ -82,8 +82,8 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
     fork_args->if_ = if_;
 
     tid_t tid = thread_create(name, PRI_DEFAULT, __do_fork, fork_args);
-
     sema_down(&cur->fork_sema);
+
     free(fork_args);
     return tid;
 }
@@ -154,7 +154,8 @@ static void __do_fork(void* aux) {
     if (!pml4_for_each(parent->pml4, duplicate_pte, parent)) goto error;
 #endif
     process_init();
-    copy_fd_table(current->fd_table, parent->fd_table);
+    fd_table_copy(current, parent);
+
     sema_up(&parent->fork_sema);
     /* Finally, switch to the newly created process. */
     if (succ) do_iret(&if_);
@@ -229,6 +230,7 @@ int process_wait(tid_t child_tid) {
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
+    list_remove(&child_info->child_elem);
     free(child_info);
     return result;
 }
@@ -237,17 +239,16 @@ int process_wait(tid_t child_tid) {
 void process_exit(void) {
     struct thread* cur = thread_current();
 
-    // 부모 깨우기
+    if(cur->pml4 == NULL) return;
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     sema_up(&cur->my_entry->wait_sema);
-    fd_clean(cur);
+    fdt_list_cleanup(cur);
     process_cleanup();
 }
 
 /* Free the current process's resources. */
 static void process_cleanup(void) {
     struct thread* curr = thread_current();
-
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);
 #endif
@@ -259,7 +260,7 @@ static void process_cleanup(void) {
     if (pml4 != NULL) {
         /* Correct ordering here is crucial.  We must set
          * cur->pagedir to NULL before switching page directories,
-         * so that a timer interrupt can't switch back to the
+         * so that a timer interrupt can't switch back to thef
          * process page directory.  We must activate the base page
          * directory before destroying the process's page
          * directory, or our active page directory will be one
