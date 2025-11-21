@@ -156,10 +156,13 @@ void fd_table_copy(struct thread* dst, struct thread* src) {
         while (src_e != src_tail) {
             struct fdt_block* src_block = list_entry(src_e, struct fdt_block, elem);
             struct fdt_block* dst_block = list_entry(dst_e, struct fdt_block, elem);
+            dst_block->available_idx = src_block->available_idx;
+
             for (int i = 0; i < FD_BLOCK_MAX; i++) {
                 if(src_block->entry[i] == NULL || src_block->entry[i] == stdin_entry || src_block->entry[i] == stdout_entry) continue;
                 dst_block->entry[i] = file_duplicate(src_block->entry[i]);
             }
+            
             if (list_next(src_e) != src_tail && list_next(dst_e) == dst_tail) fdt_block_append(dst);
             src_e = list_next(src_e);
             dst_e = list_next(dst_e);
