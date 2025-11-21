@@ -15,16 +15,26 @@
 #include "threads/init.h"
 #include "threads/interrupt.h"
 #include "threads/mmu.h"
+#include "threads/malloc.h"
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+
 #include "userprog/gdt.h"
+#include "userprog/fdtable.h"
 #include "userprog/tss.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
 
-static void process_cleanup(void);
+struct fork_args {
+    struct thread *parent;
+    struct intr_frame *parent_if;
+    bool success;
+    struct semaphore sema;
+};
+
+static void process_cleanup(bool flag);
 static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
 static void initd(void* f_name);
 static void __do_fork(void*);
@@ -69,7 +79,25 @@ static void initd(void* f_name) {
  * TID_ERROR if the thread cannot be created. */
 tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
     /* Clone current thread to new thread.*/
-    return thread_create(name, PRI_DEFAULT, __do_fork, thread_current());
+    struct thread *parent = thread_current();
+    struct fork_args *fa = malloc(sizeof(struct fork_args));
+    fa->parent = parent;
+    fa->parent_if = if_;
+    fa->success = false;
+    sema_init(&fa->sema, 0);
+
+    tid_t tid = thread_create(name ,PRI_DEFAULT, __do_fork, fa);
+
+    if (tid == TID_ERROR){
+        free(fa);
+        return TID_ERROR;
+    }
+
+    sema_down(&fa->sema);
+
+    if (!fa->success) return TID_ERROR;
+
+    return tid;
 }
 
 #ifndef VM
@@ -77,27 +105,31 @@ tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
  * pml4_for_each. This is only for the project 2. */
 static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
     struct thread* current = thread_current();
-    struct thread* parent = (struct thread*)aux;
+    struct thread* parent = aux;
     void* parent_page;
     void* newpage;
     bool writable;
 
     /* 1. TODO: If the parent_page is kernel page, then return immediately. */
-
+    if (is_kernel_vaddr(va)) return true;
     /* 2. Resolve VA from the parent's page map level 4. */
     parent_page = pml4_get_page(parent->pml4, va);
-
+    if (parent_page == NULL) return true;
     /* 3. TODO: Allocate new PAL_USER page for the child and set result to
      *    TODO: NEWPAGE. */
-
+    newpage = palloc_get_page(PAL_USER);
+    if (newpage == NULL) return false;
     /* 4. TODO: Duplicate parent's page to the new page and
      *    TODO: check whether parent's page is writable or not (set WRITABLE
      *    TODO: according to the result). */
-
+    memcpy(newpage, parent_page, PGSIZE);
+    writable = (*pte & PTE_W) != 0;
     /* 5. Add new page to child's page table at address VA with WRITABLE
      *    permission. */
     if (!pml4_set_page(current->pml4, va, newpage, writable)) {
         /* 6. TODO: if fail to insert page, do error handling. */
+        palloc_free_page(newpage);
+        return false;
     }
     return true;
 }
@@ -109,14 +141,14 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
  *       this function. */
 static void __do_fork(void* aux) {
     struct intr_frame if_;
-    struct thread* parent = (struct thread*)aux;
+    struct fork_args *fa = aux;
+    struct thread* parent = fa->parent;
+    struct intr_frame* parent_if = fa->parent_if;
     struct thread* current = thread_current();
     /* TODO: somehow pass the parent_if. (i.e. process_fork()'s if_) */
-    struct intr_frame* parent_if;
-    bool succ = true;
-
     /* 1. Read the cpu context to local stack. */
     memcpy(&if_, parent_if, sizeof(struct intr_frame));
+    if_.R.rax = 0;
 
     /* 2. Duplicate PT */
     current->pml4 = pml4_create();
@@ -136,12 +168,42 @@ static void __do_fork(void* aux) {
      * TODO:       from the fork() until this function successfully duplicates
      * TODO:       the resources of parent.*/
 
-    process_init();
-
-    /* Finally, switch to the newly created process. */
-    if (succ) do_iret(&if_);
+    list_init(&current->fdt_block_list);
+    struct list_elem* e = list_begin(&parent->fdt_block_list);
+    struct list_elem* tail = list_tail(&parent->fdt_block_list);
+    while (e != tail) {
+        struct fdt_block* parent_block = list_entry(e, struct fdt_block, elem);
+        struct fdt_block* new_block = calloc(1, sizeof(struct fdt_block));
+        if (new_block == NULL) goto error_fdt;
+ 
+        new_block->available_idx = parent_block->available_idx;
+        for (int i = 0; i < FD_BLOCK_MAX; i++) {
+            struct file* entry = parent_block->entry[i];
+            if (entry == NULL) continue;
+            if (entry == stdin_entry || entry == stdout_entry) {
+                new_block->entry[i] = entry;
+            } else {
+                new_block->entry[i] = file_duplicate(entry);
+                if (new_block->entry[i] == NULL) goto error_fdt;
+            }
+        }
+ 
+        list_push_back(&current->fdt_block_list, &new_block->elem);
+        e = list_next(e);
+    }
+    fa->success = true;
+    sema_up(&fa->sema);
+ 
+    do_iret(&if_);
+    NOT_REACHED();
+    
+error_fdt:
+    fdt_list_cleanup(current);
 error:
+    fa->success = false;
+    sema_up(&fa->sema);
     thread_exit();
+    NOT_REACHED();
 }
 
 /* Switch the current execution context to the f_name.
@@ -164,12 +226,14 @@ int process_exec(void* f_name) {
      * This is because when current thread rescheduled,
      * it stores the execution information to the member. */
     struct intr_frame _if;
+    memset(&_if, 0, sizeof _if);
+
     _if.ds = _if.es = _if.ss = SEL_UDSEG;
     _if.cs = SEL_UCSEG;
     _if.eflags = FLAG_IF | FLAG_MBS;
 
     /* We first kill the current context */
-    process_cleanup();
+    process_cleanup(true);
 
     /* And then load the binary */
     success = load(file_name, argc, argv, &_if);
@@ -207,6 +271,7 @@ int process_wait(tid_t child_tid) {
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
+    list_remove(&child_info->child_elem);
     palloc_free_page(child_info);
     return result;
 }
@@ -215,15 +280,21 @@ int process_wait(tid_t child_tid) {
 void process_exit(void) {
     struct thread* cur = thread_current();
 
+    if (cur->pml4 == NULL) return;
     // 부모 깨우기
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     sema_up(&cur->my_entry->wait_sema);
-    process_cleanup();
+    process_cleanup(false);
 }
 
 /* Free the current process's resources. */
-static void process_cleanup(void) {
+static void process_cleanup(bool flag) {
     struct thread* curr = thread_current();
+
+    if (curr->pml4 == NULL) return;
+
+    if (!flag) fdt_list_cleanup(curr);
+    
 
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);

@@ -114,7 +114,7 @@ void fdt_list_cleanup(struct thread* t) {
         block = list_entry(e, struct fdt_block, elem);
         for (i = 0; i < FD_BLOCK_MAX; i++) {
             entry = block->entry[i];
-            if (entry) file_close(entry);
+            if (entry && entry != stdin_entry && entry != stdout_entry) file_close(entry);
         }
         free(block);
     }
