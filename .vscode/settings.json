@@ -2,13 +2,17 @@
     "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 100 }",
     "files.associations": {
         "*.c": "c",
-        "thread.h": "c",
+        "fdtable.h": "c",
+        "vaddr.h": "c",
         "validate.h": "c",
-        "filesys.h": "c",
-        "fd_util.h": "c",
-        "string.h": "c",
-        "inode.h": "c",
+        "list": "c",
+        "file.h": "c",
+        "process.h": "c",
         "atomic": "c",
-        "*.inc": "c"
+        "condition_variable": "c",
+        "io_context": "c",
+        "future": "c",
+        "thread.h": "c",
+        "syscall.h": "c"
     },
 }

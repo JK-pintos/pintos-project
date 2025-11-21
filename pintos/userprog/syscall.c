@@ -3,17 +3,17 @@
 #include <stdio.h>
 #include <syscall-nr.h>
 
+#include "filesys/file.h"
 #include "filesys/filesys.h"
 #include "intrinsic.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/loader.h"
+#include "threads/malloc.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
-#include "user/syscall.h"
-#include "userprog/fd_util.h"
+#include "userprog/fdtable.h"
 #include "userprog/gdt.h"
-#include "userprog/process.h"
 #include "userprog/validate.h"
 
 void syscall_entry(void);
@@ -36,8 +36,8 @@ struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
-static pid_t syscall_fork(const char* thread_name, struct intr_frame* if_);
-static int syscall_exec(const char* cmd_line);
+// static tid_t  syscall_fork(const char *thread_name);
+// static int    syscall_exec(const char *cmd_line);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
@@ -71,7 +71,6 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
-            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
             f->R.rax = syscall_exec(arg1);
@@ -130,101 +129,112 @@ static int syscall_exec(const char* cmd_line) {
 static int syscall_wait(int pid) { return process_wait(pid); }
 
 static bool syscall_create(const char* file, unsigned initial_size) {
-    if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
+    bool success;
+
+    if (!valid_address(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
-    bool result = filesys_create(file, initial_size);
+    success = filesys_create(file, initial_size);
     lock_release(&file_lock);
-    return result;
+    return success;
 }
 
 static bool syscall_remove(const char* file) {
-    if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
+    bool success;
+
+    if (!valid_address(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
-    bool result = filesys_remove(file);
+    success = filesys_remove(file);
     lock_release(&file_lock);
-    return result;
+    return success;
 }
 
 static int syscall_open(const char* file) {
-    if (file == NULL || !validate_ptr(file, false)) syscall_exit(-1);
-    struct thread* cur = thread_current();
+    struct file* new_entry;
+    if (!valid_address(file, false)) syscall_exit(-1);
     lock_acquire(&file_lock);
-    struct file* open_file = filesys_open(file);
-    int result = allocate_fd(cur->fd_table, open_file);
+    new_entry = filesys_open(file);
     lock_release(&file_lock);
-    return result;
+    if (!new_entry) return -1;
+    return fd_allocate(thread_current(), new_entry);
 }
 
 static int syscall_filesize(int fd) {
-    struct thread* cur = thread_current();
-    struct file* file = get_file(cur->fd_table, fd);
-    if (file == NULL) return -1;
+    struct file* entry;
+    int result;
+
+    entry = get_fd_entry(thread_current(), fd);
+    if (!entry || entry == stdin_entry || entry == stdout_entry) return -1;
+
     lock_acquire(&file_lock);
-    int result = file_length(file);
+    result = file_length(entry);
     lock_release(&file_lock);
     return result;
 }
 
-int syscall_read(int fd, void* buffer, unsigned size) {
-    if (size == 0) return 0;
-    if (!validate_ptr(buffer, true)) syscall_exit(-1);
-    struct thread* cur = thread_current();
-    struct file* file = get_file(cur->fd_table, fd);
-    if (file == NULL && fd != 0) return -1;
-    lock_acquire(&file_lock);
+static int syscall_read(int fd, void* buffer, unsigned size) {
+    struct file* entry;
     int result;
-    if (fd == 0) {
+    if (size == 0) return 0;
+
+    if (!valid_address(buffer, true) || !valid_address(buffer + size - 1, true)) syscall_exit(-1);
+    entry = get_fd_entry(thread_current(), fd);
+    if (!entry || entry == stdout_entry) return -1;
+
+    lock_acquire(&file_lock);
+    if (entry == stdin_entry) {
         for (int i = 0; i < size; i++) ((char*)buffer)[i] = input_getc();
         result = size;
     } else {
-        result = file_read(file, buffer, size);
+        result = file_read(entry, buffer, size);
     }
     lock_release(&file_lock);
     return result;
 }
 
 static int syscall_write(int fd, const void* buffer, unsigned size) {
-    if (size == 0) return 0;
-    if (!validate_ptr(buffer, false)) syscall_exit(-1);
-    struct thread* cur = thread_current();
-    struct file* file = get_file(cur->fd_table, fd);
-    if (file == NULL && fd != 1) return -1;
+    struct file* entry;
     int result;
+
+    if (!valid_address(buffer, false) || !valid_address(buffer + size - 1, false)) syscall_exit(-1);
+    entry = get_fd_entry(thread_current(), fd);
+    if (!entry || entry == stdin_entry) return -1;
+
     lock_acquire(&file_lock);
-    if (fd == 1) {
+    if (entry == stdout_entry) {
         putbuf(buffer, size);
         result = size;
     } else {
-        result = file_write(file, buffer, size);
+        result = file_write(entry, buffer, size);
     }
     lock_release(&file_lock);
     return result;
 }
 
 static void syscall_seek(int fd, unsigned position) {
-    struct thread* cur = thread_current();
-    struct file* file = get_file(cur->fd_table, fd);
-    if (file == NULL) return;
+    struct file* entry;
+
+    entry = get_fd_entry(thread_current(), fd);
+    if (!entry) return;
     lock_acquire(&file_lock);
-    file_seek(file, position);
+    file_seek(entry, position);
     lock_release(&file_lock);
 }
 
 static unsigned syscall_tell(int fd) {
-    struct thread* cur = thread_current();
-    struct file* file = get_file(cur->fd_table, fd);
-    if (file == NULL) return 0;
+    struct file* entry;
+    unsigned result;
+
+    entry = get_fd_entry(thread_current(), fd);
+    if (!entry) return 0;
+
     lock_acquire(&file_lock);
-    int result = file_tell(file);
+    result = file_tell(entry);
     lock_release(&file_lock);
     return result;
 }
 
 static void syscall_close(int fd) {
-    struct thread* cur = thread_current();
-    struct file* file = get_file(cur->fd_table, fd);
-    if (file == NULL) return;
     lock_acquire(&file_lock);
-    fd_close(cur->fd_table, fd);
+    fd_close(thread_current(), fd);
     lock_release(&file_lock);
 }

@@ -37,10 +37,7 @@ static void initd(void* f_name);
 static void __do_fork(void*);
 
 /* General process initializer for initd and other process. */
-static void process_init(void) {
-    struct thread* cur = thread_current();
-    fd_init(cur);
-}
+static void process_init(void) { fdt_list_init(thread_current()); }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
  * The new thread may be scheduled (and may even exit)
