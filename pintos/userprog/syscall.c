@@ -141,7 +141,7 @@ static int syscall_exec(const char *cmd_line){
     strlcpy(buf, cmd_line, PGSIZE);
 
     if (process_exec(buf) == -1)
-        syscall_exit(-1);
+       syscall_exit(-1);
 
     return process_exec(buf); 
 }

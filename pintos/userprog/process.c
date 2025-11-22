@@ -81,6 +81,7 @@ tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
     /* Clone current thread to new thread.*/
     struct thread *parent = thread_current();
     struct fork_args *fa = malloc(sizeof(struct fork_args));
+    if (fa == NULL) return TID_ERROR;//
     fa->parent = parent;
     fa->parent_if = if_;
     fa->success = false;
@@ -94,8 +95,10 @@ tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
     }
 
     sema_down(&fa->sema);
+    bool success = fa->success;//
+    free(fa);//
 
-    if (!fa->success) return TID_ERROR;
+    if (!success) return TID_ERROR;//
     return tid;
 }
 
