@@ -239,9 +239,10 @@ int process_wait(tid_t child_tid) {
 void process_exit(void) {
     struct thread* cur = thread_current();
 
-    if(cur->pml4 == NULL) return;
+    if (cur->pml4 == NULL) return;
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     sema_up(&cur->my_entry->wait_sema);
+    file_allow_write(cur->current_file);
     fdt_list_cleanup(cur);
     process_cleanup();
 }
@@ -364,6 +365,9 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
         goto done;
     }
 
+    file_deny_write(file);
+    t->current_file = file;
+
     /* Read and verify executable header. */
     if (file_read(file, &ehdr, sizeof ehdr) != sizeof ehdr ||
         memcmp(ehdr.e_ident, "\177ELF\2\1\1", 7) || ehdr.e_type != 2 ||
@@ -435,7 +439,6 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
 
 done:
     /* We arrive here whether the load is successful or not. */
-    file_close(file);
     return success;
 }
 
