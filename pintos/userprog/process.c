@@ -96,7 +96,6 @@ tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
     sema_down(&fa->sema);
 
     if (!fa->success) return TID_ERROR;
-
     return tid;
 }
 
@@ -267,10 +266,15 @@ int process_wait(tid_t child_tid) {
     }
 
     if (e == list_end(&cur->child_list) || child_info->wait) return -1;
+    // printf("[WAIT] parent=%d wait(%d) → -1  (no such child or already waited)\n",
+    //            cur->tid, child_tid);
     child_info->wait = true;
+
+    // printf("[WAIT] parent=%d is waiting child %d ...\n", cur->tid, child_tid);
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
+    // printf("[WAIT] parent=%d wait(%d) → %d\n", cur->tid, child_tid, result);
     list_remove(&child_info->child_elem);
     palloc_free_page(child_info);
     return result;

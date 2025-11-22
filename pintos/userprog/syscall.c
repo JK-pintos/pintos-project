@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <syscall-nr.h>
+#include <string.h>
 
 #include "filesys/file.h"
 #include "filesys/filesys.h"
@@ -57,6 +58,7 @@ static int syscall_write(int fd, const void* buffer, unsigned size);
 static void syscall_seek(int fd, unsigned position);
 static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
+static int syscall_dup2(int oldfd, int newfd);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -114,6 +116,9 @@ void syscall_handler(struct intr_frame* f) {
             break;
         case SYS_CLOSE:
             syscall_close(arg1);
+            break;
+        case SYS_DUP2:
+            f->R.rax = syscall_dup2(arg1, arg2);
             break;
     }
 }
@@ -203,6 +208,8 @@ static int syscall_read(int fd, void* buffer, unsigned size) {
         result = file_read(entry, buffer, size);
     }
     lock_release(&file_lock);
+    if (result >= 0 && (unsigned)result < size)
+        memset((char*)buffer + result, 0, size - result);
     return result;
 }
 
@@ -252,4 +259,42 @@ static void syscall_close(int fd) {
     lock_acquire(&file_lock);
     fd_close(thread_current(), fd);
     lock_release(&file_lock);
+}
+
+static int syscall_dup2(int oldfd, int newfd){
+    struct thread* t = thread_current();
+    struct file* old_entry;
+    struct file* new_entry;
+    struct file* duplicated;
+    struct fdt_block* block;
+    int target_fd ;
+
+    old_entry = get_fd_entry(t, oldfd);
+    if (old_entry == NULL) return -1;
+    if (oldfd == newfd) return newfd;
+    new_entry = get_fd_entry(t, newfd);
+    if (new_entry != NULL) fd_close(t, newfd);
+
+    if (old_entry == stdin_entry || old_entry == stdout_entry) {
+        duplicated = old_entry;
+    } else {
+        duplicated = file_dup(old_entry);
+        if (!duplicated) return -1;
+    }
+
+    target_fd = newfd;
+    block = get_fd_block(t, &target_fd);
+
+    if (!block){
+        while (list_size(&t->fdt_block_list) * FD_BLOCK_MAX <= newfd) {
+            fdt_block_append(t);
+        }
+        target_fd = newfd;
+        block = get_fd_block(t, &target_fd);
+    }
+    block->entry[target_fd] = duplicated;
+    if (block->available_idx == target_fd) 
+        scan_for_next_fd(block);
+
+    return newfd;
 }
