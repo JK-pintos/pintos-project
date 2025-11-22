@@ -242,7 +242,7 @@ void process_exit(void) {
     if (cur->pml4 == NULL) return;
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     sema_up(&cur->my_entry->wait_sema);
-    file_allow_write(cur->current_file);
+    if (cur->current_file) file_allow_write(cur->current_file);
     fdt_list_cleanup(cur);
     process_cleanup();
 }
