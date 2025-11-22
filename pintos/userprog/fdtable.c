@@ -47,7 +47,7 @@ int fd_allocate(struct thread* t, struct file* f) {
         }
     }
 
-    fdt_block_append(t);
+    if (!fdt_block_append(t)) return -1;
     block = list_entry(list_prev(tail), struct fdt_block, elem);
     block->entry[0] = f;
     block->available_idx = 1;
@@ -61,22 +61,23 @@ struct fdt_block* get_fd_block(struct thread* t, int* fd) {
     struct fdt_block* block;
     int block_start_fd = 0;
 
+    e = list_begin(&t->fdt_block_list);
+    tail = list_tail(&t->fdt_block_list);
+
     if (*fd < 0) return NULL;
 
-    e = list_begin(&(t->fdt_block_list));
-    tail = list_tail(&(t->fdt_block_list));
-    while (block_start_fd + FD_BLOCK_MAX <= *fd) {
-        if (e == tail) break;
+    while (e != tail && block_start_fd + FD_BLOCK_MAX <= *fd) {
         e = list_next(e);
         block_start_fd += FD_BLOCK_MAX;
     }
 
-    if (block_start_fd + FD_BLOCK_MAX <= *fd) return NULL;
+    if (e == tail || block_start_fd + FD_BLOCK_MAX <= *fd) return NULL;
 
     block = list_entry(e, struct fdt_block, elem);
-    *fd = *fd - block_start_fd;  // 블록 안의 fd로 재조정
+    *fd -= block_start_fd;  
     return block;
 }
+
 
 struct file* get_fd_entry(struct thread* t, int fd) {
     struct fdt_block* block;
@@ -93,7 +94,7 @@ void fd_close(struct thread* t, int fd) {
     struct fdt_block* block;
     struct file* close_entry;
 
-    block = get_fd_block(thread_current(), &fd);
+    block = get_fd_block(t, &fd);
     if (!block) return;
 
     close_entry = block->entry[fd];
@@ -114,18 +115,19 @@ void fdt_list_cleanup(struct thread* t) {
         block = list_entry(e, struct fdt_block, elem);
         for (i = 0; i < FD_BLOCK_MAX; i++) {
             entry = block->entry[i];
-            if (entry) file_close(entry);
+            if (entry && entry != stdin_entry && entry != stdout_entry) file_close(entry);
         }
         free(block);
     }
 }
 
-void fdt_block_append(struct thread* t) {
+/* Append a new FD block. Returns false on OOM instead of panicking. */
+bool fdt_block_append(struct thread* t) {
     struct fdt_block* block;
-
     block = (struct fdt_block*)calloc(1, sizeof(struct fdt_block));
-    if (!block) PANIC("malloc failed\n");
+    if (!block) return false;
     list_push_back(&(t->fdt_block_list), &(block->elem));
+    return true;
 }
 
 void scan_for_next_fd(struct fdt_block* block) {

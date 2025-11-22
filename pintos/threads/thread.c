@@ -499,6 +499,7 @@ static void init_thread(struct thread* t, const char* name, int priority) {
 
 #ifdef USERPROG
     list_init(&t->child_list);
+    list_init(&t->fdt_block_list); 
 #endif
 }
 
