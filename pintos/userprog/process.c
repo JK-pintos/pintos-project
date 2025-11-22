@@ -82,6 +82,12 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
     fork_args->if_ = if_;
 
     tid_t tid = thread_create(name, PRI_DEFAULT, __do_fork, fork_args);
+
+    if (tid == TID_ERROR) {
+        free(fork_args);
+        return TID_ERROR;
+    }
+
     sema_down(&cur->fork_sema);
 
     free(fork_args);
