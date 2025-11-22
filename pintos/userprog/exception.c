@@ -164,6 +164,4 @@ page_fault (struct intr_frame *f) {
 			write ? "writing" : "reading",
 			user ? "user" : "kernel");
 	kill (f);
-	/* User mode fault: set exit status and terminate. */
-
 }
