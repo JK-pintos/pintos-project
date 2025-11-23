@@ -151,7 +151,7 @@ void fd_table_copy(struct thread* dst, struct thread* src) {
     struct list_elem* src_tail = list_tail(&src->fdt_block_list);
     struct list_elem* dst_e = list_begin(&dst->fdt_block_list);
     struct list_elem* dst_tail = list_tail(&dst->fdt_block_list);
-    
+
     if (!list_empty(&(src->fdt_block_list))) {
         while (src_e != src_tail) {
             struct fdt_block* src_block = list_entry(src_e, struct fdt_block, elem);
@@ -159,13 +159,40 @@ void fd_table_copy(struct thread* dst, struct thread* src) {
             dst_block->available_idx = src_block->available_idx;
 
             for (int i = 0; i < FD_BLOCK_MAX; i++) {
-                if(src_block->entry[i] == NULL || src_block->entry[i] == stdin_entry || src_block->entry[i] == stdout_entry) continue;
+                if (src_block->entry[i] == NULL || src_block->entry[i] == stdin_entry ||
+                    src_block->entry[i] == stdout_entry)
+                    continue;
                 dst_block->entry[i] = file_duplicate(src_block->entry[i]);
             }
-            
+
             if (list_next(src_e) != src_tail && list_next(dst_e) == dst_tail) fdt_block_append(dst);
             src_e = list_next(src_e);
             dst_e = list_next(dst_e);
         }
     }
+}
+
+int fd_dup2(struct thread* t, int oldfd, int newfd) {
+    struct file* entry;
+    if (oldfd == newfd) return newfd;
+    entry = get_fd_entry(t, oldfd);
+
+    if (!entry) return -1;
+
+    fd_close(t, newfd);
+
+    while (list_size(&t->fdt_block_list) * FD_BLOCK_MAX <= newfd) fdt_block_append(t);
+
+    struct fdt_block* block = get_fd_block(t, &newfd);
+
+    if (block->available_idx == newfd) scan_for_next_fd(block);
+
+    if (entry == stdin_entry || entry == stdout_entry) {
+        block->entry[newfd] = entry;
+        return newfd;
+    }
+
+    file_dup2(entry);
+    block->entry[newfd] = entry;
+    return newfd;
 }

@@ -50,6 +50,7 @@ static int syscall_write(int fd, const void* buffer, unsigned size);
 static void syscall_seek(int fd, unsigned position);
 static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
+static int syscall_dup2(int oldfd, int newfd);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -107,6 +108,9 @@ void syscall_handler(struct intr_frame* f) {
             break;
         case SYS_CLOSE:
             syscall_close(arg1);
+            break;
+        case SYS_DUP2:
+            f->R.rax = syscall_dup2(arg1, arg2);
             break;
     }
 }
@@ -240,4 +244,11 @@ static void syscall_close(int fd) {
     lock_acquire(&file_lock);
     fd_close(thread_current(), fd);
     lock_release(&file_lock);
+}
+
+static int syscall_dup2(int oldfd, int newfd) {
+    lock_acquire(&file_lock);
+    int result = fd_dup2(thread_current(), oldfd, newfd);
+    lock_release(&file_lock);
+    return result;
 }
