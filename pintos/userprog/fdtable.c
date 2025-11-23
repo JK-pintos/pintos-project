@@ -46,7 +46,7 @@ int fd_allocate(struct thread* t, struct file* f) {
         }
     }
 
-    fdt_block_append(t);
+    if(!fdt_block_append(t)) return -1;
     block = list_entry(list_prev(tail), struct fdt_block, elem);
     block->entry[0] = f;
     block->available_idx = 1;
@@ -119,12 +119,13 @@ void fdt_list_cleanup(struct thread* t) {
     }
 }
 
-void fdt_block_append(struct thread* t) {
+bool fdt_block_append(struct thread* t) {
     struct fdt_block* block;
 
     block = (struct fdt_block*)calloc(1, sizeof(struct fdt_block));
-    if (!block) PANIC("malloc failed\n");
+    if (!block) return false;
     list_push_back(&(t->fdt_block_list), &(block->elem));
+    return true;
 }
 
 void scan_for_next_fd(struct fdt_block* block) {
@@ -146,7 +147,7 @@ void scan_for_next_fd(struct fdt_block* block) {
     block->available_idx = -1;
 }
 
-void fd_table_copy(struct thread* dst, struct thread* src) {
+bool fd_table_copy(struct thread* dst, struct thread* src) {
     struct list_elem* src_e = list_begin(&src->fdt_block_list);
     struct list_elem* src_tail = list_tail(&src->fdt_block_list);
     struct list_elem* dst_e = list_begin(&dst->fdt_block_list);
@@ -163,13 +164,17 @@ void fd_table_copy(struct thread* dst, struct thread* src) {
                     src_block->entry[i] == stdout_entry)
                     continue;
                 dst_block->entry[i] = file_duplicate(src_block->entry[i]);
+                if(dst_block->entry[i] == NULL) return false;
             }
 
-            if (list_next(src_e) != src_tail && list_next(dst_e) == dst_tail) fdt_block_append(dst);
+            if (list_next(src_e) != src_tail && list_next(dst_e) == dst_tail) {
+                if(!fdt_block_append(dst)) return false;
+            }
             src_e = list_next(src_e);
             dst_e = list_next(dst_e);
         }
     }
+    return true;
 }
 
 int fd_dup2(struct thread* t, int oldfd, int newfd) {

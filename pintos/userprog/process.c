@@ -29,6 +29,8 @@
 struct fork_struct {
     struct thread* t;
     struct intr_frame* if_;
+
+    bool success;
 };
 
 static void process_cleanup(void);
@@ -80,6 +82,7 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
     struct fork_struct* fork_args = malloc(sizeof *fork_args);
     fork_args->t = cur;
     fork_args->if_ = if_;
+    fork_args->success = true;
 
     tid_t tid = thread_create(name, PRI_DEFAULT, __do_fork, fork_args);
 
@@ -89,8 +92,9 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
     }
 
     sema_down(&cur->fork_sema);
-
+    bool succ = fork_args->success;
     free(fork_args);
+    if (!succ) return TID_ERROR;
     return tid;
 }
 
@@ -160,12 +164,17 @@ static void __do_fork(void* aux) {
     if (!pml4_for_each(parent->pml4, duplicate_pte, parent)) goto error;
 #endif
     process_init();
-    fd_table_copy(current, parent);
-
-    sema_up(&parent->fork_sema);
+    succ = fd_table_copy(current, parent);
+    
     /* Finally, switch to the newly created process. */
-    if (succ) do_iret(&if_);
+    if (succ) {
+        sema_up(&parent->fork_sema);
+        do_iret(&if_);
+    }
+
+    fdt_list_cleanup(current);
 error:
+    fork_args->success = false;
     sema_up(&parent->fork_sema);
     thread_exit();
 }
@@ -247,10 +256,14 @@ void process_exit(void) {
 
     if (cur->pml4 == NULL) return;
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
-    sema_up(&cur->my_entry->wait_sema);
-    if (cur->current_file) file_allow_write(cur->current_file);
+    if (cur->current_file) {
+        file_allow_write(cur->current_file);
+        file_close(cur->current_file);
+        cur->current_file = NULL;
+    }
     fdt_list_cleanup(cur);
     process_cleanup();
+    sema_up(&cur->my_entry->wait_sema);
 }
 
 /* Free the current process's resources. */

@@ -42,9 +42,9 @@ struct fdt_block    *get_fd_block(struct thread *t, int *fd);
 struct file*        get_fd_entry(struct thread* t, int fd);
 void                fd_close(struct thread *t, int fd);
 void                fdt_list_cleanup(struct thread* t);
-void                fdt_block_append(struct thread *t);
+bool                fdt_block_append(struct thread *t);
 void                scan_for_next_fd(struct fdt_block *block);
-void                fd_table_copy(struct thread* dst, struct thread* src);
+bool                fd_table_copy(struct thread* dst, struct thread* src);
 int                 fd_dup2(struct thread* t, int oldfd, int newfd);
 
 #endif
