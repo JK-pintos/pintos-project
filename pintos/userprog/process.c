@@ -125,7 +125,8 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
      *    TODO: check whether parent's page is writable or not (set WRITABLE
      *    TODO: according to the result). */
     memcpy(newpage, parent_page, PGSIZE);
-    writable = (*pte & PTE_W) != 0;
+    // writable = (*pte & PTE_W) != 0; 
+    writable = is_writable(pte);
     /* 5. Add new page to child's page table at address VA with WRITABLE
      *    permission. */
     if (!pml4_set_page(current->pml4, va, newpage, writable)) {

@@ -208,8 +208,8 @@ static int syscall_read(int fd, void* buffer, unsigned size) {
         result = file_read(entry, buffer, size);
     }
     lock_release(&file_lock);
-    if (result >= 0 && (unsigned)result < size)
-        memset((char*)buffer + result, 0, size - result);
+    // if (result >= 0 && (unsigned)result < size)
+    //     memset((char*)buffer + result, 0, size - result);
     return result;
 }
 
