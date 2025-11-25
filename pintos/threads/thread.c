@@ -17,6 +17,9 @@
 #include "threads/vaddr.h"
 #ifdef USERPROG
 #include "userprog/process.h"
+#include "userprog/fdtable.h"
+#include "filesys/file.h"
+#include "filesys/filesys.h"
 #endif
 
 /* Random value for struct thread's `magic' member.
@@ -234,6 +237,7 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     t->my_entry->wait = false;
     t->my_entry->exit_status = -1;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
+    fdt_list_init(t);
 #endif
 
     list_push_back(&all_list, &t->allelem);
@@ -313,6 +317,11 @@ void thread_exit(void) {
 
 #ifdef USERPROG
     process_exit();
+    if (thread_current()->my_executable != NULL)
+    {
+        file_close(thread_current()->my_executable);
+        thread_current()->my_executable = NULL;
+    }
 #endif
 
     /* Just set our status to dying and schedule another process.
@@ -499,6 +508,7 @@ static void init_thread(struct thread* t, const char* name, int priority) {
 
 #ifdef USERPROG
     list_init(&t->child_list);
+    t->my_executable = NULL;
 #endif
 }
 

@@ -20,9 +20,17 @@
 #include "threads/vaddr.h"
 #include "userprog/gdt.h"
 #include "userprog/tss.h"
+#include "userprog/fdtable.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
+
+struct fork_wrapper{
+    struct intr_frame   *f;
+    struct thread       *parent;
+    struct semaphore    sema;
+    bool                success;
+};
 
 static void process_cleanup(void);
 static bool load(const char* file_name, int argc, char** argv, struct intr_frame* if_);
@@ -30,7 +38,7 @@ static void initd(void* f_name);
 static void __do_fork(void*);
 
 /* General process initializer for initd and other process. */
-static void process_init(void) { fdt_list_init(thread_current()); }
+static void process_init(void) { /**/ }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
  * The new thread may be scheduled (and may even exit)
@@ -67,9 +75,30 @@ static void initd(void* f_name) {
 
 /* Clones the current process as `name`. Returns the new process's thread id, or
  * TID_ERROR if the thread cannot be created. */
-tid_t process_fork(const char* name, struct intr_frame* if_ UNUSED) {
+tid_t process_fork(const char* name, struct intr_frame* if_) {
     /* Clone current thread to new thread.*/
-    return thread_create(name, PRI_DEFAULT, __do_fork, thread_current());
+    struct fork_wrapper *wrapper;
+    tid_t               parent_tid = thread_current()->tid;
+    tid_t               result;
+
+    wrapper = (struct fork_wrapper *)calloc(1, sizeof(struct fork_wrapper));
+    if (!wrapper)
+        return TID_ERROR; //원래는 panic이었음 
+    wrapper->f = if_;
+    wrapper->parent = thread_current();
+    wrapper->success = true;
+    sema_init(&(wrapper->sema), 0);
+    
+    result = thread_create(name, PRI_DEFAULT, __do_fork, wrapper);
+    if (result == TID_ERROR)
+    {
+        free (wrapper);
+        return result;
+    }
+    // thread_create 실패시 sema down 시도하지 않고 free하고 return
+    sema_down(&(wrapper->sema));
+    free (wrapper);
+    return result;
 }
 
 #ifndef VM
@@ -83,21 +112,32 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
     bool writable;
 
     /* 1. TODO: If the parent_page is kernel page, then return immediately. */
+    if(is_kernel_vaddr(va))
+        return true;
 
     /* 2. Resolve VA from the parent's page map level 4. */
     parent_page = pml4_get_page(parent->pml4, va);
+    if (!parent_page)
+        return false;
 
     /* 3. TODO: Allocate new PAL_USER page for the child and set result to
      *    TODO: NEWPAGE. */
+    newpage = palloc_get_page(PAL_USER);
+    if (!newpage)
+        PANIC("palloc failed\n");
 
     /* 4. TODO: Duplicate parent's page to the new page and
      *    TODO: check whether parent's page is writable or not (set WRITABLE
      *    TODO: according to the result). */
+    memcpy(newpage, parent_page, PGSIZE);
+    writable = is_writable(pte);
 
     /* 5. Add new page to child's page table at address VA with WRITABLE
      *    permission. */
     if (!pml4_set_page(current->pml4, va, newpage, writable)) {
         /* 6. TODO: if fail to insert page, do error handling. */
+        palloc_free_page (newpage);
+        return false;
     }
     return true;
 }
@@ -108,15 +148,17 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
  *       That is, you are required to pass second argument of process_fork to
  *       this function. */
 static void __do_fork(void* aux) {
+    struct fork_wrapper *wrapper = (struct fork_wrapper *)aux;
     struct intr_frame if_;
-    struct thread* parent = (struct thread*)aux;
+    struct thread* parent = wrapper->parent;
     struct thread* current = thread_current();
     /* TODO: somehow pass the parent_if. (i.e. process_fork()'s if_) */
-    struct intr_frame* parent_if;
+    struct intr_frame* parent_if = wrapper->f;
     bool succ = true;
 
     /* 1. Read the cpu context to local stack. */
     memcpy(&if_, parent_if, sizeof(struct intr_frame));
+    if_.R.rax = 0;
 
     /* 2. Duplicate PT */
     current->pml4 = pml4_create();
@@ -137,10 +179,21 @@ static void __do_fork(void* aux) {
      * TODO:       the resources of parent.*/
 
     process_init();
+    if (false == duplicate_fdt_block_list(parent, current))
+    {
+        wrapper->success = false;
+        goto error;
+    }
 
     /* Finally, switch to the newly created process. */
-    if (succ) do_iret(&if_);
-error:
+    if (succ)
+    {
+        sema_up(&(wrapper->sema));
+        do_iret(&if_);
+    }
+
+error: //duplicate 실패 -> clean, exit
+    process_cleanup();
     thread_exit();
 }
 
@@ -207,6 +260,7 @@ int process_wait(tid_t child_tid) {
     sema_down(&child_info->wait_sema);
 
     int result = child_info->exit_status;
+    list_remove(e);
     palloc_free_page(child_info);
     return result;
 }
@@ -227,6 +281,10 @@ static void process_cleanup(void) {
 
 #ifdef VM
     supplemental_page_table_kill(&curr->spt);
+#endif
+
+#ifdef USERPROG
+fdt_list_cleanup(curr);
 #endif
 
     uint64_t* pml4;
@@ -339,6 +397,8 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
         printf("load: %s: open failed\n", file_name);
         goto done;
     }
+    file_deny_write(file);
+    t->my_executable = file;
 
     /* Read and verify executable header. */
     if (file_read(file, &ehdr, sizeof ehdr) != sizeof ehdr ||
@@ -411,7 +471,7 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
 
 done:
     /* We arrive here whether the load is successful or not. */
-    file_close(file);
+    //file_close(file);
     return success;
 }
 

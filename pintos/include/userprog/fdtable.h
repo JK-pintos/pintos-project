@@ -45,5 +45,9 @@ void                fdt_list_cleanup(struct thread* t);
 void                fdt_block_append(struct thread *t);
 void                scan_for_next_fd(struct fdt_block *block);
 
+/*  used in fork() context  */
+bool                duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *child_block, struct thread *child);
+bool                duplicate_fdt_block_list(struct thread *parent, struct thread *child);
+
 #endif
 
