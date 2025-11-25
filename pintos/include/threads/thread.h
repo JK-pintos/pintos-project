@@ -114,6 +114,8 @@ struct thread {
     struct list child_list;
     struct child_info* my_entry;
 
+    struct file *my_executable;
+
     struct list fdt_block_list;
 #endif
 #ifdef VM

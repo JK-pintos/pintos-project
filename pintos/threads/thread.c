@@ -13,10 +13,12 @@
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
 #include "threads/palloc.h"
+#include "threads/malloc.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #ifdef USERPROG
 #include "userprog/process.h"
+#include "userprog/fdtable.h"
 #endif
 
 /* Random value for struct thread's `magic' member.
@@ -228,12 +230,17 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
     t->tf.eflags = FLAG_IF;
 
 #ifdef USERPROG
-    t->my_entry = palloc_get_page(PAL_ZERO);
+    t->my_entry = (struct child_info *)malloc(sizeof (struct child_info));
+    if (!(t->my_entry))
+        return TID_ERROR;
     sema_init(&t->my_entry->wait_sema, 0);
     t->my_entry->tid = tid;
     t->my_entry->wait = false;
     t->my_entry->exit_status = -1;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
+    if (false == fdt_list_init(t))
+        return TID_ERROR;
+    t->my_executable = NULL;
 #endif
 
     list_push_back(&all_list, &t->allelem);
@@ -311,14 +318,21 @@ tid_t thread_tid(void) { return thread_current()->tid; }
 void thread_exit(void) {
     ASSERT(!intr_context());
 
+    list_remove(&thread_current()->allelem);
+
 #ifdef USERPROG
+    if (thread_current()->my_executable)
+    {
+        file_close(thread_current()->my_executable);
+        thread_current()->my_executable = NULL;
+    }
+    fdt_list_cleanup(thread_current());
     process_exit();
 #endif
 
     /* Just set our status to dying and schedule another process.
        We will be destroyed during the call to schedule_tail(). */
     intr_disable();
-    list_remove(&thread_current()->allelem);
     do_schedule(THREAD_DYING);
     NOT_REACHED();
 }
@@ -499,6 +513,7 @@ static void init_thread(struct thread* t, const char* name, int priority) {
 
 #ifdef USERPROG
     list_init(&t->child_list);
+    t->my_executable = NULL;
 #endif
 }
 

@@ -34,7 +34,7 @@ struct fdt_block {
 void	            init_std_fds(void);
 
 /*  used in threads/thread.c -> thread_create()  */
-void                fdt_list_init(struct thread* t);
+bool                fdt_list_init(struct thread* t);
 
 /*  fdt_block interface functions  */
 int                 fd_allocate(struct thread* t, struct file* f);
@@ -42,8 +42,11 @@ struct fdt_block    *get_fd_block(struct thread *t, int *fd);
 struct file*        get_fd_entry(struct thread* t, int fd);
 void                fd_close(struct thread *t, int fd);
 void                fdt_list_cleanup(struct thread* t);
-void                fdt_block_append(struct thread *t);
+bool                fdt_block_append(struct thread *t);
 void                scan_for_next_fd(struct fdt_block *block);
+
+bool    duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *child_block, struct thread *child);
+bool    duplicate_fdt_block_list(struct thread *parent, struct thread *child);
 
 #endif
 
