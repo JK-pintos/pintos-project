@@ -29,7 +29,7 @@
 struct fork_struct {
     struct thread* t;
     struct intr_frame* if_;
-
+    struct semaphore fork_sema;
     bool success;
 };
 
@@ -80,6 +80,9 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
     /* Clone current thread to new thread.*/
     struct thread* cur = thread_current();
     struct fork_struct* fork_args = malloc(sizeof *fork_args);
+    if(fork_args == NULL) return TID_ERROR;
+
+    sema_init(&fork_args->fork_sema, 0);
     fork_args->t = cur;
     fork_args->if_ = if_;
     fork_args->success = true;
@@ -91,10 +94,10 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
         return TID_ERROR;
     }
 
-    sema_down(&cur->fork_sema);
-    bool succ = fork_args->success;
+    sema_down(&fork_args->fork_sema);
+    if (!fork_args->success) tid = TID_ERROR;
     free(fork_args);
-    if (!succ) return TID_ERROR;
+
     return tid;
 }
 
@@ -112,11 +115,11 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
     if (is_kern_pte(pte)) return true;
     /* 2. Resolve VA from the parent's page map level 4. */
     parent_page = pml4_get_page(parent->pml4, va);
-
+    
     /* 3. TODO: Allocate new PAL_USER page for the child and set result to
      *    TODO: NEWPAGE. */
     newpage = palloc_get_page(PAL_USER);
-
+    if(newpage == NULL) return false;
     /* 4. TODO: Duplicate parent's page to the new page and
      *    TODO: check whether parent's page is writable or not (set WRITABLE
      *    TODO: according to the result). */
@@ -165,26 +168,21 @@ static void __do_fork(void* aux) {
 #endif
     process_init();
     succ = fd_table_copy(current, parent);
-    
+
     /* Finally, switch to the newly created process. */
     if (succ) {
-        sema_up(&parent->fork_sema);
+        sema_up(&fork_args->fork_sema);
         do_iret(&if_);
     }
-
-    fdt_list_cleanup(current);
 error:
     fork_args->success = false;
-    sema_up(&parent->fork_sema);
+    sema_up(&fork_args->fork_sema);
     thread_exit();
 }
 
 /* Switch the current execution context to the f_name.
  * Returns -1 on fail. */
 int process_exec(void* f_name) {
-    char* fn_copy = palloc_get_page(0);
-    strlcpy(fn_copy, f_name, PGSIZE);  // 반드시 유효 메모리 확보
-
     char* file_name;
     char* argv[128];
     int argc = 0;
@@ -192,7 +190,7 @@ int process_exec(void* f_name) {
 
     // string token
     char *token, *save_ptr;
-    for (token = strtok_r(fn_copy, " ", &save_ptr); token != NULL;
+    for (token = strtok_r(f_name, " ", &save_ptr); token != NULL;
          token = strtok_r(NULL, " ", &save_ptr)) {
         argv[argc++] = token;
     }
@@ -213,7 +211,7 @@ int process_exec(void* f_name) {
     success = load(file_name, argc, argv, &_if);
 
     /* If load failed, quit. */
-    palloc_free_page(fn_copy);
+    palloc_free_page(f_name);
     if (!success) return -1;
 
     /* Start switched process. */

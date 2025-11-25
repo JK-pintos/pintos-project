@@ -111,8 +111,6 @@ struct thread {
     /* Owned by userprog/process.c. */
     uint64_t* pml4; /* Page map level 4 */
 
-    struct semaphore fork_sema;
-
     struct list child_list;
     struct child_info* my_entry;
 

@@ -10,6 +10,7 @@
 #include "threads/interrupt.h"
 #include "threads/loader.h"
 #include "threads/malloc.h"
+#include "threads/palloc.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "user/syscall.h"
@@ -129,7 +130,12 @@ static pid_t syscall_fork(const char* thread_name, struct intr_frame* if_) {
 
 static int syscall_exec(const char* cmd_line) {
     if (cmd_line == NULL || !valid_address(cmd_line, false)) syscall_exit(-1);
-    process_exec(cmd_line);
+
+    char* cmd_line_copy = palloc_get_page(0);
+    if (cmd_line_copy == NULL) syscall_exit(-1);
+    strlcpy(cmd_line_copy, cmd_line, PGSIZE);
+
+    process_exec(cmd_line_copy);
     syscall_exit(-1);
 }
 
