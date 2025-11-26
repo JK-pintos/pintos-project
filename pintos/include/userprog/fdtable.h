@@ -38,6 +38,7 @@ bool                fdt_list_init(struct thread* t);
 
 /*  fdt_block interface functions  */
 int                 fd_allocate(struct thread* t, struct file* f);
+struct fdt_block    *get_fd_block_allocate(struct thread* t, int* fd);
 struct fdt_block    *get_fd_block(struct thread *t, int *fd);
 struct file*        get_fd_entry(struct thread* t, int fd);
 void                fd_close(struct thread *t, int fd);

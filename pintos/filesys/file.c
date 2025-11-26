@@ -8,6 +8,7 @@ struct file {
 	struct inode *inode;        /* File's inode. */
 	off_t pos;                  /* Current position. */
 	bool deny_write;            /* Has file_deny_write() been called? */
+	int	ref_cnt;
 };
 
 /* Opens a file for the given INODE, of which it takes ownership,
@@ -20,6 +21,7 @@ file_open (struct inode *inode) {
 		file->inode = inode;
 		file->pos = 0;
 		file->deny_write = false;
+		file->ref_cnt = 1;
 		return file;
 	} else {
 		inode_close (inode);
@@ -42,20 +44,39 @@ file_duplicate (struct file *file) {
 	struct file *nfile = file_open (inode_reopen (file->inode));
 	if (nfile) {
 		nfile->pos = file->pos;
+		nfile->ref_cnt = file->ref_cnt;
 		if (file->deny_write)
 			file_deny_write (nfile);
 	}
 	return nfile;
 }
 
+struct file *
+file_dup(struct file *file)
+{
+	if (file)
+		file->ref_cnt += 1;
+	return file;
+}
+
+int
+get_ref_count(struct file *file)
+{
+	if (!file)
+		return -1;
+	return file->ref_cnt;
+}
+
 /* Closes FILE. */
 void
 file_close (struct file *file) {
-	if (file != NULL) {
+	if (file != NULL && file->ref_cnt == 1) {
 		file_allow_write (file);
 		inode_close (file->inode);
 		free (file);
 	}
+	else if (file != NULL && file->ref_cnt > 1)
+		file->ref_cnt -= 1;
 }
 
 /* Returns the inode encapsulated by FILE. */

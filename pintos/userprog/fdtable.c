@@ -1,4 +1,5 @@
 #include "userprog/fdtable.h"
+#include "filesys/file.h"
 
 struct file* stdin_entry = NULL;
 struct file* stdout_entry = NULL;
@@ -83,6 +84,38 @@ struct fdt_block* get_fd_block(struct thread* t, int* fd) {
     return block;
 }
 
+struct fdt_block* get_fd_block_allocate(struct thread* t, int* fd) {
+    struct list_elem* e;
+    struct list_elem* tail;
+    struct fdt_block* block;
+    int block_start_fd = 0;
+
+    if (*fd < 0) return NULL;
+
+    e = list_begin(&(t->fdt_block_list));
+    tail = list_tail(&(t->fdt_block_list));
+    while ((e != tail) && block_start_fd + FD_BLOCK_MAX <= *fd) {
+        e = list_next(e);
+        if (e != tail)
+            block_start_fd += FD_BLOCK_MAX;
+    }
+
+    while (block_start_fd + FD_BLOCK_MAX <= *fd)
+    {
+        if (false == fdt_block_append(t))
+            return NULL;
+        e = list_prev(tail);
+        block_start_fd += FD_BLOCK_MAX;
+    }
+    
+    // if (e == tail)
+    //     e = list_prev(tail);
+
+    block = list_entry(e, struct fdt_block, elem);
+    *fd = *fd - block_start_fd;  // 블록 안의 fd로 재조정
+    return block;
+}
+
 struct file* get_fd_entry(struct thread* t, int fd) {
     struct fdt_block* block;
 
@@ -159,6 +192,8 @@ bool    duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *ch
     struct file     *parent_entry;
     struct file     *new_entry;
     int             i = 0;
+    int             j = 0;
+    int             parent_ref_cnt;
 
     if (!child_block)
     {
@@ -168,6 +203,8 @@ bool    duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *ch
         list_push_back(&(child->fdt_block_list), &(child_block->elem));
     }
 
+    memset(child_block, 0, sizeof(struct fdt_block));
+
     while (i < FD_BLOCK_MAX)
     {
         if (parent_block->entry[i] == stdin_entry || \
@@ -175,10 +212,26 @@ bool    duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *ch
             child_block->entry[i] = parent_block->entry[i];
         else if (parent_block->entry[i])
         {
-            new_entry = file_duplicate(parent_block->entry[i]);
-            if (!new_entry)
+            parent_ref_cnt = get_ref_count(parent_block->entry[i]);
+            if (parent_ref_cnt <= 0)
                 return false;
-            child_block->entry[i] = new_entry;
+            else if (parent_ref_cnt == 1)
+            {
+                new_entry = file_duplicate(parent_block->entry[i]);
+                if (!new_entry)
+                    return false;
+                child_block->entry[i] = new_entry;
+            }
+            else
+            {
+                j = 0;
+                while (parent_ref_cnt > 0)
+                {
+                    child_block->entry[i + j] = parent_block->entry[i];
+                    parent_ref_cnt ++;
+                }
+            }
+            
         }
         i++;
     }
@@ -205,6 +258,8 @@ bool    duplicate_fdt_block_list(struct thread *parent, struct thread *child)
         parent_block = list_entry(parent_e, struct fdt_block, elem);
         if (child_e != child_tail)
             child_block = list_entry(child_e, struct fdt_block, elem);
+        else
+            child_block = NULL;
 
         if (false == duplicate_fdt_block(parent_block, child_block, child))
         {

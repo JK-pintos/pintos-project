@@ -194,13 +194,6 @@ static void __do_fork(void* aux) {
 error:
     wrapper->success = false;
     sema_up(&(wrapper->sema));
-    // if (thread_current()->my_entry)
-    // {
-    //     list_remove(&(thread_current()->my_entry->child_elem));
-    //     free(thread_current()->my_entry);
-    //     thread_current()->my_entry = NULL;
-    // }
-    // process_cleanup();
     thread_exit();
 }
 
@@ -224,6 +217,8 @@ int process_exec(void* f_name) {
      * This is because when current thread rescheduled,
      * it stores the execution information to the member. */
     struct intr_frame _if;
+
+    memset(&_if, 0, sizeof _if);
     _if.ds = _if.es = _if.ss = SEL_UDSEG;
     _if.cs = SEL_UCSEG;
     _if.eflags = FLAG_IF | FLAG_MBS;

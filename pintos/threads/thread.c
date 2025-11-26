@@ -232,14 +232,23 @@ tid_t thread_create(const char* name, int priority, thread_func* function, void*
 #ifdef USERPROG
     t->my_entry = (struct child_info *)malloc(sizeof (struct child_info));
     if (!(t->my_entry))
+    {
+        palloc_free_page(t);
         return TID_ERROR;
+    }
     sema_init(&t->my_entry->wait_sema, 0);
     t->my_entry->tid = tid;
     t->my_entry->wait = false;
     t->my_entry->exit_status = -1;
     list_push_front(&parent_t->child_list, &t->my_entry->child_elem);
     if (false == fdt_list_init(t))
+    {
+        list_remove(&(t->my_entry->child_elem));
+        free (t->my_entry);
+        t->my_entry = NULL;
+        palloc_free_page(t);
         return TID_ERROR;
+    }
     t->my_executable = NULL;
 #endif
 
