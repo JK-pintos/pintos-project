@@ -252,6 +252,9 @@ static void syscall_close(int fd) {
 }
 
 static int syscall_dup2(int oldfd, int newfd) {
+    if (oldfd < 0 || newfd < 0) return -1;
+    if (oldfd == newfd) return newfd;
+
     lock_acquire(&file_lock);
     int result = fd_dup2(thread_current(), oldfd, newfd);
     lock_release(&file_lock);

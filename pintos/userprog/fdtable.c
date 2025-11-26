@@ -180,9 +180,8 @@ bool fd_table_copy(struct thread* dst, struct thread* src) {
 
 int fd_dup2(struct thread* t, int oldfd, int newfd) {
     struct file* entry;
-    if (oldfd == newfd) return newfd;
-    entry = get_fd_entry(t, oldfd);
 
+    entry = get_fd_entry(t, oldfd);
     if (!entry) return -1;
 
     fd_close(t, newfd);
@@ -190,15 +189,14 @@ int fd_dup2(struct thread* t, int oldfd, int newfd) {
     while (list_size(&t->fdt_block_list) * FD_BLOCK_MAX <= newfd) fdt_block_append(t);
 
     struct fdt_block* block = get_fd_block(t, &newfd);
-
-    if (block->available_idx == newfd) scan_for_next_fd(block);
-
+    if(block == NULL) return -1;
+    
     if (entry == stdin_entry || entry == stdout_entry) {
         block->entry[newfd] = entry;
         return newfd;
     }
-
-    file_dup2(entry);
-    block->entry[newfd] = entry;
+    block->entry[newfd] = file_dup2(entry);
+    
+    if (block->available_idx == newfd) scan_for_next_fd(block);
     return newfd;
 }
