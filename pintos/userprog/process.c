@@ -21,7 +21,9 @@
 #include "threads/vaddr.h"
 #include "userprog/fdtable.h"
 #include "userprog/gdt.h"
+#include "userprog/syscall.h"
 #include "userprog/tss.h"
+
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -80,7 +82,7 @@ tid_t process_fork(const char* name, struct intr_frame* if_) {
     /* Clone current thread to new thread.*/
     struct thread* cur = thread_current();
     struct fork_struct* fork_args = malloc(sizeof *fork_args);
-    if(fork_args == NULL) return TID_ERROR;
+    if (fork_args == NULL) return TID_ERROR;
 
     sema_init(&fork_args->fork_sema, 0);
     fork_args->t = cur;
@@ -115,11 +117,11 @@ static bool duplicate_pte(uint64_t* pte, void* va, void* aux) {
     if (is_kern_pte(pte)) return true;
     /* 2. Resolve VA from the parent's page map level 4. */
     parent_page = pml4_get_page(parent->pml4, va);
-    
+
     /* 3. TODO: Allocate new PAL_USER page for the child and set result to
      *    TODO: NEWPAGE. */
     newpage = palloc_get_page(PAL_USER);
-    if(newpage == NULL) return false;
+    if (newpage == NULL) return false;
     /* 4. TODO: Duplicate parent's page to the new page and
      *    TODO: check whether parent's page is writable or not (set WRITABLE
      *    TODO: according to the result). */
@@ -256,7 +258,9 @@ void process_exit(void) {
     printf("%s: exit(%d)\n", cur->name, cur->my_entry->exit_status);
     if (cur->current_file) {
         file_allow_write(cur->current_file);
+        lock_acquire(&file_lock);
         file_close(cur->current_file);
+        lock_release(&file_lock);
         cur->current_file = NULL;
     }
     fdt_list_cleanup(cur);
@@ -376,7 +380,9 @@ static bool load(const char* file_name, int argc, char** argv, struct intr_frame
     process_activate(thread_current());
 
     /* Open executable file. */
+    lock_acquire(&file_lock);
     file = filesys_open(file_name);
+    lock_release(&file_lock);
     if (file == NULL) {
         printf("load: %s: open failed\n", file_name);
         goto done;

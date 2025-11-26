@@ -11,7 +11,6 @@
 #include "threads/loader.h"
 #include "threads/malloc.h"
 #include "threads/palloc.h"
-#include "threads/synch.h"
 #include "threads/thread.h"
 #include "user/syscall.h"
 #include "userprog/fdtable.h"
