@@ -13,6 +13,7 @@
 #include "tests/lib.h"
 #include "tests/userprog/boundary.h"
 #include "tests/userprog/sample.inc"
+#include "threads/thread.h"
 
 char magic[] = {
   "Pintos is funny\n"
@@ -77,7 +78,7 @@ main (int argc UNUSED, char *argv[] UNUSED) {
   snprintf (magic, sizeof magic, "%d", byte_cnt);
   write (fd4, magic, strlen (magic));
 
-  pid_t pid;
+  tid_t pid;
   if (!(pid = fork ("child"))){ // child
     msg ("child begin");
     close (fd1);

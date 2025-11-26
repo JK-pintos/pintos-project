@@ -10,11 +10,13 @@
 #include "threads/interrupt.h"
 #include "threads/loader.h"
 #include "threads/malloc.h"
+#include "threads/palloc.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "userprog/fdtable.h"
 #include "userprog/gdt.h"
 #include "userprog/validate.h"
+#include "userprog/process.h"
 
 void syscall_entry(void);
 void syscall_handler(struct intr_frame*);
@@ -36,8 +38,8 @@ struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
-// static tid_t  syscall_fork(const char *thread_name);
-// static int    syscall_exec(const char *cmd_line);
+static tid_t  syscall_fork(const char *thread_name, struct intr_frame *f);
+static int    syscall_exec(const char *cmd_line);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
@@ -48,6 +50,7 @@ static int syscall_write(int fd, const void* buffer, unsigned size);
 static void syscall_seek(int fd, unsigned position);
 static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
+static int  syscall_dup2(int oldfd, int newfd);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -71,9 +74,10 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
-
+            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
+            f->R.rax = syscall_exec(arg1);
             break;
         case SYS_WAIT:
             f->R.rax = syscall_wait(arg1);
@@ -105,6 +109,9 @@ void syscall_handler(struct intr_frame* f) {
         case SYS_CLOSE:
             syscall_close(arg1);
             break;
+        case SYS_DUP2:
+            f->R.rax = syscall_dup2(arg1, arg2);
+            break;
     }
 }
 
@@ -113,6 +120,28 @@ static void syscall_halt(void) { power_off(); }
 static void syscall_exit(int status) {
     thread_current()->my_entry->exit_status = status;
     thread_exit();
+}
+
+static tid_t  syscall_fork(const char *thread_name, struct intr_frame *f)
+{
+    if (!valid_address(thread_name, false)) syscall_exit(-1);
+
+    return process_fork(thread_name, f);
+}
+
+static int    syscall_exec(const char *cmd_line)
+{
+    char    *cmd_line_cpy;
+
+    if (!valid_address(cmd_line, false)) syscall_exit(-1);
+
+    cmd_line_cpy = palloc_get_page(PAL_ZERO);
+    if (!cmd_line_cpy)
+        syscall_exit(-1);
+    strlcpy(cmd_line_cpy, cmd_line, PGSIZE);
+
+    if (-1 == process_exec(cmd_line_cpy))
+        syscall_exit(-1);
 }
 
 static int syscall_wait(int pid) { return process_wait(pid); }
@@ -226,4 +255,47 @@ static void syscall_close(int fd) {
     lock_acquire(&file_lock);
     fd_close(thread_current(), fd);
     lock_release(&file_lock);
+}
+
+static int  syscall_dup2(int oldfd, int newfd)
+{
+    // newfd 열려있음 닫고 Oldfd로.. 
+    struct file         *old_entry;
+    struct file         *new_entry;
+    struct fdt_block    *new_fd_block;
+    int                 result;
+
+    if (oldfd < 0 || newfd < 0)
+        return -1;
+    if (oldfd == newfd)
+        return newfd;
+    
+    lock_acquire(&file_lock);
+    old_entry = get_fd_entry(thread_current(), oldfd);
+    if (!old_entry)
+        result = -1;
+    else
+    {
+        result = newfd;
+        new_fd_block = get_fd_block_allocate(thread_current(), &newfd);
+        if (!new_fd_block)
+            result = -1;
+        else
+        {
+            new_entry = new_fd_block->entry[newfd];
+            if (new_entry != old_entry)
+            {
+                if (new_entry && new_entry != stdin_entry && new_entry != stdout_entry)
+                    file_close(new_fd_block->entry[newfd]);
+                if (old_entry != stdin_entry && old_entry != stdout_entry)
+                    new_fd_block->entry[newfd] = file_dup(old_entry);
+                else
+                    new_fd_block->entry[newfd] = old_entry;
+                if (!new_fd_block->entry[newfd])
+                    result = -1;
+            }
+        }
+    }
+    lock_release(&file_lock);
+    return result;
 }
