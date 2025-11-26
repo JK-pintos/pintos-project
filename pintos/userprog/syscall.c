@@ -10,10 +10,12 @@
 #include "threads/interrupt.h"
 #include "threads/loader.h"
 #include "threads/malloc.h"
-#include "threads/synch.h"
+#include "threads/palloc.h"
 #include "threads/thread.h"
+#include "user/syscall.h"
 #include "userprog/fdtable.h"
 #include "userprog/gdt.h"
+#include "userprog/process.h"
 #include "userprog/validate.h"
 
 void syscall_entry(void);
@@ -36,8 +38,8 @@ struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
-// static tid_t  syscall_fork(const char *thread_name);
-// static int    syscall_exec(const char *cmd_line);
+static pid_t syscall_fork(const char* thread_name, struct intr_frame* if_);
+static int syscall_exec(const char* cmd_line);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
@@ -48,6 +50,7 @@ static int syscall_write(int fd, const void* buffer, unsigned size);
 static void syscall_seek(int fd, unsigned position);
 static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
+static int syscall_dup2(int oldfd, int newfd);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -71,9 +74,10 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
-
+            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
+            f->R.rax = syscall_exec(arg1);
             break;
         case SYS_WAIT:
             f->R.rax = syscall_wait(arg1);
@@ -105,6 +109,9 @@ void syscall_handler(struct intr_frame* f) {
         case SYS_CLOSE:
             syscall_close(arg1);
             break;
+        case SYS_DUP2:
+            f->R.rax = syscall_dup2(arg1, arg2);
+            break;
     }
 }
 
@@ -113,6 +120,22 @@ static void syscall_halt(void) { power_off(); }
 static void syscall_exit(int status) {
     thread_current()->my_entry->exit_status = status;
     thread_exit();
+}
+
+static pid_t syscall_fork(const char* thread_name, struct intr_frame* if_) {
+    if (thread_name == NULL || !valid_address(thread_name, false)) syscall_exit(-1);
+    return process_fork(thread_name, if_);
+}
+
+static int syscall_exec(const char* cmd_line) {
+    if (cmd_line == NULL || !valid_address(cmd_line, false)) syscall_exit(-1);
+
+    char* cmd_line_copy = palloc_get_page(0);
+    if (cmd_line_copy == NULL) syscall_exit(-1);
+    strlcpy(cmd_line_copy, cmd_line, PGSIZE);
+
+    process_exec(cmd_line_copy);
+    syscall_exit(-1);
 }
 
 static int syscall_wait(int pid) { return process_wait(pid); }
@@ -226,4 +249,14 @@ static void syscall_close(int fd) {
     lock_acquire(&file_lock);
     fd_close(thread_current(), fd);
     lock_release(&file_lock);
+}
+
+static int syscall_dup2(int oldfd, int newfd) {
+    if (oldfd < 0 || newfd < 0) return -1;
+    if (oldfd == newfd) return newfd;
+
+    lock_acquire(&file_lock);
+    int result = fd_dup2(thread_current(), oldfd, newfd);
+    lock_release(&file_lock);
+    return result;
 }

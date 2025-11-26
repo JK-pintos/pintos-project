@@ -11,6 +11,8 @@
         "atomic": "c",
         "condition_variable": "c",
         "io_context": "c",
-        "future": "c"
+        "future": "c",
+        "thread.h": "c",
+        "syscall.h": "c"
     },
 }

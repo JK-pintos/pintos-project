@@ -8,7 +8,7 @@ static int64_t put_user(uint8_t* udst, uint8_t byte);
 
 bool valid_address(const void* uaddr, bool write) {
     if (uaddr == NULL || !is_user_vaddr(uaddr)) return false;
-    return (write ? put_user(uaddr, 1) : get_user(uaddr)) != -1;
+    return (write ? put_user(uaddr, 0) : get_user(uaddr)) != -1;
 }
 
 static int64_t get_user(const uint8_t* uaddr) {

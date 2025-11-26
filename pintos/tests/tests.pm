@@ -157,12 +157,16 @@ sub compare_output {
     if ($ignore_user_faults) {
 	delete $options{IGNORE_USER_FAULTS};
 	@output = grep (!/^Page fault at.*in user context\.$/
-			&& !/: dying due to interrupt 0x0e \(.*\).$/
-			&& !/^Interrupt 0x0e \(.*\) at eip=/
-			&& !/^ cr2=.* error=.*/
-			&& !/^ eax=.* ebx=.* ecx=.* edx=.*/
-			&& !/^ esi=.* edi=.* esp=.* ebp=.*/
-			&& !/^ cs=.* ds=.* es=.* ss=.*/, @output);
+		&& !/: dying due to interrupt 0x0e \(.*\).$/
+		&& !/^Interrupt 0x0e \(.*\) at rip=/
+		&& !/^ cr2=.* error=.*/
+		&& !/^rax .* rbx .* rcx .* rdx .*/
+		&& !/^rsp .* rbp .* rsi .* rdi .*/
+		&& !/^rip .* r8 .*  r9 .* r10 .*/
+		&& !/^r11 .* r12 .* r13 .* r14 .*/
+		&& !/^r15 .* rflags .*/
+		&& !/^es: .* ds: .* cs: .* ss: .*/,
+		@output);
     }
     die "unknown option " . (keys (%options))[0] . "\n" if %options;
 
