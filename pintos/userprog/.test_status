@@ -12,6 +12,7 @@ syn-remove PASS
 priority-donate-one PASS
 dup2-simple PASS
 create-normal PASS
+dup2-fork-link FAIL
 priority-donate-lower PASS
 bad-write PASS
 open-twice PASS

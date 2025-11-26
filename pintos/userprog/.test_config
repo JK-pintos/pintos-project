@@ -115,7 +115,7 @@ priority-donate-chain | --fs-disk=10 | -q  -threads-tests -f run | 'priority-don
 [extra]
 dup2-simple  | --fs-disk=10 -p tests/userprog/dup2/dup2-simple:dup2-simple -p ../../tests/userprog/dup2/sample.txt:sample.txt   | -q -f run | 'dup2-simple'   | tests/userprog/dup2
 dup2-complex | --fs-disk=10 -p tests/userprog/dup2/dup2-complex:dup2-complex -p ../../tests/userprog/dup2/sample.txt:sample.txt | -q   -f run | 'dup2-complex' | tests/userprog/dup2
-
+dup2-fork-link | --fs-disk=10 -p tests/userprog/dup2/dup2-fork-link:dup2-fork-link -p ../../tests/userprog/dup2/sample.txt:sample.txt | -q   -f run | 'dup2-fork-link' | tests/userprog/dup2
 
 # Total testcases: 97
 # Generated on 2025-07-29
