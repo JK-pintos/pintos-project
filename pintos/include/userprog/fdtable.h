@@ -48,6 +48,7 @@ void                scan_for_next_fd(struct fdt_block *block);
 
 bool    duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *child_block, struct thread *child);
 bool    duplicate_fdt_block_list(struct thread *parent, struct thread *child);
+bool    dup2_duplicate_fdt_block_list(struct thread *parent, struct thread *child);
 
 #endif
 

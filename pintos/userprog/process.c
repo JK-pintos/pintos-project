@@ -181,7 +181,7 @@ static void __do_fork(void* aux) {
      * TODO:       the resources of parent.*/
 
     process_init();
-    if (false == duplicate_fdt_block_list(parent, current))
+    if (false == dup2_duplicate_fdt_block_list(parent, current))
         goto error;
 
     /* Finally, switch to the newly created process. */
