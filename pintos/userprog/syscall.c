@@ -1,7 +1,9 @@
 #include "userprog/syscall.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <syscall-nr.h>
+#include <string.h>
 
 #include "filesys/file.h"
 #include "filesys/filesys.h"
@@ -12,6 +14,14 @@
 #include "threads/malloc.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+#include "threads/init.h"   
+#include "threads/palloc.h"
+
+#include "filesys/filesys.h"
+#include "filesys/file.h"
+
+#include "devices/input.h"
+#include "userprog/process.h"
 #include "userprog/fdtable.h"
 #include "userprog/gdt.h"
 #include "userprog/validate.h"
@@ -36,8 +46,8 @@ struct lock file_lock;
 
 static void syscall_halt(void);
 static void syscall_exit(int status);
-// static tid_t  syscall_fork(const char *thread_name);
-// static int    syscall_exec(const char *cmd_line);
+static tid_t syscall_fork(const char *name, struct intr_frame *f);
+static int syscall_exec(const char *cmd_line);
 static int syscall_wait(int pid);
 static bool syscall_create(const char* file, unsigned initial_size);
 static bool syscall_remove(const char* file);
@@ -48,6 +58,7 @@ static int syscall_write(int fd, const void* buffer, unsigned size);
 static void syscall_seek(int fd, unsigned position);
 static unsigned syscall_tell(int fd);
 static void syscall_close(int fd);
+static int syscall_dup2(int oldfd, int newfd);
 
 void syscall_init(void) {
     write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48 | ((uint64_t)SEL_KCSEG) << 32);
@@ -71,9 +82,10 @@ void syscall_handler(struct intr_frame* f) {
             syscall_exit(arg1);
             break;
         case SYS_FORK:
-
+            f->R.rax = syscall_fork(arg1, f);
             break;
         case SYS_EXEC:
+        f->R.rax = syscall_exec(arg1);
             break;
         case SYS_WAIT:
             f->R.rax = syscall_wait(arg1);
@@ -105,6 +117,9 @@ void syscall_handler(struct intr_frame* f) {
         case SYS_CLOSE:
             syscall_close(arg1);
             break;
+        case SYS_DUP2:
+            f->R.rax = syscall_dup2(arg1, arg2);
+            break;
     }
 }
 
@@ -113,6 +128,22 @@ static void syscall_halt(void) { power_off(); }
 static void syscall_exit(int status) {
     thread_current()->my_entry->exit_status = status;
     thread_exit();
+}
+static tid_t syscall_fork(const char *name, struct intr_frame *f){
+    return process_fork(name, f);
+}
+
+static int syscall_exec(const char *cmd_line){
+    if (!valid_address(cmd_line, false)) syscall_exit(-1);
+    char *buf = palloc_get_page(PAL_ZERO);
+    if (buf == NULL) syscall_exit(-1);
+
+    strlcpy(buf, cmd_line, PGSIZE);
+
+    if (process_exec(buf) == -1)
+       syscall_exit(-1);
+
+    return process_exec(buf); 
 }
 
 static int syscall_wait(int pid) { return process_wait(pid); }
@@ -177,6 +208,8 @@ static int syscall_read(int fd, void* buffer, unsigned size) {
         result = file_read(entry, buffer, size);
     }
     lock_release(&file_lock);
+    // if (result >= 0 && (unsigned)result < size)
+    //     memset((char*)buffer + result, 0, size - result);
     return result;
 }
 
@@ -226,4 +259,42 @@ static void syscall_close(int fd) {
     lock_acquire(&file_lock);
     fd_close(thread_current(), fd);
     lock_release(&file_lock);
+}
+
+static int syscall_dup2(int oldfd, int newfd){
+    struct thread* t = thread_current();
+    struct file* old_entry;
+    struct file* new_entry;
+    struct file* duplicated;
+    struct fdt_block* block;
+    int target_fd ;
+
+    old_entry = get_fd_entry(t, oldfd);
+    if (old_entry == NULL) return -1;
+    if (oldfd == newfd) return newfd;
+    new_entry = get_fd_entry(t, newfd);
+    if (new_entry != NULL) fd_close(t, newfd);
+
+    if (old_entry == stdin_entry || old_entry == stdout_entry) {
+        duplicated = old_entry;
+    } else {
+        duplicated = file_dup(old_entry);
+        if (!duplicated) return -1;
+    }
+
+    target_fd = newfd;
+    block = get_fd_block(t, &target_fd);
+
+    if (!block){
+        while (list_size(&t->fdt_block_list) * FD_BLOCK_MAX <= newfd) {
+            fdt_block_append(t);
+        }
+        target_fd = newfd;
+        block = get_fd_block(t, &target_fd);
+    }
+    block->entry[target_fd] = duplicated;
+    if (block->available_idx == target_fd) 
+        scan_for_next_fd(block);
+
+    return newfd;
 }

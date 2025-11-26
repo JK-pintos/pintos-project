@@ -139,23 +139,25 @@ page_fault (struct intr_frame *f) {
 	not_present = (f->error_code & PF_P) == 0;
 	write = (f->error_code & PF_W) != 0;
 	user = (f->error_code & PF_U) != 0;
-
 #ifdef VM
 	/* For project 3 and later. */
 	if (vm_try_handle_fault (f, fault_addr, user, write, not_present))
 		return;
 #endif
 
-	if(!user) {
+	/* Kernel mode fault: return -1 to the caller if possible. */
+	if (!user) {
 		f->rip = f->R.rax;
 		f->R.rax = -1;
 		return;
 	}
 
-	/* Count page faults. */
+	thread_current()->my_entry->exit_status = -1;
+	thread_exit();
+		/* Count page faults. */
 	page_fault_cnt++;
 
-	/* If the fault is true fault, show info and exit. */
+		/* If the fault is true fault, show info and exit. */
 	printf ("Page fault at %p: %s error %s page in %s context.\n",
 			fault_addr,
 			not_present ? "not present" : "rights violation",
@@ -163,4 +165,3 @@ page_fault (struct intr_frame *f) {
 			user ? "user" : "kernel");
 	kill (f);
 }
-
