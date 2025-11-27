@@ -24,7 +24,7 @@ extern struct file  *stdout_entry;
     - available_idx : 할당 가능한 최소 fd 인덱스
         - syscall_open(), syscall_close()에서 관리
     - elem : list.h 함수 사용을 위해 필요               */
-struct fdt_block {
+struct                  fdt_block {
     int                 available_idx;
     struct file         *entry[FD_BLOCK_MAX];
     struct list_elem    elem;
@@ -46,8 +46,8 @@ void                fdt_list_cleanup(struct thread* t);
 bool                fdt_block_append(struct thread *t);
 void                scan_for_next_fd(struct fdt_block *block);
 
-bool    duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *child_block, struct thread *child);
-bool    duplicate_fdt_block_list(struct thread *parent, struct thread *child);
+bool                duplicate_fdt_block(struct fdt_block *parent_block, struct fdt_block *child_block, struct thread *child);
+bool                duplicate_fdt_block_list(struct thread *parent, struct thread *child);
 bool    dup2_duplicate_fdt_block_list(struct thread *parent, struct thread *child);
 
 #endif

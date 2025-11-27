@@ -79,7 +79,7 @@ struct fdt_block* get_fd_block(struct thread* t, int* fd) {
     if (e == tail || block_start_fd + FD_BLOCK_MAX <= *fd) return NULL;
 
     block = list_entry(e, struct fdt_block, elem);
-    *fd = *fd - block_start_fd;  // 블록 안의 fd로 재조정
+    *fd -= block_start_fd;  // 블록 안의 fd로 재조정
     return block;
 }
 
@@ -300,17 +300,19 @@ bool    duplicate_all_file(int i, struct list_elem *parent_e, \
 
     while (ref > 0 && parent_e != parent_tail && child_e != child_tail)
     {
-        while (i < FD_BLOCK_MAX)
+        while (ref > 0 && i < FD_BLOCK_MAX)
         {
             if (parent_block->entry[i] == entry_to_dup)
             {
-                child_block->entry[i] = file_duplicate(entry_to_dup);
+                child_block->entry[i] = new_entry;
                 ref --;
             }
             i++;
         }
         parent_e = list_next(parent_e);
         child_e = list_next(child_e);
+        parent_block = list_entry(parent_e, struct fdt_block, elem);
+        child_block = list_entry(child_e, struct fdt_block, elem);
         i = 0;
     }
     return true;
